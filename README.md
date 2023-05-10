@@ -79,7 +79,7 @@ Simulation log:
 
 ![The framework of RayCloudSim](docs/framework.jpg)
 
-[comment]: <> (<img src="image_url" alt="The framework of RayCloudSim" width="200"/>)
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/framework.jpg" alt="The framework of RayCloudSim" width="600"/>
 
 - Note that learning how to use [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) would be very helpful.
 

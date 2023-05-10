@@ -78,7 +78,7 @@ env.close()
 
 ![RayCloudSim 的框架架构](docs/framework.jpg)
 
-[comment]: <> (<img src="image_url" alt="RayCloudSim 的框架架构" width="200"/>)
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/framework.jpg" alt="RayCloudSim 的框架架构" width="800"/>
 
 - 需要注意的是学会使用 [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) 对于使用 RayCloudSim 会很有帮助.
 
