@@ -76,9 +76,9 @@ env.close()
 
 ### 2. 指导
 
-![RayCloudSim 的框架架构](docs/framework.jpg)
+[comment]: <> (![RayCloudSim 的框架架构]&#40;docs/framework.jpg&#41;)
 
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/framework.jpg" alt="RayCloudSim 的框架架构" width="800"/>
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/framework.jpg" alt="RayCloudSim 的框架架构" width="600"/>
 
 - 需要注意的是学会使用 [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) 对于使用 RayCloudSim 会很有帮助.
 
@@ -88,13 +88,13 @@ env.close()
 
 以下示例程序可以看做是渐进式的使用教程。
 
-- `examples/demo1.py`
+- [examples/demo1.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo1.py)
 
-- `examples/demo2.py`
+- [examples/demo2.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo2.py)
 
-- `examples/demo3.py`
+- [examples/demo3.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo3.py)
 
-- `examples/demo4.py`
+- [examples/demo4.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo4.py)
 
 ## IV. 未来更新计划
 - [x] 基本版本 (2023/05/10)。

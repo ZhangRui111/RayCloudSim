@@ -77,7 +77,7 @@ Simulation log:
 
 ### 2. Guides
 
-![The framework of RayCloudSim](docs/framework.jpg)
+[comment]: <> (![The framework of RayCloudSim]&#40;docs/framework.jpg&#41;)
 
 <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/framework.jpg" alt="The framework of RayCloudSim" width="600"/>
 
@@ -89,13 +89,13 @@ Simulation log:
 
 The following scripts can be used as progressive tutorials.
 
-- `examples/demo1.py`
+- [examples/demo1.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo1.py)
 
-- `examples/demo2.py`
+- [examples/demo2.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo2.py)
 
-- `examples/demo3.py`
+- [examples/demo3.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo3.py)
 
-- `examples/demo4.py`
+- [examples/demo4.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo4.py)
 
 ## IV. TODO
 - [x] The basic version (2023/05/10).
