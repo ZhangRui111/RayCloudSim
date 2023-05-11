@@ -2,6 +2,9 @@
 
 Example on how to obtain system status and catch various errors.
 """
+import sys
+sys.path.append('..')
+
 from core.env import Env
 from core.task import Task
 

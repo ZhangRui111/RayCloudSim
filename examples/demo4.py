@@ -3,6 +3,8 @@
 Demo 4 is almost the same as Demo 3, except that it demonstrates how to
 simulate multiple epochs.
 """
+import sys
+sys.path.append('..')
 from core.env import Env
 from core.task import Task
 
@@ -18,7 +20,7 @@ def main():
     # env.vis_graph(save_as="vis/network_demo3.png")
 
     # Load simulated tasks
-    with open("examples/demo3_dataset.txt", 'r') as f:
+    with open("demo3_dataset.txt", 'r') as f:
         simulated_tasks = eval(f.read())
         n_tasks = len(simulated_tasks)
 

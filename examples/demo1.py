@@ -2,6 +2,8 @@
 
 A toy example.
 """
+import sys
+sys.path.append('..')
 from core.env import Env
 from core.task import Task
 
