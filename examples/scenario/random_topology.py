@@ -10,7 +10,7 @@ from core.infrastructure import Node, Location
 class Scenario(BaseScenario):
 
     def init_infrastructure_nodes(self):
-        with open("examples/scenario/random_topology.txt", 'r') as fr:
+        with open("scenario/random_topology.txt", 'r') as fr:
             nodes, _ = eval(fr.read())
 
         for node_id, name, cu, loc_x, loc_y in nodes:
@@ -20,7 +20,7 @@ class Scenario(BaseScenario):
             self.node_id2name[node_id] = name
 
     def init_infrastructure_links(self):
-        with open("examples/scenario/random_topology.txt", 'r') as fr:
+        with open("scenario/random_topology.txt", 'r') as fr:
             _, edges = eval(fr.read())
 
         for src, dst, bandwidth in edges:
