@@ -5,6 +5,8 @@
 RayCloudSim is a simulator written in Python for analytical modeling in cloud, 
 fog, or edge computing environments. 
 
+RayCloudSim is a lightweight simulator written in Python for analytical modeling and simulation of Cloud/Fog/Edge Computing infrastructures and services.
+
 RayCloudSim has the following advantages: 
 - Compact source code, which is easy to read, understand and customize according to individual needs.
 - It is a process-based discrete-event simulation framework and can be performed "as fast as possible", in wall clock time.
@@ -33,7 +35,9 @@ The following packages are optional for visualization.
 - **plotly**
 - **kaleido**
 
-```
+Commands for configuring the RayCloudSim using Anaconda:
+
+```text
 conda create --name raycloudsim python=3.8
 conda activate raycloudsim
 conda install -c anaconda numpy
@@ -47,7 +51,7 @@ conda install -c conda-forge python-kaleido
 ## III. Set Sail
 ### 1. Hello World
 
-```
+```python
 # Create the Env
 env = Env(scenario=Scenario())
 
@@ -68,7 +72,7 @@ env.close()
 
 Simulation log:
 
-```
+```text
 [0.00]: Task {0} generated in Node {n0}
 [4.00]: Task {0} arrived Node {n1} with {4.00}s
 [6.00]: Task {0} accomplished in Node {n1} with {2.00}s
@@ -76,6 +80,8 @@ Simulation log:
 ```
 
 ### 2. Guides
+
+- The following figure presents the framework of RayCloudSim, which consists of two main components：`Env` and `Task`: 
 
 [comment]: <> (![The framework of RayCloudSim]&#40;docs/framework.jpg&#41;)
 
@@ -97,6 +103,10 @@ The following scripts can be used as progressive tutorials.
 
 - [examples/demo4.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo4.py)
 
+The following figure illustrates a visualization example:
+
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="visualization example" width="500"/>
+
 ## IV. TODO
 - [x] The basic version (2023/05/10).
 - [ ] Support waiting for a period of time when resources (i.e., bandwidth, CU) 
@@ -108,7 +118,7 @@ The following scripts can be used as progressive tutorials.
 
 To cite this repository, you can use the following BibTeX entry:
 
-```
+```text
 @article{zhang2022osttd,
   title={OSTTD: Offloading of Splittable Tasks with Topological Dependence in Multi-Tier Computing Networks},
   author={Zhang, Rui and Chu, Xuesen and Ma, Ruhui and Zhang, Meng and Lin, Liwei and Gao, Honghao and Guan, Haibing},
@@ -120,7 +130,7 @@ To cite this repository, you can use the following BibTeX entry:
 
 Besides, RayCloudSim is inspired by [LEAF](https://github.com/dos-group/leaf) and the following citation is also recommended.
 
-```
+```text
 @inproceedings{WiesnerThamsen_LEAF_2021,
   author={Wiesner, Philipp and Thamsen, Lauritz},
   booktitle={2021 IEEE 5th International Conference on Fog and Edge Computing (ICFEC)}, 

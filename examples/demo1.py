@@ -3,12 +3,14 @@
 A toy example.
 """
 import sys
-sys.path.append('..')
+
 from core.env import Env
 from core.task import Task
 
 # User should customize this class: Scenario
 from examples.scenario.simple_scenario import Scenario
+
+sys.path.append('..')
 
 
 def main():

@@ -1,11 +1,13 @@
 """Example"""
 import sys
-sys.path.append('..')
+
 from core.env import Env
 from core.task import Task
 
 # User should customize this class: Scenario
 from examples.scenario.random_topology import Scenario
+
+sys.path.append('..')
 
 
 def main():
@@ -92,7 +94,7 @@ def main():
           f"NetworkXNoPathError : {len(net_no_path_error)}\n"
           f"NetCongestionError  : {len(net_cong_error)}\n"
           f"NoFreeCUsError      : {len(no_cus_error)}")
-    print("-----------------------------------------------")
+    print("-----------------------------------------------\n")
 
     env.close()
 

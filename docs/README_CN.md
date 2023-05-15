@@ -2,7 +2,7 @@
 
 ## I. 介绍
 
-RayCloudSim 是使用 Python 开发编写的模拟平台，可用于云计算、雾计算或边缘计算环境下的分析建模。
+RayCloudSim 是一个用 Python 编写的轻量级模拟平台，可用于云/雾/边缘计算基础设施和服务的分析建模和仿真。
 
 RayCloudSim 有以下优势:
 - 源码简洁、轻量化，易于阅读、理解和根据个人需求进行自定义。
@@ -32,7 +32,9 @@ RayCloudSim 可以用于以下研究课题:
 - **plotly**
 - **kaleido**
 
-```
+使用 Anaconda 配置 RayCloudSim 运行环境的相关命令：
+
+```text
 conda create --name raycloudsim python=3.8
 conda activate raycloudsim
 conda install -c anaconda numpy
@@ -46,7 +48,7 @@ conda install -c conda-forge python-kaleido
 ## III. 起航
 ### 1. Hello World
 
-```
+```python
 # Create the Env
 env = Env(scenario=Scenario())
 
@@ -67,7 +69,7 @@ env.close()
 
 模拟打印信息:
 
-```
+```text
 [0.00]: Task {0} generated in Node {n0}
 [4.00]: Task {0} arrived Node {n1} with {4.00}s
 [6.00]: Task {0} accomplished in Node {n1} with {2.00}s
@@ -75,6 +77,8 @@ env.close()
 ```
 
 ### 2. 指导
+
+- 下图展示了 RayCloudSim 的框架架构，主要包含两大部分：`Env` 和 `Task`：
 
 [comment]: <> (![RayCloudSim 的框架架构]&#40;docs/framework.jpg&#41;)
 
@@ -96,6 +100,10 @@ env.close()
 
 - [examples/demo4.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo4.py)
 
+下图展示了一个可视化示例：
+
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="可视化示例" width="500"/>
+
 ## IV. 未来更新计划
 - [x] 基本版本 (2023/05/10)。
 - [ ] 支持在资源（如带宽、计算资源/CU）不足时，任务可以等待一段时间。
@@ -106,7 +114,7 @@ env.close()
 
 引用本代码项目 RayCloudSim 时，您可以使用以下 BibTeX 条目：
 
-```
+```text
 @article{zhang2022osttd,
   title={OSTTD: Offloading of Splittable Tasks with Topological Dependence in Multi-Tier Computing Networks},
   author={Zhang, Rui and Chu, Xuesen and Ma, Ruhui and Zhang, Meng and Lin, Liwei and Gao, Honghao and Guan, Haibing},
@@ -118,7 +126,7 @@ env.close()
 
 此外, RayCloudSim 的开发受到了 [LEAF](https://github.com/dos-group/leaf) 的启发，因此，也建议引用以下文献。
 
-```
+```text
 @inproceedings{WiesnerThamsen_LEAF_2021,
   author={Wiesner, Philipp and Thamsen, Lauritz},
   booktitle={2021 IEEE 5th International Conference on Fog and Edge Computing (ICFEC)}, 

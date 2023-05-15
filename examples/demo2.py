@@ -3,13 +3,14 @@
 Example on how to obtain system status and catch various errors.
 """
 import sys
-sys.path.append('..')
 
 from core.env import Env
 from core.task import Task
 
 # User should customize this class: Scenario
 from examples.scenario.another_scenario import Scenario
+
+sys.path.append('..')
 
 
 def main():
