@@ -99,8 +99,13 @@ class Env:
                          f"{{{dst_name}}}", task.task_id)
                     )
 
-            # * 8: MB --> Mbps
-            task.real_trans_time = task.task_size_trans * 8 / task.bit_rate
+            # ---------- Customize the transmission mode here ----------
+            trans_base_latency = 0
+            for link in links_in_path:
+                trans_base_latency += link.base_latency
+            task.real_trans_time = task.task_size_trans * 8 / task.bit_rate + \
+                                   trans_base_latency  # * 8: MB --> Mbps
+            # ----------------------------------------------------------
             self.scenario.send_data_flow(task.trans_flow, links_in_path)
             self.active_task_dict[task.task_id] = task
             try:
@@ -121,7 +126,9 @@ class Env:
                  f"**NoFreeCUsError: Task {{{task.task_id}}}** "
                  f"insufficient CUs in Node {{{dst_name}}}", task.task_id)
             )
+        # ------------ Customize the execution mode here ------------
         task.allocate(min(free_cus, task.max_cu), dst)
+        # -----------------------------------------------------------
         try:
             yield self.controller.timeout(task.real_exe_time)
             self.done_task_collector.put((task.task_id, 1,

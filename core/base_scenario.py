@@ -52,7 +52,7 @@ class BaseScenario(metaclass=ABCMeta):
         return self.infrastructure.links()
 
     def add_unilateral_link(self, src_name: str, dst_name: str, bandwidth: int,
-                            base_latency: Optional[float] = None):
+                            base_latency: Optional[float] = 0):
         """Add an unilateral link in the infrastructure."""
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(src_name),
@@ -61,7 +61,7 @@ class BaseScenario(metaclass=ABCMeta):
         )
 
     def add_bilateral_links(self, src_name: str, dst_name: str, bandwidth: int,
-                            base_latency: Optional[float] = None):
+                            base_latency: Optional[float] = 0):
         """Add a bilateral link in the infrastructure."""
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(src_name),

@@ -10,6 +10,38 @@ from examples.scenario.random_topology import Scenario
 sys.path.append('..')
 
 
+# Global statistics
+dup_task_id_error, net_no_path_error, net_cong_error, no_cus_error = \
+        [], [], [], []
+
+
+def error_handler(error: Exception):
+    """Customized error handler."""
+    message = error.args[0]
+    if message[0] == 'DuplicateTaskIdError':
+        # Error: duplicate task id
+        print(message[1])
+        # ----- handle this error here -----
+        dup_task_id_error.append(message[2])
+    elif message[0] == 'NetworkXNoPathError':
+        # Error: nx.exception.NetworkXNoPath
+        print(message[1])
+        # ----- handle this error here -----
+        net_no_path_error.append(message[2])
+    elif message[0] == 'NetCongestionError':
+        # Error: network congestion
+        print(message[1])
+        # ----- handle this error here -----
+        net_cong_error.append(message[2])
+    elif message[0] == 'NoFreeCUsError':
+        # Error: no free CUs in the destination node
+        print(message[1])
+        # ----- handle this error here -----
+        no_cus_error.append(message[2])
+    else:
+        raise NotImplementedError(error)
+
+
 def main():
     # Create the Env
     env = Env(scenario=Scenario())
@@ -23,8 +55,6 @@ def main():
         n_tasks = len(simulated_tasks)
 
     # Begin Simulation
-    dup_task_id_error, net_no_path_error, net_cong_error, no_cus_error = \
-        [], [], [], []  # statistics
     until = 1
     for task_info in simulated_tasks:
 
@@ -47,46 +77,28 @@ def main():
                 env.process(task=task, dst_name=dst_name)
                 break
 
+            # Execute the simulation with error handler
             try:
                 env.run(until=until)  # execute the simulation step by step
             except Exception as e:
-                message = e.args[0]
-                if message[0] == 'DuplicateTaskIdError':
-                    # Error: duplicate task id
-                    env.logger.log(message[1])
-                    # ----- handle this error here -----
-                    dup_task_id_error.append(message[2])
-                    pass
-                elif message[0] == 'NetworkXNoPathError':
-                    # Error: nx.exception.NetworkXNoPath
-                    env.logger.log(message[1])
-                    # ----- handle this error here -----
-                    net_no_path_error.append(message[2])
-                    pass
-                elif message[0] == 'NetCongestionError':
-                    # Error: network congestion
-                    env.logger.log(message[1])
-                    # ----- handle this error here -----
-                    net_cong_error.append(message[2])
-                    pass  # TODO: tolerate time
-                elif message[0] == 'NoFreeCUsError':
-                    # Error: no free CUs in the destination node
-                    env.logger.log(message[1])
-                    # ----- handle this error here -----
-                    no_cus_error.append(message[2])
-                    pass  # TODO: tolerate time
-                else:
-                    raise NotImplementedError(e)
+                error_handler(e)
 
             until += 1
 
     # Activate the last task.
     until += 1
-    env.run(until=until)
+    try:
+        env.run(until=until)  # execute the simulation step by step
+    except Exception as e:
+        error_handler(e)
+
     # Continue the simulation until the last task is completed.
     while env.n_active_tasks > 0:
         until += 1
-        env.run(until=until)
+        try:
+            env.run(until=until)  # execute the simulation step by step
+        except Exception as e:
+            error_handler(e)
 
     print("\n-----------------------------------------------")
     print(f"Done simulation with {n_tasks} tasks!\n\n"

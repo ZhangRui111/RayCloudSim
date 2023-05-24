@@ -13,6 +13,33 @@ from examples.scenario.another_scenario import Scenario
 sys.path.append('..')
 
 
+def error_handler(error: Exception):
+    """Customized error handler."""
+    message = error.args[0]
+    if message[0] == 'DuplicateTaskIdError':
+        # Error: duplicate task id
+        print(message[1])
+        # ----- handle this error here -----
+        pass
+    elif message[0] == 'NetworkXNoPathError':
+        # Error: nx.exception.NetworkXNoPath
+        print(message[1])
+        # ----- handle this error here -----
+        pass
+    elif message[0] == 'NetCongestionError':
+        # Error: network congestion
+        print(message[1])
+        # ----- handle this error here -----
+        pass
+    elif message[0] == 'NoFreeCUsError':
+        # Error: no free CUs in the destination node
+        print(message[1])
+        # ----- handle this error here -----
+        pass
+    else:
+        raise NotImplementedError(error)
+
+
 def main():
     # Create the Env
     env = Env(scenario=Scenario())
@@ -74,38 +101,21 @@ def main():
                 env.process(task=task, dst_name=dst_name)
                 break
 
+            # Execute the simulation with error handler
             try:
                 env.run(until=until)  # execute the simulation step by step
             except Exception as e:
-                message = e.args[0]
-                if message[0] == 'DuplicateTaskIdError':
-                    # Error: duplicate task id
-                    env.logger.log(message[1])
-                    # ----- handle this error here -----
-                    pass
-                elif message[0] == 'NetworkXNoPathError':
-                    # Error: nx.exception.NetworkXNoPath
-                    env.logger.log(message[1])
-                    # ----- handle this error here -----
-                    pass
-                elif message[0] == 'NetCongestionError':
-                    # Error: network congestion
-                    env.logger.log(message[1])
-                    # ----- handle this error here -----
-                    pass  # TODO: tolerate time
-                elif message[0] == 'NoFreeCUsError':
-                    # Error: no free CUs in the destination node
-                    env.logger.log(message[1])
-                    # ----- handle this error here -----
-                    pass  # TODO: tolerate time
-                else:
-                    raise NotImplementedError(e)
+                error_handler(e)
 
             until += 1
 
     # Activate the last task.
     until += 1
-    env.run(until=until)
+    try:
+        env.run(until=until)  # execute the simulation step by step
+    except Exception as e:
+        error_handler(e)
+
     # Continue the simulation until the last task is completed.
     while env.n_active_tasks > 0:
         until += 1
