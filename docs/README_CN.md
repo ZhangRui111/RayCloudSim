@@ -1,5 +1,7 @@
 # RayCloudSim: 一款用 Python 编写的用于云/雾/边缘计算的模拟平台
 
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo.jpg" alt="" width="800"/>
+
 ## I. 介绍
 
 RayCloudSim 是一个用 Python 编写的轻量级模拟平台，可用于云/雾/边缘计算基础设施和服务的分析建模和仿真。
@@ -82,7 +84,7 @@ env.close()
 
 [comment]: <> (![RayCloudSim 的框架架构]&#40;docs/framework.jpg&#41;)
 
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/framework.jpg" alt="RayCloudSim 的框架架构" width="600"/>
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/framework.jpg" alt="RayCloudSim 的框架架构" width="600"/>
 
 - 需要注意的是学会使用 [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) 对于使用 RayCloudSim 会很有帮助.
 
@@ -104,11 +106,19 @@ env.close()
 
 <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="可视化示例" width="500"/>
 
-## IV. 未来更新计划
+## IV. 开发计划
+### 1. 未来更新计划
 - [x] 基本版本 (2023/05/10)。
 - [ ] 支持在资源（如带宽、计算资源/CU）不足时，任务可以等待一段时间。
 - [ ] 支持对于“能源消耗”的建模。
 - [ ] 打包并发布到 PyPI.
+
+### 2. 向 RayCloudSim 贡献代码
+我们欢迎任何对代码库的贡献。但是请注意, 分支**main**是受保护的，我们建议你提交/推送代码到分支**dev**。
+
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/timG.jpg" alt="RayCloudSim 交流QQ群" width="250"/>
+
+欢迎加入RayCloudSim 交流QQ群，入群验证消息请备注研究方向
 
 ## Citation
 
