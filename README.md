@@ -1,9 +1,10 @@
 # RayCloudSim: A Simulator Written in Python for Cloud, Fog, or Edge Computing
 
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo.jpg" alt="" width="800"/>
+
 ## I. Introduction
 
-RayCloudSim is a simulator written in Python for analytical modeling in cloud, 
-fog, or edge computing environments. 
+RayCloudSim is a simulator written in Python for analytical modeling in cloud, fog, or edge computing environments. 
 
 RayCloudSim is a lightweight simulator written in Python for analytical modeling and simulation of Cloud/Fog/Edge Computing infrastructures and services.
 
@@ -85,7 +86,7 @@ Simulation log:
 
 [comment]: <> (![The framework of RayCloudSim]&#40;docs/framework.jpg&#41;)
 
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/framework.jpg" alt="The framework of RayCloudSim" width="600"/>
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/framework.jpg" alt="The framework of RayCloudSim" width="600"/>
 
 - Note that learning how to use [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) would be very helpful.
 
@@ -107,12 +108,16 @@ The following figure illustrates a visualization example:
 
 <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="visualization example" width="500"/>
 
-## IV. TODO
+## IV. Development Plan
+### 1. TODO
 - [x] The basic version (2023/05/10).
 - [ ] Support waiting for a period of time when resources (i.e., bandwidth, CU) 
       are insufficient.
 - [ ] Modeling of energy consumption.
 - [ ] Package and publish to PyPI.
+
+### 2. Contribute Code to RayCloudSim
+We welcome any contributions to the codebase. The branch **main** is protected, and we recommend that you submit/push code to branch **dev**. 
 
 ## Citation
 
