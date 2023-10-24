@@ -101,8 +101,12 @@ class Node(object):
             imaginary unit for computational power to express differences
             between hardware platforms. If None, the node has unlimited
             processing power.
-        used_cu:
+        used_cu: current occupied cus
         location: geographical location.
+        power_consumption: power consumption since the simulation begins;
+            wired nodes do not need to worry about the current device battery
+            level.
+        flag_only_wireless: only wireless transmission is allowed.
     """
 
     def __init__(self, node_id: int, name: str,
@@ -118,6 +122,9 @@ class Node(object):
 
         self.used_cu = 0
         self.tasks: List["Task"] = []
+        self.power_consumption = 0
+
+        self.flag_only_wireless = False
 
     def __repr__(self):
         return f"{self.name} ({self.used_cu}/{self.cu})".replace('inf', '∞')
@@ -182,6 +189,12 @@ class Link(object):
 
     def __init__(self, src: Node, dst: Node, bandwidth: float,
                  base_latency: Optional[float] = 0):
+
+        if src.flag_only_wireless or dst.flag_only_wireless:
+            raise UserWarning(
+                "Attempting to create link that links wireless node, which "
+                "is not permitted.")
+
         self.src = src
         self.dst = dst
         self.bandwidth = bandwidth
@@ -315,11 +328,51 @@ class Infrastructure(object):
 
         Collect the shortest links (with given weight) between two nodes.
         """
-        shortest_path = nx.shortest_path(self.graph, src_name, dst_name,
-                                         weight=weight)
-        shortest_links = [self.graph.edges[a, b, 0]["data"]
-                          for a, b in nx.utils.pairwise(shortest_path)]
-        return shortest_links
+        src, dst = self.get_node(src_name), self.get_node(dst_name)
+
+        shortest_links = []
+        if src.flag_only_wireless or dst.flag_only_wireless:
+            if src.flag_only_wireless and src.default_dst_node and \
+                    dst.flag_only_wireless and dst.default_dst_node:
+                shortest_path = nx.shortest_path(self.graph,
+                                                 src.default_dst_node.name,
+                                                 dst.default_dst_node.name,
+                                                 weight=weight)
+                shortest_links.append((src_name, src.default_dst_node.name))
+                shortest_links += [self.graph.edges[a, b, 0]["data"]
+                                   for a, b in nx.utils.pairwise(shortest_path)]
+                shortest_links.append((dst.default_dst_node.name, dst_name))
+            elif src.flag_only_wireless and src.default_dst_node and \
+                not dst.flag_only_wireless:
+                shortest_path = nx.shortest_path(self.graph,
+                                                 src.default_dst_node.name,
+                                                 dst_name,
+                                                 weight=weight)
+                shortest_links.append((src_name, src.default_dst_node.name))
+                shortest_links += [self.graph.edges[a, b, 0]["data"]
+                                   for a, b in nx.utils.pairwise(shortest_path)]
+            elif not src.flag_only_wireless and \
+                    dst.flag_only_wireless and dst.default_dst_node:
+                shortest_path = nx.shortest_path(self.graph,
+                                                 src_name,
+                                                 dst.default_dst_node.name,
+                                                 weight=weight)
+                shortest_links += [self.graph.edges[a, b, 0]["data"]
+                                   for a, b in nx.utils.pairwise(shortest_path)]
+                shortest_links.append((dst.default_dst_node.name, dst_name))
+            else:
+                raise EnvironmentError(
+                    ('IsolatedWirelessNode',
+                     f"{src_name} or {dst_name} has no accessible wired node.")
+                )
+
+            return shortest_links
+        else:
+            shortest_path = nx.shortest_path(self.graph, src_name, dst_name,
+                                             weight=weight)
+            shortest_links = [self.graph.edges[a, b, 0]["data"]
+                              for a, b in nx.utils.pairwise(shortest_path)]
+            return shortest_links
 
     def get_longest_shortest_path(self):
         """The longest shortest path among all nodes."""

@@ -31,20 +31,29 @@ def plot_2d_network_graph(graph: nx.Graph, save_as: str = None):
         x=edge_x, y=edge_y,
         line=dict(width=0.5, color='#888'),
         hoverinfo='none',
-        mode='lines')
+        mode='lines',
+    )
 
-    node_x = []
-    node_y = []
+    wired_node_x, wired_node_y = [], []
+    wireless_node_x, wireless_node_y = [], []
     for node in graph.nodes():
         try:
-            x, y = graph.nodes[node]['data'].location.loc()
+            node_data = graph.nodes[node]['data']
+            x, y = node_data.location.loc()
+            flag_only_wireless = node_data.flag_only_wireless
+            if flag_only_wireless:
+                wireless_node_x.append(x)
+                wireless_node_y.append(y)
+            else:
+                wired_node_x.append(x)
+                wired_node_y.append(y)
         except KeyError:
             x, y = graph.nodes[node]['pos']
-        node_x.append(x)
-        node_y.append(y)
+            wired_node_x.append(x)
+            wired_node_y.append(y)
 
-    node_trace = go.Scatter(
-        x=node_x, y=node_y,
+    wired_node_trace = go.Scatter(
+        x=wired_node_x, y=wired_node_y,
         mode='markers',
         hoverinfo='text',
         marker=dict(
@@ -56,37 +65,65 @@ def plot_2d_network_graph(graph: nx.Graph, save_as: str = None):
             colorscale='YlGnBu',
             reversescale=True,
             color=[],
-            size=10,
+            size=14,
+            symbol='circle',
             colorbar=dict(
                 thickness=15,
                 title='Node Connections',
                 xanchor='left',
                 titleside='right'
             ),
-            line_width=2))
+            line_width=2,
+        )
+    )
+    wireless_node_trace = go.Scatter(
+        x=wireless_node_x, y=wireless_node_y,
+        mode='markers',
+        hoverinfo='text',
+        marker=dict(
+            showscale=True,
+            colorscale='YlGnBu',
+            reversescale=True,
+            color='black',
+            size=10,
+            symbol='star-diamond',
+            colorbar=dict(
+                thickness=15,
+                title='Node Connections',
+                xanchor='left',
+                titleside='right'
+            ),
+            line_width=2,
+        )
+    )
 
     # 2. Color Node Points
     # Color node points by the number of connections.
     # Another option would be to size points by the number of connections,
     # i.e., node_trace.marker.size = node_adjacencies
-    node_adjacencies = []
-    node_text = []
+    wired_node_adjacencies = []
+    wired_node_text, wireless_node_text = [], []
     for node_id, (adjacencies, node_name) in enumerate(zip(graph.adjacency(),
                                                            graph.nodes())):
-        node_adjacencies.append(len(adjacencies[1]))
+        wired_node_adjacencies.append(len(adjacencies[1]))
         try:
-            node = graph.nodes[node_name]["data"]
-            node_text.append(f"#{node_id} {node.location}")
+            node_data = graph.nodes[node_name]['data']
+            if node_data.flag_only_wireless:
+                wireless_node_text.append(f"#{node_id} (wireless) "
+                                          f"{node_data.location}")
+            else:
+                wired_node_text.append(f"#{node_id} {node_data.location}")
         except KeyError:
-            node_text.append(f"#{node_id} of connections: "
+            wired_node_text.append(f"#{node_id} of connections: "
                              f"{len(adjacencies[1])}")
 
-    node_trace.marker.color = node_adjacencies
-    # node_trace.marker.size = node_adjacencies  # another option
-    node_trace.text = node_text
+    wired_node_trace.marker.color = wired_node_adjacencies
+    # node_trace.marker.size = wired_node_adjacencies  # another option
+    wired_node_trace.text = wired_node_text
+    wireless_node_trace.text = wireless_node_text
 
     # 3. Create Network Graph
-    fig = go.Figure(data=[edge_trace, node_trace],
+    fig = go.Figure(data=[edge_trace, wired_node_trace, wireless_node_trace],
                     layout=go.Layout(
                         title="Network Graph Visualization",
                         showlegend=False,
@@ -105,9 +142,12 @@ def plot_2d_network_graph(graph: nx.Graph, save_as: str = None):
                         yaxis=dict(showgrid=False, zeroline=False,
                                    showticklabels=False))
                     )
+
+    # 4. Saving and Visualizing
     if save_as:
         os.makedirs(os.path.dirname(save_as), exist_ok=True)
         fig.write_image(save_as, engine='auto')
+
     fig.show()
 
 

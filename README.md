@@ -1,6 +1,16 @@
+<div style="text-align: center;">
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo_long.jpg" alt="" width="800"/>
+</div>
+
 # RayCloudSim: A Simulator Written in Python for Cloud, Fog, or Edge Computing
 
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo.jpg" alt="" width="800"/>
+<div style="text-align: center;">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="700" />
+  </picture>
+</div>
 
 ## I. Introduction
 
@@ -86,7 +96,9 @@ Simulation log:
 
 [comment]: <> (![The framework of RayCloudSim]&#40;docs/framework.jpg&#41;)
 
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/framework.jpg" alt="The framework of RayCloudSim" width="600"/>
+<div style="text-align: center;">
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/framework.jpg" alt="RayCloudSim 的框架架构" width="500"/>
+</div>
 
 - Note that learning how to use [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) would be very helpful.
 
@@ -106,13 +118,16 @@ The following scripts can be used as progressive tutorials.
 
 The following figure illustrates a visualization example:
 
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="visualization example" width="500"/>
+<div style="text-align: center;">
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="可视化示例" width="500"/>
+</div>
 
 ## IV. Development Plan
 ### 1. TODO
-- [x] The basic version (2023/05/10).
-- [ ] Support waiting for a period of time when resources (i.e., bandwidth, CU) 
-      are insufficient.
+- [X] The basic version. (2023/05/10)
+- [X] Module Zoo, such as WirelessNode, etc. (2023/10/24)
+- [ ] Support using wireless nodes as relay communication nodes.
+- [ ] Add cache space to computing nodes for task queue.
 - [ ] Modeling of energy consumption.
 - [ ] Package and publish to PyPI.
 
