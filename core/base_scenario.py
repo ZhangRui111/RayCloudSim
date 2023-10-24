@@ -79,6 +79,9 @@ class BaseScenario(metaclass=ABCMeta):
         for node in self.nodes():
             node.tasks = []
             node.used_cu = 0
+            # for wireless nodes
+            if node.flag_only_wireless:
+                node.update_access_dst_nodes(self.nodes())
 
         for link in self.links():
             link.data_flows = []

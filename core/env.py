@@ -4,6 +4,7 @@ import networkx as nx
 from typing import Optional, Tuple
 
 from core.base_scenario import BaseScenario
+from core.infrastructure import Link
 from core.task import Task
 from core.visualization import plot_2d_network_graph
 
@@ -29,6 +30,8 @@ class Env:
         self.active_task_dict = {}  # store current active tasks
         self.done_task_info = []  # catch infos of completed tasks
         self.done_task_collector = simpy.Store(self.controller)
+
+        self.reset()
 
         # Launch the monitor process
         self.monitor_process = self.controller.process(
@@ -91,21 +94,39 @@ class Env:
                 )
 
             for link in links_in_path:
-                if link.bandwidth - link.used_bandwidth < task.bit_rate:
-                    raise EnvironmentError(
-                        ('NetCongestionError',
-                         f"**NetCongestionError: Task {{{task.task_id}}}** "
-                         f"network congestion Node {{{task.src_name}}} --> "
-                         f"{{{dst_name}}}", task.task_id)
-                    )
+                if isinstance(link, Link):
+                    if link.bandwidth - link.used_bandwidth < task.bit_rate:
+                        raise EnvironmentError(
+                            ('NetCongestionError',
+                             f"**NetCongestionError: Task {{{task.task_id}}}** "
+                             f"network congestion Node {{{task.src_name}}} --> "
+                             f"{{{dst_name}}}", task.task_id)
+                        )
 
-            # ---------- Customize the transmission mode here ----------
+            # ---- Customize the wired/wireless transmission mode here ----
+
+            # wireless transmission:
+            if isinstance(links_in_path[0], tuple):
+                wireless_src_name, wired_dst_name = links_in_path[0]
+                # task.real_trans_time += func(task, wireless_src_name,
+                #                              wired_dst_name)  # TODO
+                task.real_trans_time += 0  # (currently only a toy model)
+                links_in_path = links_in_path[1:]
+            if isinstance(links_in_path[-1], tuple):
+                wired_src_name, wireless_dst_name = links_in_path[-1]
+                # task.real_trans_time += func(task, wired_src_name,
+                #                              wireless_dst_name)  # TODO
+                task.real_trans_time += 0  # (currently only a toy model)
+                links_in_path = links_in_path[:-1]
+
+            # wired transmission:
             trans_base_latency = 0
             for link in links_in_path:
                 trans_base_latency += link.base_latency
-            task.real_trans_time = task.task_size_trans * 8 / task.bit_rate + \
-                                   trans_base_latency  # * 8: MB --> Mbps
-            # ----------------------------------------------------------
+            task.real_trans_time += task.task_size_trans * 8 / task.bit_rate + \
+                                    trans_base_latency  # * 8: MB --> Mbps
+
+            # -------------------------------------------------------------
             self.scenario.send_data_flow(task.trans_flow, links_in_path)
             self.active_task_dict[task.task_id] = task
             try:

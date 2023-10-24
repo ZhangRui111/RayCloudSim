@@ -1,6 +1,6 @@
-# RayCloudSim: 一款用 Python 编写的用于云/雾/边缘计算的模拟平台
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo_long.jpg" alt="" width="800"/>
 
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo.jpg" alt="" width="800"/>
+# RayCloudSim: 一款用 Python 编写的用于云/雾/边缘计算的模拟平台
 
 ## I. 介绍
 
@@ -108,8 +108,10 @@ env.close()
 
 ## IV. 开发计划
 ### 1. 未来更新计划
-- [x] 基本版本 (2023/05/10)。
-- [ ] 支持在资源（如带宽、计算资源/CU）不足时，任务可以等待一段时间。
+- [x] 基本版本. (2023/05/10)
+- [X] 增加模块 zoo, 如 WirelessNode 等. (2023/10/24) **\[更新位于分支 dev\]**
+- [ ] 支持把无线节点作为中继通信节点
+- [ ] 支持计算节点添加缓存空间, 以支持任务队列缓存.
 - [ ] 支持对于“能源消耗”的建模。
 - [ ] 打包并发布到 PyPI.
 

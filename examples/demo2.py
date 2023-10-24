@@ -26,6 +26,11 @@ def error_handler(error: Exception):
         print(message[1])
         # ----- handle this error here -----
         pass
+    elif message[0] == 'IsolatedWirelessNode':
+        # Error: isolated wireless src/dst node
+        print(message[1])
+        # ----- handle this error here -----
+        pass
     elif message[0] == 'NetCongestionError':
         # Error: network congestion
         print(message[1])
