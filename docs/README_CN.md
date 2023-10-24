@@ -1,5 +1,5 @@
 <div style="text-align: center;">
-  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo.jpg" alt="" width="800"/>
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo_long.jpg" alt="" width="800"/>
 </div>
 
 # RayCloudSim: 一款用 Python 编写的用于云/雾/边缘计算的模拟平台
