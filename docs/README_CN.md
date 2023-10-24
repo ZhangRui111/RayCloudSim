@@ -1,12 +1,16 @@
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo_long.jpg" alt="" width="800"/>
+<div style="text-align: center;">
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo.jpg" alt="" width="800"/>
+</div>
 
 # RayCloudSim: 一款用 Python 编写的用于云/雾/边缘计算的模拟平台
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="500"/>
-</picture>
+<div style="text-align: center;">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="700" />
+  </picture>
+</div>
 
 ## I. 介绍
 
@@ -90,7 +94,9 @@ env.close()
 
 [comment]: <> (![RayCloudSim 的框架架构]&#40;docs/framework.jpg&#41;)
 
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/framework.jpg" alt="RayCloudSim 的框架架构" width="600"/>
+<div style="text-align: center;">
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/framework.jpg" alt="RayCloudSim 的框架架构" width="500"/>
+</div>
 
 - 需要注意的是学会使用 [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) 对于使用 RayCloudSim 会很有帮助.
 
@@ -110,7 +116,9 @@ env.close()
 
 下图展示了一个可视化示例：
 
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="可视化示例" width="500"/>
+<div style="text-align: center;">
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="可视化示例" width="500"/>
+</div>
 
 ## IV. 开发计划
 ### 1. 未来更新计划
