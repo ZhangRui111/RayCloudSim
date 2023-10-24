@@ -5,7 +5,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" />
+  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="500"/>
 </picture>
 
 ## I. 介绍
@@ -115,7 +115,7 @@ env.close()
 ## IV. 开发计划
 ### 1. 未来更新计划
 - [x] 基本版本. (2023/05/10)
-- [X] 增加模块 zoo, 如 WirelessNode 等. (2023/10/24) **\[更新位于分支 dev\]**
+- [X] 增加模块 zoo, 如 WirelessNode 等. (2023/10/24)
 - [ ] 支持把无线节点作为中继通信节点
 - [ ] 支持计算节点添加缓存空间, 以支持任务队列缓存.
 - [ ] 支持对于“能源消耗”的建模。

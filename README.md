@@ -5,7 +5,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" />
+  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="500"/>
 </picture>
 
 ## I. Introduction
@@ -117,7 +117,7 @@ The following figure illustrates a visualization example:
 ## IV. Development Plan
 ### 1. TODO
 - [X] The basic version. (2023/05/10)
-- [X] Module Zoo, such as WirelessNode, etc. (2023/10/24) **\[branch dev\]**
+- [X] Module Zoo, such as WirelessNode, etc. (2023/10/24)
 - [ ] Support using wireless nodes as relay communication nodes.
 - [ ] Add cache space to computing nodes for task queue.
 - [ ] Modeling of energy consumption.
