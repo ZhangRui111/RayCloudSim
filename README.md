@@ -2,6 +2,12 @@
 
 # RayCloudSim: A Simulator Written in Python for Cloud, Fog, or Edge Computing
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
+  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
+  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" />
+</picture>
+
 ## I. Introduction
 
 RayCloudSim is a simulator written in Python for analytical modeling in cloud, fog, or edge computing environments. 
