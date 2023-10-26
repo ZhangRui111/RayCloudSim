@@ -2,6 +2,7 @@ import math
 import networkx as nx
 import warnings
 
+from collections import deque
 from typing import Optional, Iterator, List
 
 __all__ = ["Location", "Data", "DataFlow", "Node", "Link", "Infrastructure"]
@@ -101,7 +102,12 @@ class Node(object):
             imaginary unit for computational power to express differences
             between hardware platforms. If None, the node has unlimited
             processing power.
-        used_cu: current occupied cus
+        used_cu: current occupied cus.
+        buffer: FIFO buffer for local-waiting tasks.
+        buffer_size: maximum buffer size.
+            Note that, once buffer_size > 0, the NoFreeCUsError is replaced by
+            the InsufficientBufferError.
+        used_buffer: current occupied buffer size.
         location: geographical location.
         power_consumption: power consumption since the simulation begins;
             wired nodes do not need to worry about the current device battery
@@ -111,6 +117,7 @@ class Node(object):
 
     def __init__(self, node_id: int, name: str,
                  cu: Optional[float] = None,
+                 buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None):
         self.node_id = node_id
         self.name = name
@@ -118,9 +125,12 @@ class Node(object):
             self.cu = math.inf
         else:
             self.cu = cu
+        self.used_cu = 0
+        self.buffer = deque()  # FIFO deque
+        self.buffer_size = buffer_size
+        self.used_buffer = 0
         self.location = location
 
-        self.used_cu = 0
         self.tasks: List["Task"] = []
         self.power_consumption = 0
 
@@ -159,6 +169,27 @@ class Node(object):
         """Remove a task from the node."""
         self._release_cu(task.cu)
         self.tasks.remove(task)
+
+    def buffer_append_task(self, task: "Task"):
+        """Append a task to the buffer."""
+        if task.task_size_exe <= self.buffer_size - self.used_buffer:
+            self.used_buffer += task.task_size_exe
+            self.buffer.append(task)
+        else:
+            raise EnvironmentError(
+                ('InsufficientBufferError',
+                 f"**InsufficientBufferError: Task {{{task.task_id}}}** "
+                 f"insufficient buffer in Node {{{self.name}}}", task.task_id)
+            )
+
+    def buffer_pop_task(self):
+        """Pop a task from the buffer."""
+        if len(self.buffer) > 0:
+            task = self.buffer.popleft()
+            self.used_buffer -= task.task_size_exe
+            return task
+        else:
+            return None
 
     def _reserve_cu(self, cu: float):
         new_used_cu = self.used_cu + cu

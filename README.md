@@ -127,7 +127,7 @@ The following figure illustrates a visualization example:
 - [X] The basic version. (2023/05/10)
 - [X] Module Zoo, such as WirelessNode, etc. (2023/10/24)
 - [ ] Support using wireless nodes as relay communication nodes.
-- [ ] Add cache space to computing nodes for task queue.
+- [X] Add buffer in computing nodes for task queue. (2023/10/26)
 - [ ] Modeling of energy consumption.
 - [ ] Package and publish to PyPI.
 

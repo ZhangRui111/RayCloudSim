@@ -72,23 +72,45 @@ class Task:
     def __repr__(self):
         return f"[{self.__class__.__name__}] ({self.task_id})"
 
-    def allocate(self, cu, node: Node):
-        self._set_cu(cu)
-        self._allocate_dst(node)
+    def allocate(self, cu=0, node: Node = None):
+        if cu <= 0:
+            if node is None:
+                raise ValueError()
+            else:
+                self._pre_allocate_dst(node)
+        else:
+            self._set_cu(cu)
+            if node is None:
+                self._post_allocate_dst()
+            else:
+                self._allocate_dst(node)
 
     def _set_cu(self, cu):
-        """Allocate some available CUs for execution."""
+        """Set the real available CUs for execution."""
         self.cu = cu
         self.real_exe_time = self.task_size_exe / self.cu
 
     def _allocate_dst(self, dst: Node):
-        """Place the task on a certain node and allocate resources."""
+        """Attach the task with the dst node and allocate resources."""
         if self.dst is not None:
             raise ValueError(f"Cannot place {self} on {dst}: "
                              f"It was already placed on {self.dst}.")
         self.dst = dst
         self.dst_id = dst.node_id
         self.dst_name = dst.name
+        self.dst.add_task(self)
+
+    def _pre_allocate_dst(self, dst: Node):
+        """Attach the task with the dst node."""
+        if self.dst is not None:
+            raise ValueError(f"Cannot place {self} on {dst}: "
+                             f"It was already placed on {self.dst}.")
+        self.dst = dst
+        self.dst_id = dst.node_id
+        self.dst_name = dst.name
+
+    def _post_allocate_dst(self):
+        """Allocate resources to the local-waiting task."""
         self.dst.add_task(self)
 
     def deallocate(self):

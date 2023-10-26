@@ -31,10 +31,11 @@ class WirelessNode(Node):
     """
     def __init__(self, node_id: int, name: str,
                  cu: Optional[float] = None,
+                 buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
                  max_transmit_power: int = 0,
                  radius: float = 100):
-        super().__init__(node_id, name, cu, location)
+        super().__init__(node_id, name, cu, buffer_size, location)
 
         self.flag_only_wireless = True
 
@@ -88,12 +89,13 @@ class MobileNode(WirelessNode):
 
     def __init__(self, node_id: int, name: str,
                  cu: Optional[float] = None,
+                 buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
                  max_transmit_power: int = 0,
                  radius: float = 100,
                  power: float = 100):
-        super().__init__(node_id, name, cu, location, max_transmit_power,
-                         radius)
+        super().__init__(node_id, name, cu, buffer_size, location,
+                         max_transmit_power, radius)
 
         # dynamic attributes
         self.power = power

@@ -79,6 +79,8 @@ class BaseScenario(metaclass=ABCMeta):
         for node in self.nodes():
             node.tasks = []
             node.used_cu = 0
+            node.buffer.clear()
+            node.used_buffer = 0
             # for wireless nodes
             if node.flag_only_wireless:
                 node.update_access_dst_nodes(self.nodes())
