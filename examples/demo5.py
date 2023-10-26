@@ -18,7 +18,7 @@ def main():
     env = Env(scenario=Scenario())
 
     # # Visualize the scenario/network
-    # env.vis_graph(save_as="vis/network_demo4.png")
+    # env.vis_graph(save_as="vis/network_demo5.png")
 
     # Begin Simulation
     task1 = Task(task_id=0,
