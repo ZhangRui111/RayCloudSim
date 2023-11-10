@@ -126,8 +126,8 @@ The following figure illustrates a visualization example:
 ### 1. TODO
 - [X] The basic version. (2023/05/10)
 - [X] Module Zoo, such as WirelessNode, etc. (2023/10/24)
-- [ ] Support using wireless nodes as relay communication nodes.
-- [X] Add buffer in computing nodes for task queue. (2023/10/26) **\[in branch dev\]**
+- [?] Support using wireless nodes as relay communication nodes.
+- [X] Add buffer in computing nodes for task queue. (2023/11/10)
 - [ ] Modeling of energy consumption.
 - [ ] Package and publish to PyPI.
 

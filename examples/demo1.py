@@ -37,3 +37,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# # ==================== Simulation log ====================
+# [0.00]: Task {0} generated in Node {n0}
+# [0.00]: Task {0}: {n0} --> {n1}
+# [4.00]: Task {0} arrived Node {n1} with {4.00}s
+# [4.00]: Processing Task {0} in {n1}
+# [6.00]: Task {0} accomplished in Node {n1} with {2.00}s
+# [10.00]: Simulation completed!

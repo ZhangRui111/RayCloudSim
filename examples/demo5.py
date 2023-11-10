@@ -18,7 +18,7 @@ def main():
     env = Env(scenario=Scenario())
 
     # # Visualize the scenario/network
-    # env.vis_graph(save_as="vis/network_demo4.png")
+    # env.vis_graph(save_as="vis/network_demo5.png")
 
     # Begin Simulation
     task1 = Task(task_id=0,
@@ -48,3 +48,15 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# # ==================== Simulation log ====================
+# [0.00]: Task {0} generated in Node {n4}
+# [0.00]: Task {0}: {n4} --> {n5}
+# [10.00]: Task {1} generated in Node {n1}
+# [10.00]: Task {1}: {n1} --> {n5}
+# [12.00]: Task {0} arrived Node {n5} with {12.00}s
+# [12.00]: Processing Task {0} in {n5}
+# [14.00]: Task {0} accomplished in Node {n5} with {2.00}s
+# [18.00]: Task {1} arrived Node {n5} with {8.00}s
+# [18.00]: Processing Task {1} in {n5}
+# [20.00]: Simulation completed!

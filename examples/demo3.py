@@ -9,10 +9,13 @@ from examples.scenario.random_topology import Scenario
 
 sys.path.append('..')
 
-
 # Global statistics
-dup_task_id_error, net_no_path_error, net_cong_error, no_cus_error = \
-        [], [], [], []
+dup_task_id_error = []
+net_no_path_error = []
+isolated_wireless_node_error = []
+net_cong_error = []
+no_cus_error = []
+insufficient_buffer_error = []
 
 
 def error_handler(error: Exception):
@@ -20,24 +23,34 @@ def error_handler(error: Exception):
     message = error.args[0]
     if message[0] == 'DuplicateTaskIdError':
         # Error: duplicate task id
-        print(message[1])
+        # print(message[1])
         # ----- handle this error here -----
         dup_task_id_error.append(message[2])
     elif message[0] == 'NetworkXNoPathError':
         # Error: nx.exception.NetworkXNoPath
-        print(message[1])
+        # print(message[1])
         # ----- handle this error here -----
         net_no_path_error.append(message[2])
+    elif message[0] == 'IsolatedWirelessNode':
+        # Error: isolated wireless src/dst node
+        # print(message[1])
+        # ----- handle this error here -----
+        isolated_wireless_node_error.append(message[2])
     elif message[0] == 'NetCongestionError':
         # Error: network congestion
-        print(message[1])
+        # print(message[1])
         # ----- handle this error here -----
         net_cong_error.append(message[2])
     elif message[0] == 'NoFreeCUsError':
         # Error: no free CUs in the destination node
-        print(message[1])
+        # print(message[1])
         # ----- handle this error here -----
         no_cus_error.append(message[2])
+    elif message[0] == 'InsufficientBufferError':
+        # Error: insufficient buffer in the destination node
+        # print(message[1])
+        # ----- handle this error here -----
+        insufficient_buffer_error.append(message[2])
     else:
         raise NotImplementedError(error)
 
@@ -85,15 +98,8 @@ def main():
 
             until += 1
 
-    # Activate the last task.
-    until += 1
-    try:
-        env.run(until=until)  # execute the simulation step by step
-    except Exception as e:
-        error_handler(e)
-
     # Continue the simulation until the last task is completed.
-    while env.n_active_tasks > 0:
+    while env.process_task_cnt < len(simulated_tasks):
         until += 1
         try:
             env.run(until=until)  # execute the simulation step by step
@@ -102,10 +108,12 @@ def main():
 
     print("\n-----------------------------------------------")
     print(f"Done simulation with {n_tasks} tasks!\n\n"
-          f"DuplicateTaskIdError: {len(dup_task_id_error)}\n"
-          f"NetworkXNoPathError : {len(net_no_path_error)}\n"
-          f"NetCongestionError  : {len(net_cong_error)}\n"
-          f"NoFreeCUsError      : {len(no_cus_error)}")
+          f"DuplicateTaskIdError   : {len(dup_task_id_error)}\n"
+          f"NetworkXNoPathError    : {len(net_no_path_error)}\n"
+          f"IsolatedWirelessNode   : {len(isolated_wireless_node_error)}\n"
+          f"NetCongestionError     : {len(net_cong_error)}\n"
+          f"NoFreeCUsError         : {len(no_cus_error)}\n"
+          f"InsufficientBufferError: {len(insufficient_buffer_error)}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -113,3 +121,21 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# # ==================== Simulation log ====================
+# ...
+# [1064.09]: Processing Task {372} in {n8}
+# [1065.00]: Task {372} accomplished in Node {n8} with {0.78}s
+#
+# -----------------------------------------------
+# Done simulation with 400 tasks!
+#
+# DuplicateTaskIdError   : 0
+# NetworkXNoPathError    : 0
+# IsolatedWirelessNode   : 0
+# NetCongestionError     : 11
+# NoFreeCUsError         : 12
+# InsufficientBufferError: 0
+# -----------------------------------------------
+#
+# [1066.00]: Simulation completed!

@@ -18,27 +18,32 @@ def error_handler(error: Exception):
     message = error.args[0]
     if message[0] == 'DuplicateTaskIdError':
         # Error: duplicate task id
-        print(message[1])
+        # print(message[1])
         # ----- handle this error here -----
         pass
     elif message[0] == 'NetworkXNoPathError':
         # Error: nx.exception.NetworkXNoPath
-        print(message[1])
+        # print(message[1])
         # ----- handle this error here -----
         pass
     elif message[0] == 'IsolatedWirelessNode':
         # Error: isolated wireless src/dst node
-        print(message[1])
+        # print(message[1])
         # ----- handle this error here -----
         pass
     elif message[0] == 'NetCongestionError':
         # Error: network congestion
-        print(message[1])
+        # print(message[1])
         # ----- handle this error here -----
         pass
     elif message[0] == 'NoFreeCUsError':
         # Error: no free CUs in the destination node
-        print(message[1])
+        # print(message[1])
+        # ----- handle this error here -----
+        pass
+    elif message[0] == 'InsufficientBufferError':
+        # Error: insufficient buffer in the destination node
+        # print(message[1])
         # ----- handle this error here -----
         pass
     else:
@@ -114,20 +119,42 @@ def main():
 
             until += 1
 
-    # Activate the last task.
-    until += 1
-    try:
-        env.run(until=until)  # execute the simulation step by step
-    except Exception as e:
-        error_handler(e)
-
     # Continue the simulation until the last task is completed.
-    while env.n_active_tasks > 0:
+    while env.process_task_cnt < len(simulated_tasks):
         until += 1
-        env.run(until=until)
+        try:
+            env.run(until=until)
+        except Exception as e:
+            error_handler(e)
 
     env.close()
 
 
 if __name__ == '__main__':
     main()
+
+# # ==================== Simulation log ====================
+# [0.00]: Task {0} generated in Node {n0}
+# [0.00]: Processing Task {0} in {n0}
+# [0.00]: Task {1} generated in Node {n0}
+# [0.00]: Task {1}: {n0} --> {n2}
+# [1.00]: **DuplicateTaskIdError: Task {0}** new task (name {t0-duplicate}) with a duplicate task id {0}.
+# [2.00]: Task {2} generated in Node {n0}
+# [2.00]: **NetCongestionError: Task {2}** network congestion Node {n0} --> {n2}
+# [2.00]: Task {0} accomplished in Node {n0} with {2.00}s
+# [3.00]: Task {3} generated in Node {n0}
+# [3.00]: **NetworkXNoPathError: Task {3}** Node {n3} is inaccessible
+# [4.00]: Task {4} generated in Node {n0}
+# [4.00]: Processing Task {4} in {n0}
+# [4.00]: Task {5} generated in Node {n0}
+# [4.00]: **NoFreeCUsError: Task {5}** no free CUs in Node {n0}
+# [5.00]: Task {4} accomplished in Node {n0} with {1.00}s
+# [8.00]: Task {1} arrived Node {n2} with {8.00}s
+# [8.00]: Processing Task {1} in {n2}
+# [10.00]: Task {6} generated in Node {n0}
+# [10.00]: Task {6}: {n0} --> {n2}
+# [10.00]: Task {1} accomplished in Node {n2} with {2.00}s
+# [18.00]: Task {6} arrived Node {n2} with {8.00}s
+# [18.00]: Processing Task {6} in {n2}
+# [20.00]: Task {6} accomplished in Node {n2} with {2.00}s
+# [21.00]: Simulation completed!
