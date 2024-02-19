@@ -4,13 +4,13 @@
 
 # RayCloudSim: A Simulator Written in Python for Cloud, Fog, or Edge Computing
 
-<div style="text-align: center;">
+<!-- <div style="text-align: center;">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
     <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="700" />
   </picture>
-</div>
+</div> -->
 
 ## I. Introduction
 
