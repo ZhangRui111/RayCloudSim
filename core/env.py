@@ -132,13 +132,13 @@ class Env:
                 task.real_trans_time = 0
                 # ---- Customize the wired/wireless transmission mode here ----
                 # wireless transmission:
-                if isinstance(links_in_path[0], tuple):
+                if isinstance(links_in_path[0], Tuple):
                     wireless_src_name, wired_dst_name = links_in_path[0]
                     # task.real_trans_time += func(task, wireless_src_name,
                     #                              wired_dst_name)  # TODO
                     task.real_trans_time += 0  # (currently only a toy model)
                     links_in_path = links_in_path[1:]
-                if isinstance(links_in_path[-1], tuple):
+                if isinstance(links_in_path[-1], Tuple):
                     wired_src_name, wireless_dst_name = links_in_path[-1]
                     # task.real_trans_time += func(task, wired_src_name,
                     #                              wireless_dst_name)  # TODO

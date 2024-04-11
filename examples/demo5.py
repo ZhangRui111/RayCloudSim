@@ -2,15 +2,18 @@
 
 Example on simulation that considers the wireless transmission.
 """
+import os
 import sys
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
 
 from core.env import Env
 from core.task import Task
 
 # User should customize this class: Scenario
 from examples.scenario.simple_scenario_2 import Scenario
-
-sys.path.append('..')
 
 
 def main():

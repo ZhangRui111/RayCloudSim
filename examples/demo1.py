@@ -2,15 +2,18 @@
 
 A toy example.
 """
+import os
 import sys
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
 
 from core.env import Env
 from core.task import Task
 
 # User should customize this class: Scenario
-from examples.scenario.simple_scenario import Scenario
-
-sys.path.append('..')
+from examples.scenario.simple_scenario_1 import Scenario
 
 
 def main():

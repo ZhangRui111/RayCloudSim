@@ -18,7 +18,7 @@ class Scenario(BaseScenario):
 
     def init_infrastructure_links(self):
         self.add_bilateral_links(self.node_id2name[0],
-                                 self.node_id2name[1], 100)
+                                 self.node_id2name[1], [100, 90])
 
     def status(self, node_name=None, link_args=None):
         return

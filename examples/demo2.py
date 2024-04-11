@@ -2,15 +2,18 @@
 
 Example on how to obtain system status and catch various errors.
 """
+import os
 import sys
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
 
 from core.env import Env
 from core.task import Task
 
 # User should customize this class: Scenario
 from examples.scenario.another_scenario import Scenario
-
-sys.path.append('..')
 
 
 def error_handler(error: Exception):

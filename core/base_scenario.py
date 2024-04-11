@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Tuple
+from typing import Optional, Union, Tuple, List
 
 from core.infrastructure import Infrastructure, Link, DataFlow
 
@@ -51,7 +51,7 @@ class BaseScenario(metaclass=ABCMeta):
     def links(self):
         return self.infrastructure.links()
 
-    def add_unilateral_link(self, src_name: str, dst_name: str, bandwidth: int,
+    def add_unilateral_link(self, src_name: str, dst_name: str, bandwidth: float,
                             base_latency: Optional[float] = 0):
         """Add an unilateral link in the infrastructure."""
         self.infrastructure.add_link(
@@ -60,18 +60,20 @@ class BaseScenario(metaclass=ABCMeta):
                  bandwidth=bandwidth, base_latency=base_latency)
         )
 
-    def add_bilateral_links(self, src_name: str, dst_name: str, bandwidth: int,
+    def add_bilateral_links(self, src_name: str, dst_name: str, bandwidth: Union[float, List],
                             base_latency: Optional[float] = 0):
         """Add a bilateral link in the infrastructure."""
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(src_name),
                  self.infrastructure.get_node(dst_name),
-                 bandwidth=bandwidth, base_latency=base_latency)
+                 bandwidth=bandwidth[0] if isinstance(bandwidth, List) else bandwidth,
+                 base_latency=base_latency)
         )
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(dst_name),
                  self.infrastructure.get_node(src_name),
-                 bandwidth=bandwidth, base_latency=base_latency)
+                 bandwidth=bandwidth[1] if isinstance(bandwidth, List) else bandwidth,
+                 base_latency=base_latency)
         )
 
     def reset(self):

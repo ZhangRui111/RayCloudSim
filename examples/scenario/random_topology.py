@@ -1,6 +1,12 @@
+import os
+import sys
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
+
 import numpy as np
 import networkx as nx
-import os
 import random
 
 from core.base_scenario import BaseScenario
@@ -10,7 +16,7 @@ from core.infrastructure import Node, Location
 class Scenario(BaseScenario):
 
     def init_infrastructure_nodes(self):
-        with open("scenario/random_topology.txt", 'r') as fr:
+        with open("examples/scenario/random_topology.txt", 'r') as fr:
             nodes, _ = eval(fr.read())
 
         for node_id, name, cu, loc_x, loc_y in nodes:
@@ -20,7 +26,7 @@ class Scenario(BaseScenario):
             self.node_id2name[node_id] = name
 
     def init_infrastructure_links(self):
-        with open("scenario/random_topology.txt", 'r') as fr:
+        with open("examples/scenario/random_topology.txt", 'r') as fr:
             _, edges = eval(fr.read())
 
         for src, dst, bandwidth in edges:

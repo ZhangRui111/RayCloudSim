@@ -3,15 +3,18 @@
 Demo 4 is almost the same as Demo 3, except that it demonstrates how to
 simulate multiple epochs.
 """
+import os
 import sys
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
 
 from core.env import Env
 from core.task import Task
 
 # User should customize this class: Scenario
 from examples.scenario.random_topology import Scenario
-
-sys.path.append('..')
 
 # Global statistics
 dup_task_id_error = []
@@ -67,7 +70,7 @@ def main():
     # env.vis_graph(save_as="vis/network_demo3.png")
 
     # Load simulated tasks
-    with open("demo3_dataset.txt", 'r') as f:
+    with open("examples/demo3_dataset.txt", 'r') as f:
         simulated_tasks = eval(f.read())
         n_tasks = len(simulated_tasks)
 
