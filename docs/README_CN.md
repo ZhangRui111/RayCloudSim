@@ -12,6 +12,22 @@
   </picture>
 </div> -->
 
+## 更新摘要
+- **2024/04/14**
+
+  在分支 main 发布第一个正式版 v1.0.0，主要更新如下：
+  - [**新增**] 移除计算单元 (Computational Unit, CU)；采用基于“**CPU频率、CPU周期数**”的计算资源建模方式
+  - [**新增**] 仿真过程支持**计算能耗**的建模
+  - [**新增**] 计算任务支持**等待超时**的特性
+  - [**优化**] **任务队列**优化
+  - [**优化**] **README** 文档更新
+  - [**优化**] **examples/*** 示例程序更新
+  - [**修复**] 修复部分 bug
+    - 文件路径导致的模块导入失败
+  
+  > **老用户须知：**
+  v1.0.0 之前的版本在分支 pre-v0.6.6 得到了保留，但预计后续不再有更新，十分感谢各位用户对于早期版本的支持！
+
 ## I. 介绍
 
 RayCloudSim 是一个用 Python 编写的轻量级模拟平台，可用于云/雾/边缘计算基础设施和服务的分析建模和仿真。
@@ -66,26 +82,41 @@ env = Env(scenario=Scenario())
 
 # Begin Simulation
 task = Task(task_id=0,
-            max_cu=10,
-            task_size_exe=20,
-            task_size_trans=10,
-            bit_rate=20,
+            task_size=20,
+            cycles_per_bit=10,
+            trans_bit_rate=20,
             src_name='n0')
 
 env.process(task=task, dst_name='n1')
 
-env.run(until=10)
+env.run(until=20)
+
+print("\n-----------------------------------------------")
+print("Power consumption during simulation:\n")
+print(f"n0: {env.scenario.get_node('n0').power_consumption:.3f}")
+print(f"n1: {env.scenario.get_node('n1').power_consumption:.3f}")
+print("-----------------------------------------------\n")
 
 env.close()
 ```
 
-模拟打印信息:
+日志/打印信息:
 
 ```text
 [0.00]: Task {0} generated in Node {n0}
-[4.00]: Task {0} arrived Node {n1} with {4.00}s
-[6.00]: Task {0} accomplished in Node {n1} with {2.00}s
-[10.00]: Simulation completed!
+[0.00]: Task {0}: {n0} --> {n1}
+[1.00]: Task {0} arrived Node {n1} with {1.00}s
+[1.00]: Processing Task {0} in {n1}
+[11.00]: Task {0} accomplished in Node {n1} with {10.00}s
+
+-----------------------------------------------
+Power consumption during simulation:
+
+n0: 0.200
+n1: 72000.200
+-----------------------------------------------
+
+[20.00]: Simulation completed!
 ```
 
 ### 2. 指导
@@ -100,7 +131,7 @@ env.close()
 
 - 需要注意的是学会使用 [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) 对于使用 RayCloudSim 会很有帮助.
 
-- [docs/RayCloudSim.md](docs/RayCloudSim.md)
+- 一个简单的系统建模介绍：[docs/RayCloudSim.md](docs/RayCloudSim.md)
 
 ### 3. Tutorials
 
@@ -114,7 +145,11 @@ env.close()
 
 - [examples/demo4.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo4.py)
 
-下图展示了一个可视化示例：
+- [examples/demo5.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo5.py)
+
+- [examples/demo6.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo6.py)
+
+下图展示了一个可视化的示例：
 
 <div style="text-align: center;">
   <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="可视化示例" width="500"/>
@@ -124,17 +159,20 @@ env.close()
 ### 1. 未来更新计划
 - [x] 基本版本。(2023/05/10)
 - [X] 增加模块 zoo, 如 WirelessNode 等。(2023/10/24)
-- [X] 支持计算节点添加缓存空间, 以支持任务队列缓存。(2023/11/10)
-- [ ] 支持把无线节点作为中继通信节点?
-- [ ] 支持对于“能源消耗”的建模。
-- [ ] 打包并发布到 PyPI。
+- [X] 计算节点支持队列空间, 以支持任务缓存。(2023/11/10)
+- [ ] ~~支持把无线节点作为中继通信节点?~~
+- [X] 支持对于“计算能耗”、“任务超时”的建模等。(2024/04/14)
+- [ ] Details such as the energy consumption and transmission of wireless nodes
+- [ ] Metric/*
+- [ ] Evaluation APIs
+- [ ] Anything reasonable
 
 ### 2. 向 RayCloudSim 贡献代码
-我们欢迎任何对代码库的贡献。但是请注意, 分支**main**是受保护的，我们建议你提交/推送代码到分支**dev**。
+欢迎任何对代码库的贡献。但是请注意, 分支**main**是受保护的，建议您提交/推送代码到分支**dev-open**。
 
 <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/timG.jpg" alt="RayCloudSim 交流QQ群" width="250"/>
 
-欢迎加入RayCloudSim 交流QQ群，入群验证消息请备注研究方向
+欢迎加入RayCloudSim 交流QQ群，推荐入群后备注研究方向
 
 ## Citation
 

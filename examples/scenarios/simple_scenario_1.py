@@ -10,15 +10,17 @@ class Scenario(BaseScenario):
         self.node_id2name[1] = 'n1'
 
         self.infrastructure.add_node(
-            Node(node_id=0, name='n0', cu=100,
-                 location=Location(16, 68)))
+            Node(node_id=0, name='n0', max_cpu_freq=20, max_buffer_size=100,
+                 location=Location(16, 68),
+                 idle_power_coef=0.01, exe_power_coef=1))
         self.infrastructure.add_node(
-            Node(node_id=1, name='n1', cu=100,
-                 location=Location(63, 47)))
+            Node(node_id=1, name='n1', max_cpu_freq=20, max_buffer_size=100,
+                 location=Location(63, 47),
+                 idle_power_coef=0.01, exe_power_coef=1))
 
     def init_infrastructure_links(self):
         self.add_bilateral_links(self.node_id2name[0],
-                                 self.node_id2name[1], 100)
+                                 self.node_id2name[1], [100, 90])
 
     def status(self, node_name=None, link_args=None):
         return

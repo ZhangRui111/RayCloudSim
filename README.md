@@ -12,9 +12,24 @@
   </picture>
 </div> -->
 
-## I. Introduction
+## Update Summary
+- **2024/04/14**
 
-RayCloudSim is a simulator written in Python for analytical modeling in cloud, fog, or edge computing environments. 
+  The first official release v1.0.0 has been published on the main branch, with the following major updates:
+
+  - [**New**] Removal of the "Computational Unit" (CU); adoption of a computational resource modeling approach based on "**CPU frequency, number of CPU cycles**"
+  - [**New**] Simulation process now supports modeling of **computational energy consumption**
+  - [**New**] Computational tasks now support the feature of **timeout failure**
+  - [**Optimization**] Optimization of the **task queue**
+  - [**Optimization**] **README** documentation updated
+  - [**Optimization**] **examples/*** Example programs updated
+  - [**Fix**] Fixed some bugs
+    - Module import failures caused by file paths
+
+  > **Important Notice for Previous Users:**
+  The versions prior to v1.0.0 have been preserved on the pre-v0.6.6 branch, but no further updates are expected for this version. We are very grateful for the support of all users for the early versions!
+
+## I. Introduction
 
 RayCloudSim is a lightweight simulator written in Python for analytical modeling and simulation of Cloud/Fog/Edge Computing infrastructures and services.
 
@@ -68,15 +83,20 @@ env = Env(scenario=Scenario())
 
 # Begin Simulation
 task = Task(task_id=0,
-            max_cu=10,
-            task_size_exe=20,
-            task_size_trans=10,
-            bit_rate=20,
+            task_size=20,
+            cycles_per_bit=10,
+            trans_bit_rate=20,
             src_name='n0')
 
 env.process(task=task, dst_name='n1')
 
-env.run(until=10)
+env.run(until=20)
+
+print("\n-----------------------------------------------")
+print("Power consumption during simulation:\n")
+print(f"n0: {env.scenario.get_node('n0').power_consumption:.3f}")
+print(f"n1: {env.scenario.get_node('n1').power_consumption:.3f}")
+print("-----------------------------------------------\n")
 
 env.close()
 ```
@@ -85,9 +105,19 @@ Simulation log:
 
 ```text
 [0.00]: Task {0} generated in Node {n0}
-[4.00]: Task {0} arrived Node {n1} with {4.00}s
-[6.00]: Task {0} accomplished in Node {n1} with {2.00}s
-[10.00]: Simulation completed!
+[0.00]: Task {0}: {n0} --> {n1}
+[1.00]: Task {0} arrived Node {n1} with {1.00}s
+[1.00]: Processing Task {0} in {n1}
+[11.00]: Task {0} accomplished in Node {n1} with {10.00}s
+
+-----------------------------------------------
+Power consumption during simulation:
+
+n0: 0.200
+n1: 72000.200
+-----------------------------------------------
+
+[20.00]: Simulation completed!
 ```
 
 ### 2. Guides
@@ -102,7 +132,7 @@ Simulation log:
 
 - Note that learning how to use [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) would be very helpful.
 
-- [docs/RayCloudSim.md](docs/RayCloudSim.md)
+- A Simple Introduction to System Modeling: [docs/RayCloudSim.md](docs/RayCloudSim.md)
 
 ### 3. Tutorials
 
@@ -116,6 +146,10 @@ The following scripts can be used as progressive tutorials.
 
 - [examples/demo4.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo4.py)
 
+- [examples/demo5.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo5.py)
+
+- [examples/demo6.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo6.py)
+
 The following figure illustrates a visualization example:
 
 <div style="text-align: center;">
@@ -125,14 +159,17 @@ The following figure illustrates a visualization example:
 ## IV. Development Plan
 ### 1. TODO
 - [X] The basic version. (2023/05/10)
-- [X] Module Zoo, such as WirelessNode, etc. (2023/10/24)
-- [X] Add buffer in computing nodes for task queue. (2023/11/10)
-- [ ] Support using wireless nodes as relay communication nodes?
-- [ ] Modeling of energy consumption.
-- [ ] Package and publish to PyPI.
+- [X] Added modules zoo, including WirelessNode, etc. (2023/10/24)
+- [X] Computational nodes now support queue space to facilitate task buffering. (2023/11/10)
+- [ ] ~~Support using wireless nodes as relay communication nodes?~~
+- [X] Modeling of 'computational energy consumption' and 'task timeout' supported, etc. (2024/04/14)
+- [ ] Details such as the energy consumption and transmission of wireless nodes.
+- [ ] Metric/*
+- [ ] Evaluation APIs
+- [ ] Anything reasonable
 
 ### 2. Contribute Code to RayCloudSim
-We welcome any contributions to the codebase. The branch **main** is protected, and we recommend that you submit/push code to branch **dev**. 
+We welcome any contributions to the codebase. However, please note that the **main** branch is protected, and we recommend that you submit/push your code to the **dev-open** branch.
 
 ## Citation
 
