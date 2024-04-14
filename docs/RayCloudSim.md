@@ -1,3 +1,7 @@
+<div style="text-align: center;">
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo_long.jpg" alt="" width="800"/>
+</div>
+
 # RayCloudSim
 
 Note: This README file is recommended to be viewed with a reader that supports LaTeX.
