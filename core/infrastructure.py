@@ -143,17 +143,17 @@ class Node(object):
       - entire data centers with virtually unlimited resources
 
     Attributes:
-        node_id: node id, unique in the infrastructure.
+        node_id: node id, unique.
         name: node name.
         max_cpu_freq: maximum cpu frequency.
         free_cpu_freq: current available cpu frequency.
             Note: At present, free_cpu_freq can be '0' or 'max_cpu_freq', i.e., one task at a time.
-        task_buffer: FIFO buffer for local-waiting tasks.
+        task_buffer: FIFO buffer for queued tasks.
             Note: The buffer is not used for executing tasks; 
             tasks can be executed even when the buffer is zero.
         location: geographical location.
-        idle_power_coef: power/Energy consumption coefficient during idle state.
-        exe_power_coef: power/Energy consumption coefficient during working/computing state.
+        idle_power_coef: power/energy consumption coefficient during idle state.
+        exe_power_coef: power/energy consumption coefficient during working/computing state.
         tasks: tasks placed in the node.
         power_consumption: power consumption since the simulation begins;
             wired nodes do not need to worry about the current device battery level.
@@ -262,9 +262,9 @@ class Link(object):
         max_bandwidth: maximum bandwidth in bps.
         free_bandwidth: current available bandwidth in bps.
         dis: the distance between its source node and its destination node.
-        base_latency: base latency of the network link which can be used to
-                      implement routing policies.
-        data_flows: store data flows allocated in this network link.
+        base_latency: base latency of the link which can be used to implement 
+            routing policies.
+        data_flows: data flows allocated in this link.
     """
 
     def __init__(self, src: Node, dst: Node, max_bandwidth: float,

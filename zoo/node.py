@@ -20,15 +20,17 @@ class WirelessNode(Node):
     """Wireless Node where data can only be transmitted wirelessly.
 
     Attributes:
-        node_id: node id, unique in the infrastructure.
+        node_id: node id, unique.
         name: node name.
         max_cpu_freq: maximum cpu frequency.
         free_cpu_freq: current available cpu frequency.
             Note: At present, free_cpu_freq can be '0' or 'max_cpu_freq', i.e., one task at a time.
-        task_buffer: FIFO buffer for local-waiting tasks.
+        task_buffer: FIFO buffer for queued tasks.
             Note: The buffer is not used for executing tasks; 
             tasks can be executed even when the buffer is zero.
         location: geographical location.
+        idle_power_coef: power/energy consumption coefficient during idle state.
+        exe_power_coef: power/energy consumption coefficient during working/computing state.
         tasks: tasks placed in the node.
         power_consumption: power consumption since the simulation begins;
             wired nodes do not need to worry about the current device battery level.
@@ -93,15 +95,17 @@ class MobileNode(WirelessNode):
     (2) dynamic location instead of static location.
 
     Attributes:
-        node_id: node id, unique in the infrastructure.
+        node_id: node id, unique.
         name: node name.
         max_cpu_freq: maximum cpu frequency.
         free_cpu_freq: current available cpu frequency.
             Note: At present, free_cpu_freq can be '0' or 'max_cpu_freq', i.e., one task at a time.
-        task_buffer: FIFO buffer for local-waiting tasks.
+        task_buffer: FIFO buffer for queued tasks.
             Note: The buffer is not used for executing tasks; 
             tasks can be executed even when the buffer is zero.
         location: geographical location.
+        idle_power_coef: power/energy consumption coefficient during idle state.
+        exe_power_coef: power/energy consumption coefficient during working/computing state.
         tasks: tasks placed in the node.
         power_consumption: power consumption since the simulation begins;
             wired nodes do not need to worry about the current device battery level.
