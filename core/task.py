@@ -1,3 +1,5 @@
+import math
+
 from typing import Optional
 
 from core.infrastructure import Node, Data, DataFlow
@@ -88,7 +90,8 @@ class Task:
                 self._post_allocate_dst()
             else:
                 self._allocate_dst(node)
-            self.exe_time = (self.task_size * self.cycles_per_bit) / self.cpu_freq  # estimated execution time
+            self.exe_time = math.ceil(
+                (self.task_size * self.cycles_per_bit) / self.cpu_freq)  # estimated execution time
 
     def _allocate_dst(self, dst: Node):
         """Attach the task with the dst node and allocate resources."""

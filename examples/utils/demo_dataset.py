@@ -23,8 +23,8 @@ def main():
              [i,  # task_id
               random.randint(10, 100),  # task_size
               random.randint(1, 10),  # cycles_per_bit
-              random.randint(10, 50),  # trans_bit_rate
-              random.randint(100, 200),  # ddl
+              random.randint(20, 80),  # trans_bit_rate
+              random.randint(50, 100),  # ddl
               f'n{random.randint(0, 9)}',  # src_name
               f't{i}'], # task_name
               f'n{random.randint(0, 9)}')  # dst_name

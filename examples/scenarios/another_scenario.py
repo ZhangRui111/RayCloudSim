@@ -17,17 +17,25 @@ class Scenario(BaseScenario):
         self.node_id2name[3] = 'n3'
 
         self.infrastructure.add_node(
-            Node(node_id=0, name='n0', max_cpu_freq=5, max_buffer_size=100,
-                 location=Location(16, 68)))
+            Node(node_id=0, name='n0', 
+                 max_cpu_freq=5, max_buffer_size=100,
+                 location=Location(16, 68),
+                 idle_power_coef=0.01, exe_power_coef=1))
         self.infrastructure.add_node(
-            Node(node_id=1, name='n1', max_cpu_freq=5, max_buffer_size=100,
-                 location=Location(63, 47)))
+            Node(node_id=1, name='n1', 
+                 max_cpu_freq=5, max_buffer_size=100,
+                 location=Location(63, 47),
+                 idle_power_coef=0.01, exe_power_coef=1))
         self.infrastructure.add_node(
-            Node(node_id=2, name='n2', max_cpu_freq=5, max_buffer_size=100,
-                 location=Location(30, 30)))
+            Node(node_id=2, name='n2', 
+                 max_cpu_freq=5, max_buffer_size=100,
+                 location=Location(30, 30),
+                 idle_power_coef=0.01, exe_power_coef=1))
         self.infrastructure.add_node(
-            Node(node_id=3, name='n3', max_cpu_freq=5, max_buffer_size=100,
-                 location=Location(15, 45)))
+            Node(node_id=3, name='n3', 
+                 max_cpu_freq=5, max_buffer_size=100,
+                 location=Location(15, 45),
+                 idle_power_coef=0.01, exe_power_coef=1))
 
     def init_infrastructure_links(self):
         self.add_bilateral_links(self.node_id2name[0],

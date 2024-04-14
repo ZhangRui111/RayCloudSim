@@ -43,12 +43,17 @@ class WirelessNode(Node):
             multi-hop communication.
     """
     def __init__(self, node_id: int, name: str,
-                 max_cpu_freq: float = None,
+                 max_cpu_freq: float,
                  max_buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
+                 idle_power_coef: Optional[float] = 0, 
+                 exe_power_coef: Optional[float] = 0,
                  max_transmit_power: int = 0,
                  radius: float = 100):
-        super().__init__(node_id, name, max_cpu_freq, max_buffer_size, location)
+        super().__init__(node_id, name, 
+                         max_cpu_freq, max_buffer_size, 
+                         location, 
+                         idle_power_coef, exe_power_coef)
 
         self.flag_only_wireless = True
 
@@ -107,13 +112,18 @@ class MobileNode(WirelessNode):
     """
 
     def __init__(self, node_id: int, name: str,
-                 max_cpu_freq: float = None,
+                 max_cpu_freq: float, 
                  max_buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
+                 idle_power_coef: Optional[float] = 0, 
+                 exe_power_coef: Optional[float] = 0,
                  max_transmit_power: int = 0,
                  radius: float = 100,
                  power: float = 100):
-        super().__init__(node_id, name, max_cpu_freq, max_buffer_size, location,
+        super().__init__(node_id, name, 
+                         max_cpu_freq, max_buffer_size, 
+                         location,
+                         idle_power_coef, exe_power_coef,
                          max_transmit_power, radius)
 
         # dynamic attributes

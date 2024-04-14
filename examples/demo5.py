@@ -50,6 +50,17 @@ def main():
     env.run(until=20)  # execute the simulation from 10 to 20
     # routing path: [n1 --> n2, n2 --> n3, ('n3', 'n5')]
 
+    print("\n-----------------------------------------------")
+    print("Power consumption during simulation:\n")
+    print(f"n0: {env.scenario.get_node('n0').power_consumption:.3f}")
+    print(f"n1: {env.scenario.get_node('n1').power_consumption:.3f}")
+    print(f"n2: {env.scenario.get_node('n2').power_consumption:.3f}")
+    print(f"n3: {env.scenario.get_node('n3').power_consumption:.3f}")
+    print(f"n4: {env.scenario.get_node('n4').power_consumption:.3f}")
+    print(f"n5: {env.scenario.get_node('n5').power_consumption:.3f}")
+    print(f"n6: {env.scenario.get_node('n6').power_consumption:.3f}")
+    print("-----------------------------------------------\n")
+
     env.close()
 
 
@@ -67,4 +78,17 @@ if __name__ == '__main__':
 # [12.00]: Task {1} arrived Node {n5} with {2.00}s
 # [12.00]: Processing Task {1} in {n5}
 # [13.00]: Task {1} accomplished in Node {n5} with {1.00}s
+
+# -----------------------------------------------
+# Power consumption during simulation:
+
+# n0: 0.200
+# n1: 0.200
+# n2: 0.200
+# n3: 0.200
+# n4: 0.200
+# n5: 1600.200
+# n6: 0.200
+# -----------------------------------------------
+
 # [20.00]: Simulation completed!

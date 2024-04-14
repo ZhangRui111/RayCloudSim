@@ -40,6 +40,11 @@ class Env:
         # Launch the monitor process
         self.monitor_process = self.controller.process(
             self.monitor_on_done_task_collector())
+        
+        # Launch all power recorder processes
+        self.power_recorders = {}
+        for node in self.scenario.nodes():
+            self.power_recorders[node.node_id] = self.controller.process(self.power_clock(node))
 
     @property
     def now(self):
@@ -254,6 +259,13 @@ class Env:
                 # self.logger.log("")  # turn on: log on every time slot
 
             yield self.controller.timeout(1)
+    
+    def power_clock(self, node):
+        """Recorder of node's power consumption."""
+        while True:
+            node.power_consumption += node.idle_power_coef
+            node.power_consumption += node.exe_power_coef * (node.max_cpu_freq - node.free_cpu_freq) ** 3
+            yield self.controller.timeout(1)
 
     @property
     def n_active_tasks(self):
@@ -272,3 +284,7 @@ class Env:
     def close(self):
         self.logger.log("Simulation completed!")
         self.monitor_process.interrupt()
+        for p in self.power_recorders.values():
+            if p.is_alive:
+                p.interrupt()
+        self.power_recorders.clear()

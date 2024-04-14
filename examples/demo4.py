@@ -138,6 +138,12 @@ def main():
             f"TimeoutError           : {len(timeout_error)}")
         print("-----------------------------------------------\n")
 
+        print("\n-----------------------------------------------")
+        print("Power consumption during simulation:\n")
+        for node in env.scenario.nodes():
+            print(f"{node.name}: {node.power_consumption:.3f}")
+        print("-----------------------------------------------\n")
+
     env.close()
 
 
@@ -146,11 +152,11 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # ...
-# [3461.00]: Task {365} accomplished in Node {n6} with {29.82}s
-# [3461.00]: **TimeoutError: Task {384}** timeout in Node {n6}
-# [3461.00]: Task {399} re-actives in Node {n6}
-# [3461.00]: Processing Task {399} in {n6}
-# [3463.00]: Task {399} accomplished in Node {n6} with {1.82}s
+# [3678.00]: Processing Task {395} in {n4}
+# [3689.00]: Task {395} accomplished in Node {n4} with {11.00}s
+# [3743.00]: Task {379} accomplished in Node {n2} with {98.00}s
+# [3743.00]: **TimeoutError: Task {390}** timeout in Node {n2}
+# [3775.00]: Task {397} accomplished in Node {n9} with {102.00}s
 
 # -----------------------------------------------
 # Done simulation with 400 tasks!
@@ -158,9 +164,25 @@ if __name__ == '__main__':
 # DuplicateTaskIdError   : 0
 # NetworkXNoPathError    : 0
 # IsolatedWirelessNode   : 0
-# NetCongestionError     : 0
-# InsufficientBufferError: 65
-# TimeoutError           : 1
+# NetCongestionError     : 9
+# InsufficientBufferError: 39
+# TimeoutError           : 53
 # -----------------------------------------------
 
-# [3464.00]: Simulation completed!
+
+# -----------------------------------------------
+# Power consumption during simulation:
+
+# n0: 1399288.800
+# n1: 5335122.400
+# n2: 15118.480
+# n3: 1038403.680
+# n4: 5618664.890
+# n5: 84169.280
+# n6: 210120.800
+# n7: 1664033.950
+# n8: 686948.000
+# n9: 87361.600
+# -----------------------------------------------
+
+# [3776.00]: Simulation completed!
