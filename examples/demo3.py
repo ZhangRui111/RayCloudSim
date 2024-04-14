@@ -2,23 +2,27 @@
 import os
 import sys
 
-curPath = os.path.abspath(os.path.dirname(__file__))
-rootPath = os.path.split(curPath)[0]
-sys.path.append(rootPath)
+PROJECT_NAME = 'RayCloudSim'
+cur_path = os.path.abspath(os.path.dirname(__file__))
+root_path = cur_path
+while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
+    root_path = os.path.split(root_path)[0]
+root_path = os.path.split(root_path)[0]
+sys.path.append(root_path)
 
 from core.env import Env
 from core.task import Task
 
 # User should customize this class: Scenario
-from examples.scenario.random_topology import Scenario
+from examples.scenarios.random_topology import Scenario
 
 # Global statistics
 dup_task_id_error = []
 net_no_path_error = []
 isolated_wireless_node_error = []
 net_cong_error = []
-no_cus_error = []
 insufficient_buffer_error = []
+timeout_error = []
 
 
 def error_handler(error: Exception):
@@ -44,16 +48,16 @@ def error_handler(error: Exception):
         # print(message[1])
         # ----- handle this error here -----
         net_cong_error.append(message[2])
-    elif message[0] == 'NoFreeCUsError':
-        # Error: no free CUs in the destination node
-        # print(message[1])
-        # ----- handle this error here -----
-        no_cus_error.append(message[2])
     elif message[0] == 'InsufficientBufferError':
         # Error: insufficient buffer in the destination node
         # print(message[1])
         # ----- handle this error here -----
         insufficient_buffer_error.append(message[2])
+    elif message[0] == 'TimeoutError':
+        # Error: the task is not executed before the deadline (ddl).
+        # print(message[1])
+        # ----- handle this error here -----
+        timeout_error.append(message[2])
     else:
         raise NotImplementedError(error)
 
@@ -63,10 +67,10 @@ def main():
     env = Env(scenario=Scenario())
 
     # # Visualize the scenario/network
-    # env.vis_graph(save_as="vis/network_demo3.png")
+    # env.vis_graph(save_as="examples/vis/network_demo3.png")
 
     # Load simulated tasks
-    with open("examples/demo3_dataset.txt", 'r') as f:
+    with open("examples/utils/demo3_dataset.txt", 'r') as f:
         simulated_tasks = eval(f.read())
         n_tasks = len(simulated_tasks)
 
@@ -76,10 +80,10 @@ def main():
 
         generated_time, task_attrs, dst_name = task_info
         task = Task(task_id=task_attrs[0],
-                    max_cu=task_attrs[1],
-                    task_size_exe=task_attrs[2],
-                    task_size_trans=task_attrs[3],
-                    bit_rate=task_attrs[4],
+                    task_size=task_attrs[1],
+                    cycles_per_bit=task_attrs[2],
+                    trans_bit_rate=task_attrs[3],
+                    ddl=task_attrs[4],
                     src_name=task_attrs[5],
                     task_name=task_attrs[6])
 
@@ -115,8 +119,8 @@ def main():
           f"NetworkXNoPathError    : {len(net_no_path_error)}\n"
           f"IsolatedWirelessNode   : {len(isolated_wireless_node_error)}\n"
           f"NetCongestionError     : {len(net_cong_error)}\n"
-          f"NoFreeCUsError         : {len(no_cus_error)}\n"
-          f"InsufficientBufferError: {len(insufficient_buffer_error)}")
+          f"InsufficientBufferError: {len(insufficient_buffer_error)}\n"
+          f"TimeoutError           : {len(timeout_error)}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -127,18 +131,21 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # ...
-# [1064.09]: Processing Task {372} in {n8}
-# [1065.00]: Task {372} accomplished in Node {n8} with {0.78}s
-#
+# [1085.00]: Task {365} accomplished in Node {n6} with {29.82}s
+# [1085.00]: **TimeoutError: Task {384}** timeout in Node {n6}
+# [1085.00]: Task {399} re-actives in Node {n6}
+# [1085.00]: Processing Task {399} in {n6}
+# [1087.00]: Task {399} accomplished in Node {n6} with {1.82}s
+
 # -----------------------------------------------
 # Done simulation with 400 tasks!
-#
+
 # DuplicateTaskIdError   : 0
 # NetworkXNoPathError    : 0
 # IsolatedWirelessNode   : 0
-# NetCongestionError     : 11
-# NoFreeCUsError         : 12
-# InsufficientBufferError: 0
+# NetCongestionError     : 0
+# InsufficientBufferError: 65
+# TimeoutError           : 1
 # -----------------------------------------------
-#
-# [1066.00]: Simulation completed!
+
+# [1088.00]: Simulation completed!

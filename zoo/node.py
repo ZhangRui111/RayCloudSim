@@ -1,11 +1,19 @@
-import math
+import os
 import sys
 
-from core.infrastructure import Node, Location
+PROJECT_NAME = 'RayCloudSim'
+cur_path = os.path.abspath(os.path.dirname(__file__))
+root_path = cur_path
+while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
+    root_path = os.path.split(root_path)[0]
+root_path = os.path.split(root_path)[0]
+sys.path.append(root_path)
+
+import math
 
 from typing import Optional, List
 
-sys.path.append('..')
+from core.infrastructure import Node, Location
 
 
 class WirelessNode(Node):
@@ -14,11 +22,16 @@ class WirelessNode(Node):
     Attributes:
         node_id: node id, unique in the infrastructure.
         name: node name.
-        cu: maximum processing power the node provides in "compute units", an
-            imaginary unit for computational power to express differences
-            between hardware platforms. If None, the node has unlimited
-            processing power.
+        max_cpu_freq: maximum cpu frequency.
+        free_cpu_freq: current available cpu frequency.
+            Note: At present, free_cpu_freq can be '0' or 'max_cpu_freq', i.e., one task at a time.
+        task_buffer: FIFO buffer for local-waiting tasks.
+            Note: The buffer is not used for executing tasks; 
+            tasks can be executed even when the buffer is zero.
         location: geographical location.
+        tasks: tasks placed in the node.
+        power_consumption: power consumption since the simulation begins;
+            wired nodes do not need to worry about the current device battery level.
         flag_only_wireless: only wireless transmission is allowed.
         max_transmit_power: maximum transmit power.
         transmit_power: transmit power for one data transmission, which is
@@ -30,12 +43,12 @@ class WirelessNode(Node):
             multi-hop communication.
     """
     def __init__(self, node_id: int, name: str,
-                 cu: Optional[float] = None,
-                 buffer_size: Optional[int] = 0,
+                 max_cpu_freq: float = None,
+                 max_buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
                  max_transmit_power: int = 0,
                  radius: float = 100):
-        super().__init__(node_id, name, cu, buffer_size, location)
+        super().__init__(node_id, name, max_cpu_freq, max_buffer_size, location)
 
         self.flag_only_wireless = True
 
@@ -49,8 +62,8 @@ class WirelessNode(Node):
         self.default_dst_node = None
 
     def __repr__(self):
-        return f"{self.name} ({self.used_cu}/{self.cu} || " \
-               f"{self.max_transmit_power})".replace('inf', '∞')
+        return f"{self.name} ({self.free_cpu_freq}/{self.max_cpu_freq}) || " \
+               f"{self.max_transmit_power})"
 
     def update_access_dst_nodes(self, nodes: List[Node]):
         """Update the current wireless-accessible nodes."""
@@ -77,24 +90,30 @@ class MobileNode(WirelessNode):
     Attributes:
         node_id: node id, unique in the infrastructure.
         name: node name.
-        cu: maximum processing power the node provides in "compute units", an
-            imaginary unit for computational power to express differences
-            between hardware platforms. If None, the node has unlimited
-            processing power.
-        location: dynamic location, rather than static location.
+        max_cpu_freq: maximum cpu frequency.
+        free_cpu_freq: current available cpu frequency.
+            Note: At present, free_cpu_freq can be '0' or 'max_cpu_freq', i.e., one task at a time.
+        task_buffer: FIFO buffer for local-waiting tasks.
+            Note: The buffer is not used for executing tasks; 
+            tasks can be executed even when the buffer is zero.
+        location: geographical location.
+        tasks: tasks placed in the node.
+        power_consumption: power consumption since the simulation begins;
+            wired nodes do not need to worry about the current device battery level.
+        flag_only_wireless: only wireless transmission is allowed.
         max_transmit_power: maximum transmit power.
         radius: wireless accessible range.
         power: current device battery level.
     """
 
     def __init__(self, node_id: int, name: str,
-                 cu: Optional[float] = None,
-                 buffer_size: Optional[int] = 0,
+                 max_cpu_freq: float = None,
+                 max_buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
                  max_transmit_power: int = 0,
                  radius: float = 100,
                  power: float = 100):
-        super().__init__(node_id, name, cu, buffer_size, location,
+        super().__init__(node_id, name, max_cpu_freq, max_buffer_size, location,
                          max_transmit_power, radius)
 
         # dynamic attributes

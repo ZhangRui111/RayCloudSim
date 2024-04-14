@@ -1,9 +1,13 @@
 import os
 import sys
 
-curPath = os.path.abspath(os.path.dirname(__file__))
-rootPath = os.path.split(curPath)[0]
-sys.path.append(rootPath)
+PROJECT_NAME = 'RayCloudSim'
+cur_path = os.path.abspath(os.path.dirname(__file__))
+root_path = cur_path
+while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
+    root_path = os.path.split(root_path)[0]
+root_path = os.path.split(root_path)[0]
+sys.path.append(root_path)
 
 import numpy as np
 import networkx as nx
@@ -16,17 +20,17 @@ from core.infrastructure import Node, Location
 class Scenario(BaseScenario):
 
     def init_infrastructure_nodes(self):
-        with open("examples/scenario/random_topology.txt", 'r') as fr:
+        with open("examples/scenarios/random_topology.txt", 'r') as fr:
             nodes, _ = eval(fr.read())
 
-        for node_id, name, cu, loc_x, loc_y in nodes:
+        for node_id, name, max_cpu_freq, max_buffer_size, loc_x, loc_y in nodes:
             self.infrastructure.add_node(
-                Node(node_id=node_id, name=name, cu=cu,
-                     location=Location(loc_x, loc_y)))
+                Node(node_id=node_id, name=name, max_cpu_freq=max_cpu_freq, 
+                     max_buffer_size=max_buffer_size, location=Location(loc_x, loc_y)))
             self.node_id2name[node_id] = name
 
     def init_infrastructure_links(self):
-        with open("examples/scenario/random_topology.txt", 'r') as fr:
+        with open("examples/scenarios/random_topology.txt", 'r') as fr:
             _, edges = eval(fr.read())
 
         for src, dst, bandwidth in edges:
@@ -38,36 +42,34 @@ class Scenario(BaseScenario):
         if node_name and link_args:
             node = self.get_node(node_name)
             link = self.get_link(*link_args)
-            node_status = [node.cu, node.used_cu]
-            link_statue = [link.bandwidth, link.used_bandwidth]
+            node_status = [node.max_cpu_freq, node.free_cpu_freq]
+            link_statue = [link.max_bandwidth, link.free_bandwidth]
             return node_status, link_statue
         if node_name:
             node = self.get_node(node_name)
-            node_status = [node.cu, node.used_cu]
+            node_status = [node.max_cpu_freq, node.free_cpu_freq]
             return node_status
         if link_args:
             link = self.get_link(*link_args)
-            link_statue = [link.bandwidth, link.used_bandwidth]
+            link_statue = [link.max_bandwidth, link.free_bandwidth]
             return link_statue
 
         # Return status of the whole scenario
         n = len(self.nodes())
-        node_cu = np.zeros(n)
-        node_used_cu = np.zeros(n)
-        link_bandwidth = np.zeros((n, n))
-        link_used_bandwidth = np.zeros((n, n))
+        node_max_cpu_freq = np.zeros(n)
+        node_free_cpu_freq = np.zeros(n)
+        link_max_bandwidth = np.zeros((n, n))
+        link_free_bandwidth = np.zeros((n, n))
 
         for node in self.nodes():
-            node_cu[node.node_id] = node.cu
-            node_used_cu[node.node_id] = node.used_cu
+            node_max_cpu_freq[node.node_id] = node.max_cpu_freq
+            node_free_cpu_freq[node.node_id] = node.free_cpu_freq
 
         for link in self.links():
-            link_bandwidth[link.src.node_id][link.dst.node_id] = \
-                link.bandwidth
-            link_used_bandwidth[link.src.node_id][link.dst.node_id] = \
-                link.used_bandwidth
+            link_max_bandwidth[link.src.node_id][link.dst.node_id] = link.max_bandwidth
+            link_free_bandwidth[link.src.node_id][link.dst.node_id] = link.free_bandwidth
 
-        return node_cu, node_used_cu, link_bandwidth, link_used_bandwidth
+        return node_max_cpu_freq, node_free_cpu_freq, link_max_bandwidth, link_free_bandwidth
 
 
 def nodes_and_edges_from_graph(graph):
@@ -77,9 +79,12 @@ def nodes_and_edges_from_graph(graph):
     for node_id in graph.nodes():
         x, y = graph.nodes[node_id]['pos']
         # (node_id, name, cu, location.x, location.y)
-        nodes.append((node_id, f'n{node_id}',
-                      random.randint(10, 50),
-                      round(100 * x, 2), round(100 * y, 2)))
+        nodes.append((node_id, 
+                      f'n{node_id}',
+                      random.randint(10, 100), 
+                      random.randint(10, 200),
+                      round(100 * x, 2), 
+                      round(100 * y, 2)))
 
     # 2. edges
     edges = []
@@ -88,15 +93,15 @@ def nodes_and_edges_from_graph(graph):
         edges.append((src, dst, bandwidth))
 
     # 3. saving
-    if not os.path.exists("random_topology.txt"):
-        with open("random_topology.txt", 'w+') as fw:
+    if not os.path.exists("examples/scenarios/random_topology.txt"):
+        with open("examples/scenarios/random_topology.txt", 'w+') as fw:
             fw.write(str([nodes, edges]))
     else:
         print("File already exists!")
 
-    # # 4. loading
-    # with open("random_topology.txt", 'r') as fr:
-    #     nodes, edges = eval(fr.read())
+    # 4. loading
+    with open("examples/scenarios/random_topology.txt", 'r') as fr:
+        nodes, edges = eval(fr.read())
 
     print(f"{len(nodes)} nodes, {len(edges)} edges")
 

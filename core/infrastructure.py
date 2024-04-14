@@ -2,10 +2,14 @@ import math
 import networkx as nx
 import warnings
 
-from collections import deque
+from collections import deque, namedtuple
 from typing import Optional, Iterator, List
 
 __all__ = ["Location", "Data", "DataFlow", "Node", "Link", "Infrastructure"]
+
+
+BufferStatus = namedtuple("BufferStatus", "free_size, max_size")
+CPUStatus = namedtuple("CPUStatus", "free_cpu_freq, max_cpu_freq")
 
 
 class Location:
@@ -37,7 +41,7 @@ class Data(object):
     """Data through network links.
 
     Attributes:
-        data_size: size of the data in MB.
+        data_size: size of the data in bits.
     """
 
     def __init__(self, data_size: float):
@@ -51,7 +55,7 @@ class DataFlow(object):
     """Data flow through network links.
 
     Attributes:
-        bit_rate: bit rate of the data flow in Mbps.
+        bit_rate: bit rate of the data flow in bps.
         links: all links involved in the path.
     """
 
@@ -86,49 +90,84 @@ class DataFlow(object):
         self.links = None
 
 
+class Buffer(object):
+    """FIFO buffer.
+    
+    Attributes:
+        max_size: maximum buffer size.
+        free_size: current available buffer size.
+    """
+
+    def __init__(self, max_size):
+        self.buffer = deque()  # FIFO
+        self.max_size = max_size
+        self.free_size = max_size
+
+    def append(self, task: "Task"):
+        """Append a task to the buffer."""
+        if task.task_size <= self.free_size:
+            self.free_size -= task.task_size
+            self.buffer.append(task)
+        else:
+            raise EnvironmentError(
+                ('InsufficientBufferError', 
+                 f"**InsufficientBufferError: Task {{{task.task_id}}}** "
+                 f"insufficient buffer in Node {{{task.dst.name}}}", task.task_id))
+
+    def pop(self):
+        """Pop the first task from the buffer."""
+        if len(self.buffer) > 0:
+            task = self.buffer.popleft()
+            self.free_size += task.task_size
+            return task
+        else:
+            return None
+    
+    def utilization(self):
+        """The current status."""
+        return BufferStatus(self.free_size, self.max_size)
+    
+    def reset(self):
+        """Reset the buffer."""
+        self.buffer.clear()
+        self.free_size = self.max_size
+
+
 class Node(object):
     """A computing node in the infrastructure graph.
 
     This can represent any kind of node, e.g.
-    - simple sensors without processing capabilities
-    - resource constrained nodes fog computing nodes
-    - mobile nodes like cars or smartphones
-    - entire data centers with virtually unlimited resources
+      - simple sensors without processing capabilities
+      - resource constrained nodes fog computing nodes
+      - mobile nodes like cars or smartphones
+      - entire data centers with virtually unlimited resources
 
     Attributes:
         node_id: node id, unique in the infrastructure.
         name: node name.
-        cu: maximum processing power the node provides in "compute units", an
-            imaginary unit for computational power to express differences
-            between hardware platforms. If None, the node has unlimited
-            processing power.
-        used_cu: current occupied cus.
-        buffer: FIFO buffer for local-waiting tasks.
-        buffer_size: maximum buffer size.
-            Note that, once buffer_size > 0, the NoFreeCUsError is replaced by
-            the InsufficientBufferError.
-        used_buffer: current occupied buffer size.
+        max_cpu_freq: maximum cpu frequency.
+        free_cpu_freq: current available cpu frequency.
+            Note: At present, free_cpu_freq can be '0' or 'max_cpu_freq', i.e., one task at a time.
+        task_buffer: FIFO buffer for local-waiting tasks.
+            Note: The buffer is not used for executing tasks; 
+            tasks can be executed even when the buffer is zero.
         location: geographical location.
+        tasks: tasks placed in the node.
         power_consumption: power consumption since the simulation begins;
-            wired nodes do not need to worry about the current device battery
-            level.
+            wired nodes do not need to worry about the current device battery level.
         flag_only_wireless: only wireless transmission is allowed.
     """
 
-    def __init__(self, node_id: int, name: str,
-                 cu: Optional[float] = None,
-                 buffer_size: Optional[int] = 0,
-                 location: Optional[Location] = None):
+    def __init__(self, node_id: int, name: str, max_cpu_freq: float = None,
+                 max_buffer_size: Optional[int] = 0, location: Optional[Location] = None):
         self.node_id = node_id
         self.name = name
-        if cu is None:
-            self.cu = math.inf
-        else:
-            self.cu = cu
-        self.used_cu = 0
-        self.buffer = deque()  # FIFO deque
-        self.buffer_size = buffer_size
-        self.used_buffer = 0
+
+        self.max_cpu_freq = max_cpu_freq
+        self.free_cpu_freq = max_cpu_freq
+
+        self.task_buffer = Buffer(max_buffer_size)
+
         self.location = location
 
         self.tasks: List["Task"] = []
@@ -137,7 +176,24 @@ class Node(object):
         self.flag_only_wireless = False
 
     def __repr__(self):
-        return f"{self.name} ({self.used_cu}/{self.cu})".replace('inf', '∞')
+        return f"{self.name} ({self.free_cpu_freq}/{self.max_cpu_freq})"
+
+    def buffer_free_size(self, val=None):
+        """Obtain or modify buffer's free size.
+        
+        Args:
+            val: can be positive or negative, i.e., +/-.
+        """
+        if val is None:
+            return self.task_buffer.free_size
+        else:
+            self.task_buffer.free_size += val
+    
+    def append_task(self, task: "Task"):
+        self.task_buffer.append(task)
+
+    def pop_task(self):
+        return self.task_buffer.pop()
 
     def status(self):
         """User-defined Node status."""
@@ -153,55 +209,40 @@ class Node(object):
             (self.location.y - another.location.y) ** 2)
 
     def utilization(self) -> float:
-        """Return the current utilization of the resource."""
-        try:
-            return self.used_cu / self.cu
-        except ZeroDivisionError:
-            assert self.used_cu == 0
-            return 0.
+        """The current status.
+        
+        Returns:
+            CPUStatus, BufferStatus
+        """
+        return CPUStatus(self.free_cpu_freq, self.max_cpu_freq), self.task_buffer.utilization()
 
     def add_task(self, task: "Task"):
         """Add a task to the node."""
-        self._reserve_cu(task.cu)
+        self._reserve_resource(task)
         self.tasks.append(task)
 
     def remove_task(self, task: "Task"):
         """Remove a task from the node."""
-        self._release_cu(task.cu)
+        self._release_resource(task)
         self.tasks.remove(task)
 
-    def buffer_append_task(self, task: "Task"):
-        """Append a task to the buffer."""
-        if task.task_size_exe <= self.buffer_size - self.used_buffer:
-            self.used_buffer += task.task_size_exe
-            self.buffer.append(task)
+    def _reserve_resource(self, task: "Task"):
+        if self.free_cpu_freq > 0:  # trying to allocating CPU frequency
+            task.cpu_freq = self.free_cpu_freq
+            self.free_cpu_freq = 0
         else:
-            raise EnvironmentError(
-                ('InsufficientBufferError',
-                 f"**InsufficientBufferError: Task {{{task.task_id}}}** "
-                 f"insufficient buffer in Node {{{self.name}}}", task.task_id)
-            )
+            raise ValueError(f"Cannot reserve enough resources on compute node {self}.")
 
-    def buffer_pop_task(self):
-        """Pop a task from the buffer."""
-        if len(self.buffer) > 0:
-            task = self.buffer.popleft()
-            self.used_buffer -= task.task_size_exe
-            return task
+    def _release_resource(self, task: "Task"):
+        if self.free_cpu_freq == 0:  # trying to releasing CPU frequency
+            self.free_cpu_freq = self.max_cpu_freq
         else:
-            return None
-
-    def _reserve_cu(self, cu: float):
-        new_used_cu = self.used_cu + cu
-        if new_used_cu > self.cu:
-            raise ValueError(f"Cannot reserve {cu} CU on compute node {self}.")
-        self.used_cu = new_used_cu
-
-    def _release_cu(self, cu: float):
-        new_used_cu = self.used_cu - cu
-        if new_used_cu < 0:
-            raise ValueError(f"Cannot release {cu} CU on compute node {self}.")
-        self.used_cu = new_used_cu
+            raise ValueError(f"Cannot release enough resources on compute node {self}.")
+    
+    def reset(self):
+        self.tasks = []
+        self.free_cpu_freq = self.max_cpu_freq
+        self.task_buffer.reset()
 
 
 class Link(object):
@@ -210,15 +251,15 @@ class Link(object):
     Attributes:
         src: source node.
         dst: destination node.
-        bandwidth: bandwidth in Mbps.
-        used_bandwidth: used bandwidth in Mbps.
+        max_bandwidth: maximum bandwidth in bps.
+        free_bandwidth: current available bandwidth in bps.
         dis: the distance between its source node and its destination node.
         base_latency: base latency of the network link which can be used to
                       implement routing policies.
         data_flows: store data flows allocated in this network link.
     """
 
-    def __init__(self, src: Node, dst: Node, bandwidth: float,
+    def __init__(self, src: Node, dst: Node, max_bandwidth: float,
                  base_latency: Optional[float] = 0):
 
         if src.flag_only_wireless or dst.flag_only_wireless:
@@ -228,16 +269,16 @@ class Link(object):
 
         self.src = src
         self.dst = dst
-        self.bandwidth = bandwidth
-        self.dis = self.distance()
+        self.max_bandwidth = max_bandwidth
         self.base_latency = base_latency
+        self.dis = self.distance()
 
-        self.used_bandwidth = 0
+        self.free_bandwidth = max_bandwidth
         self.data_flows: List["DataFlow"] = []
 
     def __repr__(self):
         return f"{self.src.name} --> {self.dst.name} " \
-               f"({self.used_bandwidth}/{self.bandwidth}) ({self.base_latency})"
+               f"({self.free_bandwidth}/{self.max_bandwidth}) ({self.base_latency})"
 
     def status(self):
         """User-defined Link status."""
@@ -264,18 +305,21 @@ class Link(object):
         self.data_flows.remove(data_flow)
 
     def _reserve_bandwidth(self, bandwidth):
-        new_used_bandwidth = self.used_bandwidth + bandwidth
-        if new_used_bandwidth > self.bandwidth:
+        if self.free_bandwidth < bandwidth:
             raise ValueError(f"Cannot reserve {bandwidth} bandwidth on "
                              f"network link {self}.")
-        self.used_bandwidth = new_used_bandwidth
+        self.free_bandwidth -= bandwidth
+        
 
     def _release_bandwidth(self, bandwidth):
-        new_used_bandwidth = self.used_bandwidth - bandwidth
-        if new_used_bandwidth < 0:
+        if self.free_bandwidth + bandwidth > self.max_bandwidth:
             raise ValueError(f"Cannot release {bandwidth} bandwidth on "
                              f"network link {self}.")
-        self.used_bandwidth = new_used_bandwidth
+        self.free_bandwidth += bandwidth
+    
+    def reset(self):
+        self.data_flows = []
+        self.free_bandwidth = self.max_bandwidth
 
 
 class Infrastructure(object):

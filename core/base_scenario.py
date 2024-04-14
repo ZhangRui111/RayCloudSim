@@ -57,7 +57,7 @@ class BaseScenario(metaclass=ABCMeta):
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(src_name),
                  self.infrastructure.get_node(dst_name),
-                 bandwidth=bandwidth, base_latency=base_latency)
+                 max_bandwidth=bandwidth, base_latency=base_latency)
         )
 
     def add_bilateral_links(self, src_name: str, dst_name: str, bandwidth: Union[float, List],
@@ -66,30 +66,26 @@ class BaseScenario(metaclass=ABCMeta):
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(src_name),
                  self.infrastructure.get_node(dst_name),
-                 bandwidth=bandwidth[0] if isinstance(bandwidth, List) else bandwidth,
+                 max_bandwidth=bandwidth[0] if isinstance(bandwidth, List) else bandwidth,
                  base_latency=base_latency)
         )
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(dst_name),
                  self.infrastructure.get_node(src_name),
-                 bandwidth=bandwidth[1] if isinstance(bandwidth, List) else bandwidth,
+                 max_bandwidth=bandwidth[1] if isinstance(bandwidth, List) else bandwidth,
                  base_latency=base_latency)
         )
 
     def reset(self):
         """Remove all tasks and data flows in the infrastructure."""
         for node in self.nodes():
-            node.tasks = []
-            node.used_cu = 0
-            node.buffer.clear()
-            node.used_buffer = 0
+            node.reset()
             # for wireless nodes
             if node.flag_only_wireless:
                 node.update_access_dst_nodes(self.nodes())
 
         for link in self.links():
-            link.data_flows = []
-            link.used_bandwidth = 0
+            link.reset()
 
     def send_data_flow(self, data_flow: DataFlow, links=None,
                        src_name: str = None, dst_name: str = None, weight=None):

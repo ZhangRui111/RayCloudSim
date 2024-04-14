@@ -10,10 +10,10 @@ class Scenario(BaseScenario):
         self.node_id2name[1] = 'n1'
 
         self.infrastructure.add_node(
-            Node(node_id=0, name='n0', cu=100,
+            Node(node_id=0, name='n0', max_cpu_freq=20, max_buffer_size=100,
                  location=Location(16, 68)))
         self.infrastructure.add_node(
-            Node(node_id=1, name='n1', cu=100,
+            Node(node_id=1, name='n1', max_cpu_freq=20, max_buffer_size=100,
                  location=Location(63, 47)))
 
     def init_infrastructure_links(self):

@@ -13,13 +13,13 @@ class Scenario(BaseScenario):
         self.node_id2name[2] = 'n2'
 
         self.infrastructure.add_node(
-            Node(node_id=0, name='n0', cu=20, buffer_size=80,
+            Node(node_id=0, name='n0', max_cpu_freq=5, max_buffer_size=80,
                  location=Location(16, 68)))
         self.infrastructure.add_node(
-            Node(node_id=1, name='n1', cu=20, buffer_size=0,
+            Node(node_id=1, name='n1', max_cpu_freq=5, max_buffer_size=10,
                  location=Location(50, 50)))
         self.infrastructure.add_node(
-            Node(node_id=2, name='n2', cu=20, buffer_size=100,
+            Node(node_id=2, name='n2', max_cpu_freq=5, max_buffer_size=100,
                  location=Location(63, 47)))
 
     def init_infrastructure_links(self):

@@ -33,6 +33,8 @@ class Env:
         self.done_task_collector = simpy.Store(self.controller)
         self.process_task_cnt = 0  # counter
 
+        # self.processed_tasks = []  # for debug
+
         self.reset()
 
         # Launch the monitor process
@@ -78,6 +80,7 @@ class Env:
         # DuplicateTaskIdError check
         if task.task_id in self.active_task_dict.keys():
             self.process_task_cnt += 1
+            # self.processed_tasks.append(task.task_id)
             log_info = f"**DuplicateTaskIdError: Task {{{task.task_id}}}** " \
                        f"new task (name {{{task.task_name}}}) with a " \
                        f"duplicate task id {{{task.task_id}}}."
@@ -92,8 +95,6 @@ class Env:
             flag_reactive = False
 
         if flag_reactive:
-            self.logger.log(f"Task {{{task.task_id}}} re-actives in "
-                            f"Node {{{task.dst_name}}}")
             dst = task.dst
         else:
             self.logger.log(f"Task {{{task.task_id}}} generated in "
@@ -103,11 +104,13 @@ class Env:
         if not flag_reactive:
             # Do task transmission, if necessary
             if dst_name != task.src_name:  # task transmission
+                # NetworkXNoPathError check
                 try:
                     links_in_path = self.scenario.infrastructure.\
                         get_shortest_links(task.src_name, dst_name)
                 except nx.exception.NetworkXNoPath:
                     self.process_task_cnt += 1
+                    # self.processed_tasks.append(task.task_id)
                     log_info = f"**NetworkXNoPathError: Task " \
                                f"{{{task.task_id}}}** Node {{{dst_name}}} " \
                                f"is inaccessible"
@@ -118,8 +121,10 @@ class Env:
 
                 for link in links_in_path:
                     if isinstance(link, Link):
-                        if link.bandwidth - link.used_bandwidth < task.bit_rate:
+                        # NetCongestionError check
+                        if link.free_bandwidth < task.trans_bit_rate:
                             self.process_task_cnt += 1
+                            # self.processed_tasks.append(task.task_id)
                             log_info = f"**NetCongestionError: Task " \
                                        f"{{{task.task_id}}}** network " \
                                        f"congestion Node {{{task.src_name}}} " \
@@ -129,20 +134,20 @@ class Env:
                                 ('NetCongestionError', log_info, task.task_id)
                             )
 
-                task.real_trans_time = 0
+                task.trans_time = 0
                 # ---- Customize the wired/wireless transmission mode here ----
                 # wireless transmission:
                 if isinstance(links_in_path[0], Tuple):
                     wireless_src_name, wired_dst_name = links_in_path[0]
-                    # task.real_trans_time += func(task, wireless_src_name,
-                    #                              wired_dst_name)  # TODO
-                    task.real_trans_time += 0  # (currently only a toy model)
+                    # task.trans_time += func(task, wireless_src_name,
+                    #                         wired_dst_name)  # TODO
+                    task.trans_time += 0  # (currently only a toy model)
                     links_in_path = links_in_path[1:]
                 if isinstance(links_in_path[-1], Tuple):
                     wired_src_name, wireless_dst_name = links_in_path[-1]
-                    # task.real_trans_time += func(task, wired_src_name,
-                    #                              wireless_dst_name)  # TODO
-                    task.real_trans_time += 0  # (currently only a toy model)
+                    # task.trans_time += func(task, wired_src_name,
+                    #                         wireless_dst_name)  # TODO
+                    task.trans_time += 0  # (currently only a toy model)
                     links_in_path = links_in_path[:-1]
 
                 # wired transmission:
@@ -150,11 +155,9 @@ class Env:
                 trans_base_latency = 0
                 for link in links_in_path:
                     trans_base_latency += link.base_latency
-                task.real_trans_time += trans_base_latency
-                # 1. MB --> Mbps
-                # 2. Multi-hop
-                task.real_trans_time += (task.task_size_trans * 8
-                                         / task.bit_rate) * len(links_in_path)
+                task.trans_time += trans_base_latency
+                # Multi-hop
+                task.trans_time += (task.task_size / task.trans_bit_rate) * len(links_in_path)
                 # -------------------------------------------------------------
 
                 self.scenario.send_data_flow(task.trans_flow, links_in_path)
@@ -162,42 +165,50 @@ class Env:
                 try:
                     self.logger.log(f"Task {{{task.task_id}}}: "
                                     f"{{{task.src_name}}} --> {{{dst_name}}}")
-                    yield self.controller.timeout(task.real_trans_time)
+                    yield self.controller.timeout(task.trans_time)
                     task.trans_flow.deallocate()
                     self.logger.log(f"Task {{{task.task_id}}} arrived "
                                     f"Node {{{dst_name}}} with "
-                                    f"{{{task.real_trans_time:.2f}}}s")
+                                    f"{{{task.trans_time:.2f}}}s")
                 except simpy.Interrupt:
                     pass
 
         # Task execution
-        free_cus = dst.cu - dst.used_cu
-        if free_cus <= 0:
-            if dst.buffer_size > 0:
-                try:
-                    dst.buffer_append_task(task)
-                    task.allocate(0, dst)
-                    self.logger.log(f"Task {{{task.task_id}}} is buffered in "
-                                    f"Node {{{task.dst_name}}}")
-                    return
-                except EnvironmentError as e:  # InsufficientBufferError
-                    self.process_task_cnt += 1
-                    self.logger.log(e.args[0][1])
-                    raise e
-            else:
+        if not dst.free_cpu_freq > 0:
+            # InsufficientBufferError check
+            try:
+                task.allocate(self.now, dst, pre_allocate=True)
+                dst.append_task(task)
+                self.logger.log(f"Task {{{task.task_id}}} is buffered in "
+                                f"Node {{{task.dst_name}}}")
+                return
+            except EnvironmentError as e:
                 self.process_task_cnt += 1
-                log_info = f"**NoFreeCUsError: Task {{{task.task_id}}}** " \
-                           f"no free CUs in Node {{{dst_name}}}"
-                self.logger.log(log_info)
-                raise EnvironmentError(
-                    ('NoFreeCUsError', log_info, task.task_id)
-                )
+                # self.processed_tasks.append(task.task_id)
+                self.logger.log(e.args[0][1])
+                raise e
+            
 
         # ------------ Customize the execution mode here ------------
         if flag_reactive:
-            task.allocate(min(free_cus, task.max_cu))
+            # TimeoutError check
+            try:
+                task.allocate(self.now)
+            except EnvironmentError as e:  # TimeoutError
+                self.process_task_cnt += 1
+                # self.processed_tasks.append(task.task_id)
+                self.logger.log(e.args[0][1])
+
+                # Activate a queued task
+                waiting_task = task.dst.pop_task()
+                if waiting_task:
+                    self.process(task=waiting_task)
+                
+                raise e
+            self.logger.log(f"Task {{{task.task_id}}} re-actives in "
+                            f"Node {{{task.dst_name}}}")
         else:
-            task.allocate(min(free_cus, task.max_cu), dst)
+            task.allocate(self.now, dst)
         # -----------------------------------------------------------
 
         # Mark the task as active (i.e., execution status) task
@@ -205,10 +216,10 @@ class Env:
         try:
             self.logger.log(f"Processing Task {{{task.task_id}}} in"
                             f" {{{task.dst_name}}}")
-            yield self.controller.timeout(task.real_exe_time)
+            yield self.controller.timeout(task.exe_time)
             self.done_task_collector.put((task.task_id,
                                           FLAG_TASK_EXECUTION_DONE,
-                                          [dst_name, task.real_exe_time]))
+                                          [dst_name, task.exe_time]))
         except simpy.Interrupt:
             pass
 
@@ -223,33 +234,18 @@ class Env:
                     if flag == FLAG_TASK_EXECUTION_DONE:
                         task = self.active_task_dict[task_id]
 
-                        waiting_task = task.dst.buffer_pop_task()
+                        waiting_task = task.dst.pop_task()
 
                         self.logger.log(f"Task {{{task_id}}} accomplished in "
                                         f"Node {{{task.dst_name}}} with "
-                                        f"{{{task.real_exe_time:.2f}}}s")
+                                        f"{{{task.exe_time:.2f}}}s")
                         task.deallocate()
                         del self.active_task_dict[task_id]
                         self.process_task_cnt += 1
+                        # self.processed_tasks.append(task.task_id)
 
                         if waiting_task:
                             self.process(task=waiting_task)
-
-                    # elif flag == FLAG_TASK_TRANSMISSION_DONE:
-                    #     task = self.active_task_dict[task_id]
-                    #     task.trans_flow.deallocate()
-                    #     self.logger.log(f"Task {{{task_id}}} arrived "
-                    #                     f"Node {{{info[0]}}} with "
-                    #                     f"{{{info[1]:.2f}}}s")
-                    #     # del self.active_task_dict[task_id]
-                    #
-                    # elif flag == FLAG_TASK_ARRIVE_NO_CUS:
-                    #     # del self.active_task_dict[task_id]
-                    #     pass
-                    #
-                    # elif flag == FLAG_TASK_ARRIVE_NO_BUFFER:
-                    #     # del self.active_task_dict[task_id]
-                    #     pass
 
                     else:
                         raise ValueError("Invalid flag!")
