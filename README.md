@@ -26,8 +26,8 @@
   - [**Fix**] Fixed some bugs
     - Module import failures caused by file paths
 
-  > **Important Notice for Previous Users:**
-  The versions prior to v1.0.0 have been preserved on the pre-v0.6.6 branch, but no further updates are expected for this version. We are very grateful for the support of all users for the early versions!
+> **Important Notice for Previous Users:**
+The versions prior to v1.0.0 have been preserved on the pre-v0.6.6 branch, but no further updates are expected for this version. We are very grateful for the support of all users for the early versions!
 
 ## I. Introduction
 
