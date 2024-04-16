@@ -15,9 +15,9 @@ Note: This README file is recommended to be viewed with a reader that supports L
     - free_cpu_freq: current available cpu frequency.
     - task_buffer: FIFO buffer for queued tasks.
     - location: geographical location.
-    - idle_power_coef: power/energy consumption coefficient during idle state.
-    - exe_power_coef: power/energy consumption coefficient during working/computing state.
-    - power_consumption: power consumption since the simulation begins.
+    - idle_energy_coef: energy consumption coefficient during idle state.
+    - exe_energy_coef: energy consumption coefficient during working/computing state.
+    - energy_consumption: energy consumption since the simulation begins.
     - energy budget (for those energy-sensitive devices)
 
 2. **Link**:
@@ -73,14 +73,14 @@ Here, [ ] indicates that the value depends on what it is related to.
 
     $$e^{idle} = \alpha \cdot t^{idle}$$
 
-    - $\alpha$: idle_power_coef, power/energy consumption coefficient during idle state [Node]
+    - $\alpha$: idle_energy_coef, energy consumption coefficient during idle state [Node]
     - $t^{idle}$: idle time
 
 2. **working/computing state**
 
     $$e^{exe} = \beta \cdot f^3 \cdot t^{exe}$$
 
-    - $\beta$: exe_power_coef, power/energy consumption coefficient during working/computing state [Node]
+    - $\beta$: exe_energy_coef, energy consumption coefficient during working/computing state [Node]
         - $\alpha << \beta$
     - $t^{exe}$: task execution time
     - $f$: CPU frequency [Node]

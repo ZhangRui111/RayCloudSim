@@ -24,12 +24,12 @@ class Scenario(BaseScenario):
             nodes, _ = eval(fr.read())
 
         for node_id, name, max_cpu_freq, max_buffer_size, \
-            loc_x, loc_y, idle_power_coef, exe_power_coef in nodes:
+            loc_x, loc_y, idle_energy_coef, exe_energy_coef in nodes:
             self.infrastructure.add_node(
                 Node(node_id=node_id, name=name, 
                      max_cpu_freq=max_cpu_freq, max_buffer_size=max_buffer_size, 
                      location=Location(loc_x, loc_y),
-                     idle_power_coef=idle_power_coef, exe_power_coef=exe_power_coef))
+                     idle_energy_coef=idle_energy_coef, exe_energy_coef=exe_energy_coef))
             self.node_id2name[node_id] = name
 
     def init_infrastructure_links(self):
@@ -82,16 +82,16 @@ def nodes_and_edges_from_graph(graph):
     for node_id in graph.nodes():
         x, y = graph.nodes[node_id]['pos']
         
-        idle_power_coef = 0.1 * random.random()
-        exe_power_coef = 10 * idle_power_coef
+        idle_energy_coef = 0.1 * random.random()
+        exe_energy_coef = 10 * idle_energy_coef
         nodes.append((node_id,  # node id
                       f'n{node_id}',  # node name 
                       random.randint(5, 30),  # max_cpu_freq
                       random.randint(10, 400),  # max_buffer_size
                       round(100 * x, 2),  # loc_x
                       round(100 * y, 2),  # loc_y
-                      round(idle_power_coef, 2),  # idle_power_coef
-                      round(exe_power_coef, 2)))  # exe_power_coef
+                      round(idle_energy_coef, 2),  # idle_energy_coef
+                      round(exe_energy_coef, 2)))  # exe_energy_coef
 
     # 2. edges
     edges = []

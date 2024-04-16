@@ -146,11 +146,11 @@ def main():
             error_handler(e)
 
     print("\n-----------------------------------------------")
-    print("Power consumption during simulation:\n")
-    print(f"n0: {env.scenario.get_node('n0').power_consumption:.3f}")
-    print(f"n1: {env.scenario.get_node('n1').power_consumption:.3f}")
-    print(f"n2: {env.scenario.get_node('n2').power_consumption:.3f}")
-    print(f"n3: {env.scenario.get_node('n3').power_consumption:.3f}")
+    print("Energy consumption during simulation:\n")
+    print(f"n0: {env.scenario.get_node('n0').energy_consumption:.3f}")
+    print(f"n1: {env.scenario.get_node('n1').energy_consumption:.3f}")
+    print(f"n2: {env.scenario.get_node('n2').energy_consumption:.3f}")
+    print(f"n3: {env.scenario.get_node('n3').energy_consumption:.3f}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -193,7 +193,7 @@ if __name__ == '__main__':
 # [60.00]: **TimeoutError: Task {8}** timeout in Node {n1}
 
 # -----------------------------------------------
-# Power consumption during simulation:
+# Energy consumption during simulation:
 
 # n0: 1375.610
 # n1: 5000.610

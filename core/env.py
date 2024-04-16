@@ -63,10 +63,10 @@ class Env:
         self.monitor_process = self.controller.process(
             self.monitor_on_done_task_collector())
         
-        # Launch all power recorder processes
-        self.power_recorders = {}
+        # Launch all energy recorder processes
+        self.energy_recorders = {}
         for node in self.scenario.nodes():
-            self.power_recorders[node.node_id] = self.controller.process(self.power_clock(node))
+            self.energy_recorders[node.node_id] = self.controller.process(self.energy_clock(node))
 
     @property
     def now(self):
@@ -312,11 +312,11 @@ class Env:
 
             yield self.controller.timeout(1)
     
-    def power_clock(self, node):
-        """Recorder of node's power consumption."""
+    def energy_clock(self, node):
+        """Recorder of node's energy consumption."""
         while True:
-            node.power_consumption += node.idle_power_coef
-            node.power_consumption += node.exe_power_coef * (node.max_cpu_freq - node.free_cpu_freq) ** 3
+            node.energy_consumption += node.idle_energy_coef
+            node.energy_consumption += node.exe_energy_coef * (node.max_cpu_freq - node.free_cpu_freq) ** 3
             yield self.controller.timeout(1)
 
     @property
@@ -336,12 +336,12 @@ class Env:
     def close(self):
         # Record nodes' energy consumption.
         for node in self.scenario.nodes():
-            self.logger.append(info_type='node', key=node.node_id, val=node.power_consumption)
+            self.logger.append(info_type='node', key=node.node_id, val=node.energy_consumption)
         
         # Terminate activate processes
         self.logger.log("Simulation completed!")
         self.monitor_process.interrupt()
-        for p in self.power_recorders.values():
+        for p in self.energy_recorders.values():
             if p.is_alive:
                 p.interrupt()
-        self.power_recorders.clear()
+        self.energy_recorders.clear()

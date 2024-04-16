@@ -124,9 +124,9 @@ def main():
     print("-----------------------------------------------\n")
 
     print("\n-----------------------------------------------")
-    print("Power consumption during simulation:\n")
+    print("Energy consumption during simulation:\n")
     for node in env.scenario.nodes():
-        print(f"{node.name}: {node.power_consumption:.3f}")
+        print(f"{node.name}: {node.energy_consumption:.3f}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -156,7 +156,7 @@ if __name__ == '__main__':
 
 
 # -----------------------------------------------
-# Power consumption during simulation:
+# Energy consumption during simulation:
 
 # n0: 1399274.590
 # n1: 5335104.130

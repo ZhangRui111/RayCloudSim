@@ -152,10 +152,10 @@ class Node(object):
             Note: The buffer is not used for executing tasks; 
             tasks can be executed even when the buffer is zero.
         location: geographical location.
-        idle_power_coef: power/energy consumption coefficient during idle state.
-        exe_power_coef: power/energy consumption coefficient during working/computing state.
+        idle_energy_coef: energy consumption coefficient during idle state.
+        exe_energy_coef: energy consumption coefficient during working/computing state.
         tasks: tasks placed in the node.
-        power_consumption: power consumption since the simulation begins;
+        energy_consumption: energy consumption since the simulation begins;
             wired nodes do not need to worry about the current device battery level.
         flag_only_wireless: only wireless transmission is allowed.
     """
@@ -163,7 +163,7 @@ class Node(object):
     def __init__(self, node_id: int, name: str, 
                  max_cpu_freq: float, max_buffer_size: Optional[int] = 0, 
                  location: Optional[Location] = None,
-                 idle_power_coef: Optional[float] = 0, exe_power_coef: Optional[float] = 0):
+                 idle_energy_coef: Optional[float] = 0, exe_energy_coef: Optional[float] = 0):
         self.node_id = node_id
         self.name = name
 
@@ -174,9 +174,9 @@ class Node(object):
 
         self.location = location
 
-        self.power_consumption = 0
-        self.idle_power_coef = idle_power_coef
-        self.exe_power_coef = exe_power_coef
+        self.energy_consumption = 0
+        self.idle_energy_coef = idle_energy_coef
+        self.exe_energy_coef = exe_energy_coef
         
         self.tasks: List["Task"] = []
 
@@ -250,7 +250,7 @@ class Node(object):
         self.tasks = []
         self.free_cpu_freq = self.max_cpu_freq
         self.task_buffer.reset()
-        self.power_consumption = 0
+        self.energy_consumption = 0
 
 
 class Link(object):
