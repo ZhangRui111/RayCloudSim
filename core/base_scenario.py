@@ -7,7 +7,7 @@ __all__ = ["BaseScenario"]
 
 
 class BaseScenario(metaclass=ABCMeta):
-    """The base class of customized scenario."""
+    """The base class of customized scenarios."""
 
     def __init__(self):
         self.infrastructure = Infrastructure()

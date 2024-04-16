@@ -99,17 +99,17 @@ def main():
 
             # Execute the simulation with error handler
             try:
-                env.run(until=until)  # execute the simulation step by step
+                env.run(until=until)
             except Exception as e:
                 error_handler(e)
 
             until += 1
 
-    # Continue the simulation until the last task is completed.
+    # Continue the simulation until the last task successes/fails.
     while env.process_task_cnt < len(simulated_tasks):
         until += 1
         try:
-            env.run(until=until)  # execute the simulation step by step
+            env.run(until=until)
         except Exception as e:
             error_handler(e)
 

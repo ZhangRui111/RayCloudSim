@@ -163,9 +163,10 @@ The following figure illustrates a visualization example:
 - [X] Computational nodes now support queue space to facilitate task buffering. (2023/11/10)
 - [ ] ~~Support using wireless nodes as relay communication nodes?~~
 - [X] Modeling of 'computational energy consumption' and 'task timeout' supported, etc. (2024/04/14)
-- [ ] Details such as the energy consumption and transmission of wireless nodes.
-- [ ] Metric/*
-- [ ] Evaluation APIs
+- [ ] Modeling of divisible tasks
+- [ ] Details such as the energy consumption and transmission of wireless nodes
+- [X] Metric/* (2024/04/16)
+- [X] Evaluation APIs (2024/04/16)
 - [ ] Anything reasonable
 
 ### 2. Contribute Code to RayCloudSim

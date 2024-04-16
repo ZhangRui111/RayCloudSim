@@ -162,9 +162,10 @@ n1: 72000.200
 - [X] 计算节点支持队列空间, 以支持任务缓存。(2023/11/10)
 - [ ] ~~支持把无线节点作为中继通信节点?~~
 - [X] 支持对于“计算能耗”、“任务超时”的建模等。(2024/04/14)
+- [ ] Modeling of divisible tasks
 - [ ] Details such as the energy consumption and transmission of wireless nodes
-- [ ] Metric/*
-- [ ] Evaluation APIs
+- [X] Metric/* (2024/04/16)
+- [X] Evaluation APIs (2024/04/16)
 - [ ] Anything reasonable
 
 ### 2. 向 RayCloudSim 贡献代码

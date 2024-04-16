@@ -137,11 +137,11 @@ def main():
 
             until += 1
 
-    # Continue the simulation until the last task is completed.
+    # Continue the simulation until the last task successes/fails.
     while env.process_task_cnt < len(simulated_tasks):
         until += 1
         try:
-            env.run(until=until)
+            env.run(until=until)  # execute the simulation step by step
         except Exception as e:
             error_handler(e)
 

@@ -53,6 +53,8 @@ class Task:
         self.wait_time = -1
         self.exe_time = -1
 
+        self.exe_energy = -1  # TODO
+
         # self.src: Optional[Node] = src
         # self.src_id = self.src.node_id
         # self.src_name = self.src.name
