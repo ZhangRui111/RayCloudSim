@@ -15,12 +15,22 @@ import random
 
 from core.base_scenario import BaseScenario
 from core.infrastructure import Node, Location
+from core.visualization import plot_2d_network_graph
+
+ROOT_PATH = 'eval/benchmarks/caseA/small'
 
 
 class Scenario(BaseScenario):
+    
+    def __init__(self):
+        super().__init__()
+        
+        # Load the task dataset
+        with open(f"{ROOT_PATH}/tasks.txt", 'r') as f:
+            self.simulated_tasks = eval(f.read())
 
     def init_infrastructure_nodes(self):
-        with open("examples/scenarios/random_topology.txt", 'r') as fr:
+        with open(f"{ROOT_PATH}/config.txt", 'r') as fr:
             nodes, _ = eval(fr.read())
 
         for node_id, name, max_cpu_freq, max_buffer_size, \
@@ -33,7 +43,7 @@ class Scenario(BaseScenario):
             self.node_id2name[node_id] = name
 
     def init_infrastructure_links(self):
-        with open("examples/scenarios/random_topology.txt", 'r') as fr:
+        with open(f"{ROOT_PATH}/config.txt", 'r') as fr:
             _, edges = eval(fr.read())
 
         for src, dst, bandwidth in edges:
@@ -100,14 +110,14 @@ def nodes_and_edges_from_graph(graph):
         edges.append((src, dst, bandwidth))
 
     # 3. saving
-    if not os.path.exists("examples/scenarios/random_topology.txt"):
-        with open("examples/scenarios/random_topology.txt", 'w+') as fw:
+    if not os.path.exists(f"{ROOT_PATH}/config.txt"):
+        with open(f"{ROOT_PATH}/config.txt", 'w+') as fw:
             fw.write(str([nodes, edges]))
     else:
         print("File already exists!")
 
     # 4. loading
-    with open("examples/scenarios/random_topology.txt", 'r') as fr:
+    with open(f"{ROOT_PATH}/config.txt", 'r') as fr:
         nodes, edges = eval(fr.read())
 
     print(f"{len(nodes)} nodes, {len(edges)} edges")
@@ -115,8 +125,9 @@ def nodes_and_edges_from_graph(graph):
 
 def main():
     # Randomly generate a small network and save all parameters
-    graph = nx.random_geometric_graph(n=10, radius=0.6, dim=2, pos=None,
-                                      p=2, seed=21)
+    graph = nx.random_geometric_graph(n=20, radius=0.3, dim=2, pos=None,
+                                      p=2, seed=0)
+    # plot_2d_network_graph(graph)
     nodes_and_edges_from_graph(graph)
 
 

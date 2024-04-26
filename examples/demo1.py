@@ -39,9 +39,9 @@ def main():
     env.run(until=20)  # execute the simulation all at once
 
     print("\n-----------------------------------------------")
-    print("Power consumption during simulation:\n")
-    print(f"n0: {env.scenario.get_node('n0').power_consumption:.3f}")
-    print(f"n1: {env.scenario.get_node('n1').power_consumption:.3f}")
+    print("Energy consumption during simulation:\n")
+    print(f"n0: {env.scenario.get_node('n0').energy_consumption:.3f}")
+    print(f"n1: {env.scenario.get_node('n1').energy_consumption:.3f}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 # [11.00]: Task {0} accomplished in Node {n1} with {10.00}s
 
 # -----------------------------------------------
-# Power consumption during simulation:
+# Energy consumption during simulation:
 
 # n0: 0.200
 # n1: 72000.200

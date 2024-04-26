@@ -16,8 +16,30 @@ class EnvLogger:
     def __init__(self, controller):
         self.controller = controller
 
+        self.task_info = {}
+        self.node_info = {}
+
     def log(self, content):
         print("[{:.2f}]: {}".format(self.controller.now, content))
+
+    def append(self, info_type, key, val):
+        """Record key information during the simulation.
+
+        Args:
+            info_type: 'task' or 'node'
+            key: task id or node id
+            val: 
+                if info_type == 'task': (code: int, info: list)
+                    - 0 (success) || [*]
+                    - 1 (failure) || [detailed error info,]
+                if info_type == 'node':
+                    - energy consumption
+        """
+        assert info_type in ['task', 'node']
+        if info_type == 'task':
+            self.task_info[key] = val
+        else:
+            self.node_info[key] = val
 
 
 class Env:
@@ -41,10 +63,10 @@ class Env:
         self.monitor_process = self.controller.process(
             self.monitor_on_done_task_collector())
         
-        # Launch all power recorder processes
-        self.power_recorders = {}
+        # Launch all energy recorder processes
+        self.energy_recorders = {}
         for node in self.scenario.nodes():
-            self.power_recorders[node.node_id] = self.controller.process(self.power_clock(node))
+            self.energy_recorders[node.node_id] = self.controller.process(self.energy_clock(node))
 
     @property
     def now(self):
@@ -85,6 +107,9 @@ class Env:
         # DuplicateTaskIdError check
         if task.task_id in self.active_task_dict.keys():
             self.process_task_cnt += 1
+            self.logger.append(info_type='task', 
+                               key=task.task_id, 
+                               val=(1, ['DuplicateTaskIdError',]))
             # self.processed_tasks.append(task.task_id)
             log_info = f"**DuplicateTaskIdError: Task {{{task.task_id}}}** " \
                        f"new task (name {{{task.task_name}}}) with a " \
@@ -109,12 +134,15 @@ class Env:
         if not flag_reactive:
             # Do task transmission, if necessary
             if dst_name != task.src_name:  # task transmission
-                # NetworkXNoPathError check
                 try:
                     links_in_path = self.scenario.infrastructure.\
                         get_shortest_links(task.src_name, dst_name)
+                # NetworkXNoPathError check
                 except nx.exception.NetworkXNoPath:
                     self.process_task_cnt += 1
+                    self.logger.append(info_type='task', 
+                                       key=task.task_id, 
+                                       val=(1, ['NetworkXNoPathError',]))
                     # self.processed_tasks.append(task.task_id)
                     log_info = f"**NetworkXNoPathError: Task " \
                                f"{{{task.task_id}}}** Node {{{dst_name}}} " \
@@ -123,12 +151,27 @@ class Env:
                     raise EnvironmentError(
                         ('NetworkXNoPathError', log_info, task.task_id)
                     )
+                # IsolatedWirelessNode check
+                except EnvironmentError as e:
+                    message = e.args[0]
+                    if message[0] == 'IsolatedWirelessNode':
+                        self.process_task_cnt += 1
+                        self.logger.append(info_type='task', 
+                                           key=task.task_id, 
+                                           val=(1, ['IsolatedWirelessNode',]))
+                        # self.processed_tasks.append(task.task_id)
+                        log_info = f"**IsolatedWirelessNode"
+                        self.logger.log(log_info)
+                        raise e
 
                 for link in links_in_path:
                     if isinstance(link, Link):
                         # NetCongestionError check
                         if link.free_bandwidth < task.trans_bit_rate:
                             self.process_task_cnt += 1
+                            self.logger.append(info_type='task', 
+                                               key=task.task_id, 
+                                               val=(1, ['NetCongestionError',]))
                             # self.processed_tasks.append(task.task_id)
                             log_info = f"**NetCongestionError: Task " \
                                        f"{{{task.task_id}}}** network " \
@@ -189,6 +232,9 @@ class Env:
                 return
             except EnvironmentError as e:
                 self.process_task_cnt += 1
+                self.logger.append(info_type='task', 
+                                   key=task.task_id, 
+                                   val=(1, ['InsufficientBufferError',]))
                 # self.processed_tasks.append(task.task_id)
                 self.logger.log(e.args[0][1])
                 raise e
@@ -201,6 +247,9 @@ class Env:
                 task.allocate(self.now)
             except EnvironmentError as e:  # TimeoutError
                 self.process_task_cnt += 1
+                self.logger.append(info_type='task', 
+                                   key=task.task_id, 
+                                   val=(1, ['TimeoutError',]))
                 # self.processed_tasks.append(task.task_id)
                 self.logger.log(e.args[0][1])
 
@@ -244,6 +293,9 @@ class Env:
                         self.logger.log(f"Task {{{task_id}}} accomplished in "
                                         f"Node {{{task.dst_name}}} with "
                                         f"{{{task.exe_time:.2f}}}s")
+                        self.logger.append(info_type='task', 
+                                           key=task.task_id, 
+                                           val=(0, [task.trans_time, task.wait_time, task.exe_time]))
                         task.deallocate()
                         del self.active_task_dict[task_id]
                         self.process_task_cnt += 1
@@ -260,11 +312,11 @@ class Env:
 
             yield self.controller.timeout(1)
     
-    def power_clock(self, node):
-        """Recorder of node's power consumption."""
+    def energy_clock(self, node):
+        """Recorder of node's energy consumption."""
         while True:
-            node.power_consumption += node.idle_power_coef
-            node.power_consumption += node.exe_power_coef * (node.max_cpu_freq - node.free_cpu_freq) ** 3
+            node.energy_consumption += node.idle_energy_coef
+            node.energy_consumption += node.exe_energy_coef * (node.max_cpu_freq - node.free_cpu_freq) ** 3
             yield self.controller.timeout(1)
 
     @property
@@ -282,9 +334,14 @@ class Env:
         return self.scenario.status(node_name, link_args)
 
     def close(self):
+        # Record nodes' energy consumption.
+        for node in self.scenario.nodes():
+            self.logger.append(info_type='node', key=node.node_id, val=node.energy_consumption)
+        
+        # Terminate activate processes
         self.logger.log("Simulation completed!")
         self.monitor_process.interrupt()
-        for p in self.power_recorders.values():
+        for p in self.energy_recorders.values():
             if p.is_alive:
                 p.interrupt()
-        self.power_recorders.clear()
+        self.energy_recorders.clear()
