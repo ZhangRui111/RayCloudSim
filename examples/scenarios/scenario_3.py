@@ -1,30 +1,7 @@
-import os
-import sys
-
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
-
-import numpy as np
-import pandas as pd
-
 from core.base_scenario import BaseScenario
-
-ROOT_PATH = 'eval/benchmarks/caseA/small'
 
 
 class Scenario(BaseScenario):
-    
-    def __init__(self, config_file):
-        super().__init__(config_file)
-        
-        # Load the task dataset
-        data = pd.read_csv(f"{ROOT_PATH}/tasks.csv")
-        self.simulated_tasks = list(data.iloc[:].values)
 
     def status(self, node_name=None, link_args=None):
         # Return status of specific Node/Link

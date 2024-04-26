@@ -1,47 +1,9 @@
 import numpy as np
 
 from core.base_scenario import BaseScenario
-from core.infrastructure import Node, Location
 
 
 class Scenario(BaseScenario):
-    """A simple scenario with 4 nodes.
-
-    3 connected nodes and 1 isolated node.
-    """
-
-    def init_infrastructure_nodes(self):
-        self.node_id2name[0] = 'n0'
-        self.node_id2name[1] = 'n1'
-        self.node_id2name[2] = 'n2'
-        self.node_id2name[3] = 'n3'
-
-        self.infrastructure.add_node(
-            Node(node_id=0, name='n0', 
-                 max_cpu_freq=5, max_buffer_size=100,
-                 location=Location(16, 68),
-                 idle_energy_coef=0.01, exe_energy_coef=1))
-        self.infrastructure.add_node(
-            Node(node_id=1, name='n1', 
-                 max_cpu_freq=5, max_buffer_size=100,
-                 location=Location(63, 47),
-                 idle_energy_coef=0.01, exe_energy_coef=1))
-        self.infrastructure.add_node(
-            Node(node_id=2, name='n2', 
-                 max_cpu_freq=5, max_buffer_size=100,
-                 location=Location(30, 30),
-                 idle_energy_coef=0.01, exe_energy_coef=1))
-        self.infrastructure.add_node(
-            Node(node_id=3, name='n3', 
-                 max_cpu_freq=5, max_buffer_size=100,
-                 location=Location(15, 45),
-                 idle_energy_coef=0.01, exe_energy_coef=1))
-
-    def init_infrastructure_links(self):
-        self.add_bilateral_links(self.node_id2name[0],
-                                 self.node_id2name[1], 15)
-        self.add_bilateral_links(self.node_id2name[1],
-                                 self.node_id2name[2], 15)
 
     def status(self, node_name=None, link_args=None):
         # Return status of specific Node/Link

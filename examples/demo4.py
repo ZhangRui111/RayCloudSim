@@ -14,11 +14,12 @@ while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
 root_path = os.path.split(root_path)[0]
 sys.path.append(root_path)
 
+import pandas as pd
+
 from core.env import Env
 from core.task import Task
 
-# User should customize this class: Scenario
-from examples.scenarios.random_topology import Scenario
+from examples.scenarios.scenario_3 import Scenario
 
 # Global statistics
 dup_task_id_error = []
@@ -68,15 +69,17 @@ def error_handler(error: Exception):
 
 def main():
     # Create the Env
-    env = Env(scenario=Scenario())
+    env = Env(
+        scenario=Scenario(
+            config_file="examples/scenarios/configs/config_3.json"))
 
     # # Visualize the scenario/network
     # env.vis_graph(save_as="examples/vis/network_demo3.png")
 
     # Load simulated tasks
-    with open("examples/utils/demo3_dataset.txt", 'r') as f:
-        simulated_tasks = eval(f.read())
-        n_tasks = len(simulated_tasks)
+    data = pd.read_csv("examples/dataset/demo3_dataset.csv")
+    simulated_tasks = list(data.iloc[:].values)
+    n_tasks = len(simulated_tasks)
 
     # Begin Simulation
     until = 1
@@ -92,15 +95,16 @@ def main():
         del timeout_error[:]
 
         for task_info in simulated_tasks:
-
-            generated_time, task_attrs, dst_name = task_info
-            task = Task(task_id=task_attrs[0],
-                       task_size=task_attrs[1],
-                       cycles_per_bit=task_attrs[2],
-                       trans_bit_rate=task_attrs[3],
-                       ddl=task_attrs[4],
-                       src_name=task_attrs[5],
-                       task_name=task_attrs[6])
+            # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
+            #           'TransBitRate', 'DDL', 'SrcName', 'DstName']
+            generated_time, dst_name = task_info[1], task_info[8]
+            task = Task(task_id=task_info[2],
+                        task_size=task_info[3],
+                        cycles_per_bit=task_info[4],
+                        trans_bit_rate=task_info[5],
+                        ddl=task_info[6],
+                        src_name=task_info[7],
+                        task_name=task_info[0])
 
             while True:
                 # Catch the returned info of completed tasks
@@ -150,13 +154,14 @@ def main():
 if __name__ == '__main__':
     main()
 
+
 # # ==================== Simulation log ====================
 # ...
-# [3678.00]: Processing Task {395} in {n4}
-# [3689.00]: Task {395} accomplished in Node {n4} with {11.00}s
-# [3743.00]: Task {379} accomplished in Node {n2} with {98.00}s
-# [3743.00]: **TimeoutError: Task {390}** timeout in Node {n2}
-# [3775.00]: Task {397} accomplished in Node {n9} with {102.00}s
+# [3565.00]: Task {376} accomplished in Node {n8} with {110.00}s
+# [3565.00]: **TimeoutError: Task {392}** timeout in Node {n8}
+# [3565.00]: **TimeoutError: Task {397}** timeout in Node {n8}
+# [3565.00]: **TimeoutError: Task {398}** timeout in Node {n8}
+# [3574.00]: Task {396} accomplished in Node {n5} with {72.00}s
 
 # -----------------------------------------------
 # Done simulation with 400 tasks!
@@ -164,25 +169,25 @@ if __name__ == '__main__':
 # DuplicateTaskIdError   : 0
 # NetworkXNoPathError    : 0
 # IsolatedWirelessNode   : 0
-# NetCongestionError     : 9
-# InsufficientBufferError: 39
-# TimeoutError           : 53
+# NetCongestionError     : 6
+# InsufficientBufferError: 56
+# TimeoutError           : 26
 # -----------------------------------------------
 
 
 # -----------------------------------------------
 # Energy consumption during simulation:
 
-# n0: 1399288.800
-# n1: 5335122.400
-# n2: 15118.480
-# n3: 1038403.680
-# n4: 5618664.890
-# n5: 84169.280
-# n6: 210120.800
-# n7: 1664033.950
-# n8: 686948.000
-# n9: 87361.600
+# n0: 4314949.120
+# n1: 471212.800
+# n2: 1595802.400
+# n3: 382588.610
+# n4: 3059439.000
+# n5: 538638.350
+# n6: 4145669.120
+# n7: 1944716.800
+# n8: 31345.600
+# n9: 1301817.600
 # -----------------------------------------------
 
-# [3776.00]: Simulation completed!
+# [3575.00]: Simulation completed!

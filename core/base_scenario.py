@@ -1,7 +1,9 @@
+import json
+
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Union, Tuple, List
 
-from core.infrastructure import Infrastructure, Link, DataFlow
+from core.infrastructure import Infrastructure, Link, DataFlow, Node, Location
 
 __all__ = ["BaseScenario"]
 
@@ -9,14 +11,18 @@ __all__ = ["BaseScenario"]
 class BaseScenario(metaclass=ABCMeta):
     """The base class of customized scenarios."""
 
-    def __init__(self):
+    def __init__(self, config_file):
+        # Load the config file
+        with open(config_file, 'r') as fr:
+            json_object = json.load(fr)
+            self.json_nodes, self.json_edges = json_object['Nodes'], json_object['Edges']
+        
         self.infrastructure = Infrastructure()
         self.node_id2name = dict()
 
         self.init_infrastructure_nodes()
         self.init_infrastructure_links()
 
-    @abstractmethod
     def init_infrastructure_nodes(self):
         """Initialize nodes in the infrastructure.
 
@@ -24,12 +30,36 @@ class BaseScenario(metaclass=ABCMeta):
             Node id must be **strictly increasing from zero**, i.e., 0, 1, ...
             Node name is user-defined.
         """
-        pass
+        # keys = ['NodeType', 'NodeName', 'NodeId', 'MaxCpuFreq', 'MaxBufferSize', 
+        #         'LocX', 'LocY', 'IdleEnergyCoef', 'ExeEnergyCoef', ]
+        for node_info in self.json_nodes:
 
-    @abstractmethod
+            assert node_info['NodeType'] == 'Node', \
+            f"Unrecognized NodeType {node_info['NodeType']}; \
+              One possible solution is to overwrite the init_infrastructure_nodes()"
+
+            self.infrastructure.add_node(
+                Node(node_id=node_info['NodeId'], 
+                     name=node_info['NodeName'], 
+                     max_cpu_freq=node_info['MaxCpuFreq'], 
+                     max_buffer_size=node_info['MaxBufferSize'], 
+                     location=Location(node_info['LocX'], node_info['LocY']),
+                     idle_energy_coef=node_info['IdleEnergyCoef'], 
+                     exe_energy_coef=node_info['ExeEnergyCoef']))
+            self.node_id2name[node_info['NodeId']] = node_info['NodeName']
+
     def init_infrastructure_links(self):
         """Initialize links in the infrastructure."""
-        pass
+        # keys = ['SrcNodeID', 'DstNodeID', 'Bandwidth']
+        for edge_info in self.json_edges:
+
+            assert edge_info['EdgeType'] == 'Link', \
+            f"Unrecognized EdgeType {edge_info['EdgeType']}; \
+              One possible solution is to overwrite the init_infrastructure_links()"
+
+            self.add_bilateral_links(self.node_id2name[edge_info['SrcNodeID']],
+                                     self.node_id2name[edge_info['DstNodeID']], 
+                                     edge_info['Bandwidth'])
 
     @abstractmethod
     def status(self, node_name: Optional[str] = None,
@@ -94,6 +124,5 @@ class BaseScenario(metaclass=ABCMeta):
         Send a data flow from the src node to the dst node.
         """
         if not links:
-            links = self.infrastructure.get_shortest_links(src_name, dst_name,
-                                                           weight)
+            links = self.infrastructure.get_shortest_links(src_name, dst_name, weight)
         data_flow.allocate(links)

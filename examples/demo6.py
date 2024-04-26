@@ -23,7 +23,9 @@ from policies.demo.demo_random import DemoRandom  # policy
 
 def main():
     # Init the Env
-    env = Env(scenario=Scenario())
+    env = Env(
+        scenario=Scenario(
+            config_file="eval/benchmarks/caseA/small/config.json"))
 
     # Init the policy
     policy = DemoRandom()
@@ -31,15 +33,16 @@ def main():
     # Begin Simulation
     until = 1
     for task_info in env.scenario.simulated_tasks:
-
-        generated_time, task_attrs = task_info
-        task = Task(task_id=task_attrs[0],
-                    task_size=task_attrs[1],
-                    cycles_per_bit=task_attrs[2],
-                    trans_bit_rate=task_attrs[3],
-                    ddl=task_attrs[4],
-                    src_name=task_attrs[5],
-                    task_name=task_attrs[6])
+        # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
+        #           'TransBitRate', 'DDL', 'SrcName']  # field names
+        generated_time = task_info[1]
+        task = Task(task_id=task_info[2],
+                    task_size=task_info[3],
+                    cycles_per_bit=task_info[4],
+                    trans_bit_rate=task_info[5],
+                    ddl=task_info[6],
+                    src_name=task_info[7],
+                    task_name=task_info[0])
 
         while True:
             # Catch the returned info of completed tasks
@@ -88,3 +91,21 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# # ==================== Simulation log ====================
+# ...
+# [1048.00]: Task {498} accomplished in Node {n19} with {2.00}s
+# [1055.00]: Task {480} accomplished in Node {n14} with {25.00}s
+# [1055.00]: **TimeoutError: Task {487}** timeout in Node {n14}
+# [1090.00]: Task {496} accomplished in Node {n16} with {62.00}s
+# [1090.00]: **TimeoutError: Task {499}** timeout in Node {n16}
+
+# -----------------------------------------------
+# Evaluation:
+
+# The success rate of all tasks: 0.792
+# The average latency per task: 34.447
+# -----------------------------------------------
+
+# [1090.00]: Simulation completed!

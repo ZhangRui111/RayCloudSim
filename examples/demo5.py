@@ -16,13 +16,14 @@ sys.path.append(root_path)
 from core.env import Env
 from core.task import Task
 
-# User should customize this class: Scenario
-from examples.scenarios.simple_scenario_2 import Scenario
+from examples.scenarios.scenario_5 import Scenario
 
 
 def main():
     # Create the Env
-    env = Env(scenario=Scenario())
+    env = Env(
+        scenario=Scenario(
+            config_file="examples/scenarios/configs/config_5.json"))
 
     # # Visualize the scenario/network
     # env.vis_graph(save_as="examples/vis/network_demo5.png")
@@ -66,6 +67,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 # # ==================== Simulation log ====================
 # [0.00]: Task {0} generated in Node {n4}

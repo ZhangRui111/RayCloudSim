@@ -5,7 +5,7 @@ import warnings
 from collections import deque, namedtuple
 from typing import Optional, Iterator, List
 
-__all__ = ["Location", "Data", "DataFlow", "Node", "Link", "Infrastructure"]
+__all__ = ["Location", "Data", "DataFlow", "Buffer", "Node", "Link", "Infrastructure"]
 
 
 BufferStatus = namedtuple("BufferStatus", "free_size, max_size")
