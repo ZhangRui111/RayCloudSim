@@ -15,6 +15,7 @@ sys.path.append(root_path)
 
 from core.env import Env
 from core.task import Task
+from core.vis import *
 
 from eval.benchmarks.caseA.small.scenario import Scenario  # testbed
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
@@ -26,9 +27,10 @@ def main():
     scenario=Scenario(config_file="eval/benchmarks/caseA/small/config.json")
     env = Env(scenario, config_file="core/configs/env_config.json")
     
-    # # Visualize the topology
-    # env.vis_graph(config_file="core/vis/configs/vis_config_base.json", 
-    #               save_as="examples/vis/caseA_small.png")
+    # # Visualization: the topology
+    # vis_graph(env,
+    #           config_file="core/vis/configs/vis_config_base.json", 
+    #           save_as="examples/vis/caseA_small.png")
 
     # Init the policy
     policy = DemoRandom()

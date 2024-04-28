@@ -44,6 +44,11 @@ def plot_graph(graph, config_file, save_as):
     plt.close()
 
 
+def vis_graph(env, config_file, save_as):
+    """Visualize the topology."""
+    plot_graph(env.scenario.infrastructure.graph, config_file, save_as)
+
+
 def main():
     g = nx.random_geometric_graph(n=10, radius=0.6, dim=2, pos=None, p=2, seed=21)
     plot_graph(g, 

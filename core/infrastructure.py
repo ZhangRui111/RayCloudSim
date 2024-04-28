@@ -127,10 +127,6 @@ class Buffer(object):
         """The current status."""
         return BufferStatus(self.free_size, self.max_size)
     
-    def congestion_level(self):
-        """The ratio of the used buffer size and the maximum buffer size."""
-        return (self.max_size - self.free_size) / self.max_size
-    
     def reset(self):
         """Reset the buffer."""
         self.buffer.clear()
@@ -226,6 +222,14 @@ class Node(object):
             CPUStatus, BufferStatus
         """
         return CPUStatus(self.free_cpu_freq, self.max_cpu_freq), self.task_buffer.utilization()
+    
+    def quantify_cpu_freq(self):
+        """The ratio of the used cpu frequencies and the maximum cpu frequencies."""
+        return (self.max_cpu_freq - self.free_cpu_freq) / self.max_cpu_freq
+
+    def quantify_buffer_size(self):
+        """The ratio of the used buffer size and the maximum buffer size."""
+        return (self.task_buffer.max_size - self.task_buffer.free_size) / self.task_buffer.max_size
 
     def add_task(self, task: "Task"):
         """Add a task to the node."""
@@ -329,7 +333,7 @@ class Link(object):
                              f"network link {self}.")
         self.free_bandwidth += bandwidth
     
-    def congestion_level(self):
+    def quantify_bandwidth(self):
         """The ratio of the used bandwidth and the maximum bandwidth."""
         return (self.max_bandwidth - self.free_bandwidth) / self.max_bandwidth
 

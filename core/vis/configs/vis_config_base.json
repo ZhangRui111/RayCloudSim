@@ -25,6 +25,7 @@
             "color": "black",
             "style": "solid",
             "width": 1.0,
+            "alpha": 1.0,
             "label": "off",
             "colorWeight": "off"
         },

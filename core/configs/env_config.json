@@ -3,6 +3,7 @@
         "Log": "on"
     },
     "Log": {
-        "LogPath": "log/vis"
+        "LogInfoPath": "log/vis",
+        "LogFramesPath": "log/vis/frames"
     }
 }

@@ -16,6 +16,7 @@ import pandas as pd
 
 from core.env import Env
 from core.task import Task
+from core.vis import *
 
 from examples.scenarios.scenario_3 import Scenario
 
@@ -29,8 +30,9 @@ def main():
     env = Env(scenario, config_file="core/configs/env_config.json")
 
     # # Visualization: the topology
-    # env.vis_graph(config_file="core/vis/configs/vis_config_base.json", 
-    #               save_as="examples/vis/demo_3.png")
+    # vis_graph(env,
+    #           config_file="core/vis/configs/vis_config_base.json", 
+    #           save_as="examples/vis/demo_3.png")
 
     # Load simulated tasks
     data = pd.read_csv("examples/dataset/demo3_dataset.csv")
@@ -80,7 +82,7 @@ def main():
     env.close()
 
     # Visualization: frames to video
-    env.vis_frame2video()
+    vis_frame2video(env)
 
 
 if __name__ == '__main__':

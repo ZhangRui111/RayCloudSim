@@ -15,7 +15,7 @@
             "fontColor": "black"
         },
         "ColorWeight": {
-            "metric": "free_buffer_size",
+            "metric": "free_cpu_freq",
             "cmap": "coolwarm"
         }
     },
@@ -24,7 +24,8 @@
             "arrows": "false",
             "color": "black",
             "style": "solid",
-            "width": 1.0,
+            "width": 2.0,
+            "alpha": 0.5,
             "label": "off",
             "colorWeight": "on"
         },

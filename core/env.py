@@ -1,5 +1,3 @@
-import cv2
-import glob
 import json
 import os
 import simpy
@@ -10,7 +8,6 @@ from typing import Optional, Tuple
 from core.base_scenario import BaseScenario
 from core.infrastructure import Link
 from core.task import Task
-from core.vis import *
 
 __all__ = ["EnvLogger", "Env"]
 
@@ -80,9 +77,8 @@ class Env:
 
         # Launch the info recorder for frames
         if self.config['Basic']['Log'] == "on":
-            log_path = self.config['Log']['LogPath']
-            os.makedirs(log_path, exist_ok=True)
-            os.makedirs(log_path + '/frames', exist_ok=True)
+            os.makedirs(self.config['Log']['LogInfoPath'], exist_ok=True)
+            os.makedirs(self.config['Log']['LogFramesPath'], exist_ok=True)
             self.info4frame = {}
             self.info4frame_recorder = self.controller.process(self.info4frame_clock())
 
@@ -334,15 +330,18 @@ class Env:
         """Recorder of node's energy consumption."""
         while True:
             node.energy_consumption += node.idle_energy_coef
-            node.energy_consumption += node.exe_energy_coef * (node.max_cpu_freq - node.free_cpu_freq) ** 3
+            node.energy_consumption += node.exe_energy_coef * (
+                node.max_cpu_freq - node.free_cpu_freq) ** 3
             yield self.controller.timeout(1)
     
     def info4frame_clock(self):
         """Recorder the info required for simulation frames."""
         while True:
             self.info4frame[self.now] = {
-                'node': {k: item.task_buffer.congestion_level() for k, item in self.scenario.get_nodes().items()},
-                'edge': {str(k): item.congestion_level() for k, item in self.scenario.get_links().items()}
+                'node': {k: item.quantify_cpu_freq() 
+                         for k, item in self.scenario.get_nodes().items()},
+                'edge': {str(k): item.quantify_bandwidth() 
+                         for k, item in self.scenario.get_links().items()}
             }
             yield self.controller.timeout(1)
 
@@ -350,45 +349,6 @@ class Env:
     def n_active_tasks(self):
         """The number of current active tasks."""
         return len(self.active_task_dict)
-
-    def vis_graph(self, config_file, save_as):
-        """Visualize the topology."""
-        plot_graph(self.scenario.infrastructure.graph, config_file, save_as)
-
-    def vis_frame2video(self):
-        """Build the simulation video, based on the simulation logs."""
-        frame_save_path = f"{self.config['Log']['LogPath']}/frames"
-        if len(os.listdir(frame_save_path)) == 0:
-            with open(f"{self.config['Log']['LogPath']}/info4frame.json", 'r') as fr:
-                info4frame = json.load(fr)
-            for k, v in info4frame.items():
-                v['now'] = k
-                plot_frame(self.scenario.infrastructure.graph,
-                           v, 
-                           config_file="core/vis/configs/vis_config_4video.json", 
-                           save_as=f"{frame_save_path}/frame_{k}.png")
-        
-        self.frame2video(frame_save_path)
-
-    def frame2video(self, img_path):
-        img_array = []
-        files = glob.glob(f"{img_path}/*.png")
-        files.sort(key=os.path.getmtime)  # sort all images in time order.
-        for filename in files:
-            img = cv2.imread(filename)
-            height, width, layers = img.shape
-            size = (width, height)
-            img_array.append(img)
-        
-        out = cv2.VideoWriter(f"{self.config['Log']['LogPath']}/out.avi", 
-                              cv2.VideoWriter_fourcc(*'DIVX'), 
-                              fps=5, 
-                              frameSize=size)
-        
-        for i in range(len(img_array)):
-            out.write(img_array[i])
-        
-        out.release()
 
     def status(self, node_name: Optional[str] = None,
                link_args: Optional[Tuple] = None):
@@ -402,7 +362,7 @@ class Env:
         # Save the info4frame
         if self.info4frame:
             info4frame_json_object = json.dumps(self.info4frame, indent=4)
-            with open(f"{self.config['Log']['LogPath']}/info4frame.json", 'w+') as fw:
+            with open(f"{self.config['Log']['LogInfoPath']}/info4frame.json", 'w+') as fw:
                 fw.write(info4frame_json_object)
 
         # Terminate activate processes
