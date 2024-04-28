@@ -44,17 +44,17 @@ class Scenario(BaseScenario):
             return link_statue
 
         # Return status of the whole scenario
-        n = len(self.nodes())
+        n = len(self.get_nodes())
         node_max_cpu_freq = np.zeros(n)
         node_free_cpu_freq = np.zeros(n)
         link_max_bandwidth = np.zeros((n, n))
         link_free_bandwidth = np.zeros((n, n))
 
-        for node in self.nodes():
+        for _, node in self.get_nodes().items():
             node_max_cpu_freq[node.node_id] = node.max_cpu_freq
             node_free_cpu_freq[node.node_id] = node.free_cpu_freq
 
-        for link in self.links():
+        for _, link in self.get_links().items():
             link_max_bandwidth[link.src.node_id][link.dst.node_id] = link.max_bandwidth
             link_free_bandwidth[link.src.node_id][link.dst.node_id] = link.free_bandwidth
 

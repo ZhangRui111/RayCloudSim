@@ -127,6 +127,10 @@ class Buffer(object):
         """The current status."""
         return BufferStatus(self.free_size, self.max_size)
     
+    def congestion_level(self):
+        """The ratio of the used buffer size and the maximum buffer size."""
+        return (self.max_size - self.free_size) / self.max_size
+    
     def reset(self):
         """Reset the buffer."""
         self.buffer.clear()
@@ -325,6 +329,10 @@ class Link(object):
                              f"network link {self}.")
         self.free_bandwidth += bandwidth
     
+    def congestion_level(self):
+        """The ratio of the used bandwidth and the maximum bandwidth."""
+        return (self.max_bandwidth - self.free_bandwidth) / self.max_bandwidth
+
     def reset(self):
         self.data_flows = []
         self.free_bandwidth = self.max_bandwidth
@@ -338,7 +346,7 @@ class Infrastructure(object):
     def add_node(self, node: Node):
         """Add a node to the infrastructure."""
         if node.name not in self.graph:
-            self.graph.add_node(node.name, data=node)
+            self.graph.add_node(node.name, data=node, pos=list(node.location.loc()))
 
     def remove_node(self, name: str):
         """Remove a node from the infrastructure by the node name.
@@ -387,15 +395,25 @@ class Infrastructure(object):
         """Return a specific link by src node name and dst node name."""
         return self.graph.edges[src_name, dst_name, key]["data"]
 
-    def nodes(self) -> List["Node"]:
+    def get_nodes(self):
         """Return all nodes in the infrastructure."""
-        nodes: Iterator[Node] = (v for _, v in self.graph.nodes.data("data"))
-        return list(nodes)
+        # # v1: return as a list
+        # nodes: Iterator[Node] = (v for _, v in self.graph.nodes.data("data"))
+        # return list(nodes)
+        # --------------------
+        # v2: return as a dict
+        node_data = dict(nx.get_node_attributes(self.graph, 'data'))
+        return node_data
 
-    def links(self) -> List["Link"]:
+    def get_links(self):
         """Return all links in the infrastructure."""
-        links: Iterator[Link] = (v for _, _, v in self.graph.edges.data("data"))
-        return list(links)
+        # # v1: return as a list
+        # links: Iterator[Link] = (v for _, _, v in self.graph.edges.data("data"))
+        # return list(links)
+        # --------------------
+        # v2: return as a dict
+        edge_data = nx.get_edge_attributes(self.graph, 'data')
+        return edge_data
 
     def get_shortest_path(self, src_name: str, dst_name: str, weight=None):
         """The shortest path between two nodes.

@@ -14,8 +14,8 @@ class BaseScenario(metaclass=ABCMeta):
     def __init__(self, config_file):
         # Load the config file
         with open(config_file, 'r') as fr:
-            json_object = json.load(fr)
-            self.json_nodes, self.json_edges = json_object['Nodes'], json_object['Edges']
+            self.json_object = json.load(fr)
+        self.json_nodes, self.json_edges = self.json_object['Nodes'], self.json_object['Edges']
         
         self.infrastructure = Infrastructure()
         self.node_id2name = dict()
@@ -65,8 +65,8 @@ class BaseScenario(metaclass=ABCMeta):
     def status(self, node_name: Optional[str] = None,
                link_args: Optional[Tuple] = None):
         """User-defined Scenario status."""
-        nodes = self.nodes()
-        links = self.links()
+        nodes = self.get_nodes()
+        links = self.get_links()
         return nodes, links
 
     def get_node(self, name):
@@ -75,11 +75,11 @@ class BaseScenario(metaclass=ABCMeta):
     def get_link(self, src_name: str, dst_name: str, key=0):
         return self.infrastructure.get_link(src_name, dst_name, key)
 
-    def nodes(self):
-        return self.infrastructure.nodes()
+    def get_nodes(self):
+        return self.infrastructure.get_nodes()
 
-    def links(self):
-        return self.infrastructure.links()
+    def get_links(self):
+        return self.infrastructure.get_links()
 
     def add_unilateral_link(self, src_name: str, dst_name: str, bandwidth: float,
                             base_latency: Optional[float] = 0):
@@ -108,13 +108,13 @@ class BaseScenario(metaclass=ABCMeta):
 
     def reset(self):
         """Remove all tasks and data flows in the infrastructure."""
-        for node in self.nodes():
+        for node in self.get_nodes().values():
             node.reset()
             # for wireless nodes
             if node.flag_only_wireless:
-                node.update_access_dst_nodes(self.nodes())
+                node.update_access_dst_nodes(self.get_nodes())
 
-        for link in self.links():
+        for link in self.get_links().values():
             link.reset()
 
     def send_data_flow(self, data_flow: DataFlow, links=None,

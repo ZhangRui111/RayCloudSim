@@ -1,0 +1,8 @@
+{
+    "Basic": {
+        "Log": "on"
+    },
+    "Log": {
+        "LogPath": "log/vis"
+    }
+}

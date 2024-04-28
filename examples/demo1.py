@@ -21,12 +21,12 @@ from examples.scenarios.scenario_1 import Scenario
 
 def main():
     # Create the Env
-    env = Env(
-        scenario=Scenario(
-            config_file="examples/scenarios/configs/config_1.json"))
+    scenario=Scenario(config_file="examples/scenarios/configs/config_1.json")
+    env = Env(scenario, config_file="core/configs/env_config.json")
 
-    # # Visualize the scenario/network
-    # env.vis_graph(save_as="examples/vis/network_demo1.png")
+    # # Visualize the topology
+    # env.vis_graph(config_file="core/vis/configs/vis_config_base.json", 
+    #               save_as="examples/vis/demo_1.png")
 
     # Begin Simulation
     task = Task(task_id=0,

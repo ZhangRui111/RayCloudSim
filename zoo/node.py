@@ -72,13 +72,13 @@ class WirelessNode(Node):
         return f"{self.name} ({self.free_cpu_freq}/{self.max_cpu_freq}) || " \
                f"{self.max_transmit_power})"
 
-    def update_access_dst_nodes(self, nodes: List[Node]):
+    def update_access_dst_nodes(self, nodes: dict):
         """Update the current wireless-accessible nodes."""
         del self.access_dst_nodes[:]
         self.default_dst_node = None
 
         wired_dis = math.inf
-        for item in nodes:
+        for _, item in nodes.items():
             if item.node_id != self.node_id:
                 dis = self.distance(item)
                 if dis < self.radius:

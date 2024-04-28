@@ -6,4 +6,4 @@ import random
 class DemoRandom(BasePolicy):
 
     def act(self, env, task):
-        return random.randint(0, len(env.scenario.nodes()) - 1)
+        return random.randint(0, len(env.scenario.get_nodes()) - 1)

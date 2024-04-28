@@ -23,9 +23,12 @@ from policies.demo.demo_random import DemoRandom  # policy
 
 def main():
     # Init the Env
-    env = Env(
-        scenario=Scenario(
-            config_file="eval/benchmarks/caseA/small/config.json"))
+    scenario=Scenario(config_file="eval/benchmarks/caseA/small/config.json")
+    env = Env(scenario, config_file="core/configs/env_config.json")
+    
+    # # Visualize the topology
+    # env.vis_graph(config_file="core/vis/configs/vis_config_base.json", 
+    #               save_as="examples/vis/caseA_small.png")
 
     # Init the policy
     policy = DemoRandom()
