@@ -12,7 +12,6 @@ def plot_graph(graph, config_file, save_as):
         json_object = json.load(fr)
         json_node = json_object['Node']
         json_edge = json_object['Edge']
-        json_target = json_object['Target']
     
     plt.figure(figsize=(8, 8))
 

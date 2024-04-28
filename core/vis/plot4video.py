@@ -5,6 +5,7 @@ import networkx as nx
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import os
+import textwrap
 from tqdm import tqdm
 
 
@@ -18,7 +19,6 @@ def plot_frame(graph, values, config_file, save_as):
         json_object = json.load(fr)
         json_node = json_object['Node']
         json_edge = json_object['Edge']
-        json_target = json_object['Target']
     
     node_data = nx.get_node_attributes(graph, 'data')
     labels = {k: v.node_id for k, v in node_data.items()}
@@ -36,7 +36,7 @@ def plot_frame(graph, values, config_file, save_as):
         edge_color = json_edge['Basic']['color']
         edge_cmap = None
     
-    plt.figure(figsize=(10, 8))
+    fig, ax = plt.subplots(1, 1, figsize=(12, 6))
     plt.title(f"{values['now']}")
 
     nx.draw_networkx_nodes(
@@ -78,9 +78,33 @@ def plot_frame(graph, values, config_file, save_as):
     
     # Colorbar
     node_sm = plt.cm.ScalarMappable(cmap=node_cmap, norm=plt.Normalize(vmin=0, vmax=1))
-    node_cb = plt.colorbar(node_sm, label='Node', location='left', format=lambda x, _: f"{x:.0%}")
+    node_cb = plt.colorbar(node_sm, 
+                           location='left', 
+                           orientation='vertical', 
+                           pad=0.01,
+                           format=lambda x, _: f"{x:.0%}")
+    node_cb.set_label("node", fontsize=10, labelpad=-5)
     edge_sm = plt.cm.ScalarMappable(cmap=edge_cmap, norm=plt.Normalize(vmin=0, vmax=1))
-    edge_cb = plt.colorbar(edge_sm, label='Link', location='right', format=lambda x, _: f"{x:.0%}")
+    edge_cb = plt.colorbar(edge_sm, 
+                           location='right', 
+                           orientation='vertical', 
+                           pad=0.01,
+                           format=lambda x, _: f"{x:.0%}")
+    edge_cb.set_label("Link", fontsize=10, labelpad=-5)
+
+    props = dict(boxstyle='round', facecolor='grey', alpha=0.15)  # bbox features
+    info = []
+    for k, v in values['target'].items():
+        text = f"{k}: {v[0]} <-- {v[1]}"
+        info.append("{:<50}".format(textwrap.shorten(text, width=45, placeholder="...")))
+    info = "\n\n".join(info)
+    ax.text(1.2, 0.5, 
+            info, 
+            transform=ax.transAxes, 
+            fontsize=12, 
+            verticalalignment='center', 
+            bbox=props)
+    plt.tight_layout()
 
     # # Change the color of node boundary
     # ax= plt.gca()

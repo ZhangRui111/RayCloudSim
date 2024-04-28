@@ -52,6 +52,8 @@ class Env:
         # Load the config file
         with open(config_file, 'r') as fr:
             self.config = json.load(fr)
+        assert len(self.config['Log']['TargetNodeList']) <= 10, \
+            "For aesthetic considerations, the number of tracked nodes is limited to less than 10."
         
         self.scenario = scenario
         self.controller = simpy.Environment()
@@ -341,8 +343,14 @@ class Env:
                 'node': {k: item.quantify_cpu_freq() 
                          for k, item in self.scenario.get_nodes().items()},
                 'edge': {str(k): item.quantify_bandwidth() 
-                         for k, item in self.scenario.get_links().items()}
+                         for k, item in self.scenario.get_links().items()},
             }
+            if len(self.config['Log']['TargetNodeList']) > 0:
+                self.info4frame[self.now]['target'] = {
+                    item: [self.scenario.get_node(item).active_task_ids[:], 
+                           self.scenario.get_node(item).task_buffer.task_ids[:]]
+                    for item in self.config['Log']['TargetNodeList']
+                }
             yield self.controller.timeout(1)
 
     @property

@@ -38,9 +38,5 @@
             "metric": "free_bandwidth",
             "cmap": "plasma"
         }
-    },
-    "Target": {
-        "TargetNodeList": [],
-        "TargetTaskList": []
     }
 }
