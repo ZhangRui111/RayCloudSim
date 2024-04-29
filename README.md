@@ -2,17 +2,15 @@
   <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo_long.jpg" alt="" width="800"/>
 </div>
 
-# RayCloudSim: A Simulator Written in Python for Cloud, Fog, or Edge Computing
-
-<div style="text-align: center;">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="700" />
-  </picture>
-</div>
+# RayCloudSim: A Simulation Platform Written in Python for Cloud/Fog/Edge Computing
 
 ## Update Summary
+- **2024/04/26**
+
+  - [**New**] Users can now easily create the Scenario using configuration files in **JSON** format
+  - [**Optimization**] The dataset has been optimized for saving in **CSV** format, offering better readability
+  - [**New/Optimization**] More and better **visualization tools**, including simulation processes reproduced in video format, facilitate an intuitive understanding of the simulation process
+
 - **2024/04/14**
 
   The first official release v1.0.0 has been published on the main branch, with the following major updates:
@@ -27,11 +25,19 @@
     - Module import failures caused by file paths
 
 > **Important Notice for Previous Users:**
-The versions prior to v1.0.0 have been preserved on the pre-v0.6.6 branch, but no further updates are expected for this version. We are very grateful for the support of all users for the early versions!
+  The versions prior to v1.0.0 have been preserved on the pre-v0.6.6 branch, but no further updates are expected for this version. We are very grateful for the support of all users for the early versions!
+
+<div style="text-align: center;">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="700" />
+  </picture>
+</div>
 
 ## I. Introduction
 
-RayCloudSim is a lightweight simulator written in Python for analytical modeling and simulation of Cloud/Fog/Edge Computing infrastructures and services.
+RayCloudSim is a lightweight simulator written in Python for analytical modeling and simulation of Cloud/Fog/Edge Computing infrastructures and services. The original intention for the development of RayCloudSim was for research related to task offloading, and it now supports a more diverse range of research topics.
 
 RayCloudSim has the following advantages: 
 - Compact source code, which is easy to read, understand and customize according to individual needs.
@@ -39,47 +45,43 @@ RayCloudSim has the following advantages:
 - It is easy to integrate with machine learning frameworks such as PyTorch, TensorFlow, and other Python-based ML frameworks.
 
 RayCloudSim can be used for the following research topics:
-- Performance and cost analysis of cloud computing and edge computing
-- Traffic analysis of complex networks
+- Research on task offloading in cloud/fog/edge computing
+- Research on performance and cost analysis of cloud/fog/edge computing
+- Research on traffic analysis of complex networks
 - Research on resource management and scheduling strategies for large-scale distributed systems
-- Research on task allocation and scheduling algorithms
-- Research on deployment of specific devices, such as parameter servers in federated learning.
+- Research on deployment strategies for specific devices, such as parameter servers in federated learning
 - ...
 
 ## II. Requirements & Installation
 
-- **python >= 3.8** 
+Main Dependent Modules:
+
+- **python >= 3.8**: Previous versions might be OK but without testing.
+- **numpy**: NumPy is a Python library used for working with arrays.
+- **networkx**: NetworkX is a Python package for the creation, manipulation, and study of the structure, dynamics, and functions of complex networks.
+- **simpy**: SimPy is a process-based discrete-event simulation framework based on standard Python.
   
-    previous version might be OK but without testing.
-- **numpy**
-- **networkx**
-- **simpy**
-  
-The following packages are optional for visualization.
+The following modules are used for visualization tools:
 
 - **matplotlib**
-- **plotly**
-- **kaleido**
+- **cv2**
 
-Commands for configuring the RayCloudSim using Anaconda:
+Users are recommended to use the Anaconda to configure the RayCloudSim:
 
 ```text
 conda create --name raycloudsim python=3.8
 conda activate raycloudsim
 conda install -c anaconda numpy
-conda install -c conda-forge matplotlib
-conda install -c anaconda networkx
-conda install -c conda-forge simpy
-conda install -c plotly plotly
-conda install -c conda-forge python-kaleido
+...
 ```
 
 ## III. Set Sail
-### 1. Hello World
+### 3.1 Hello World
 
 ```python
 # Create the Env
-env = Env(scenario=Scenario())
+scenario=Scenario(config_file="examples/scenarios/configs/config_1.json")
+env = Env(scenario, config_file="core/configs/env_config.json")
 
 # Begin Simulation
 task = Task(task_id=0,
@@ -93,9 +95,9 @@ env.process(task=task, dst_name='n1')
 env.run(until=20)
 
 print("\n-----------------------------------------------")
-print("Power consumption during simulation:\n")
-print(f"n0: {env.scenario.get_node('n0').power_consumption:.3f}")
-print(f"n1: {env.scenario.get_node('n1').power_consumption:.3f}")
+print("Energy consumption during simulation:\n")
+print(f"n0: {env.scenario.get_node('n0').energy_consumption:.3f}")
+print(f"n1: {env.scenario.get_node('n1').energy_consumption:.3f}")
 print("-----------------------------------------------\n")
 
 env.close()
@@ -120,23 +122,19 @@ n1: 72000.200
 [20.00]: Simulation completed!
 ```
 
-### 2. Guides
+### 3.2 Tutorials
 
-- The following figure presents the framework of RayCloudSim, which consists of two main components：`Env` and `Task`: 
+**3.2.1** The following figure presents the framework of RayCloudSim, which consists of two main components：`Env` and `Task`: 
 
 [comment]: <> (![The framework of RayCloudSim]&#40;docs/framework.jpg&#41;)
 
 <div style="text-align: center;">
-  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/framework.jpg" alt="RayCloudSim 的框架架构" width="500"/>
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/framework.jpg" alt="The framework of RayCloudSim" width="500"/>
 </div>
 
-- Note that learning how to use [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) would be very helpful.
+**3.2.2** A Simple Introduction to System Modeling: [docs/RayCloudSim.md](docs/RayCloudSim.md)
 
-- A Simple Introduction to System Modeling: [docs/RayCloudSim.md](docs/RayCloudSim.md)
-
-### 3. Tutorials
-
-The following scripts can be used as progressive tutorials.
+**3.2.3** The following scripts can be used as progressive tutorials.
 
 - [examples/demo1.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo1.py)
 
@@ -150,29 +148,54 @@ The following scripts can be used as progressive tutorials.
 
 - [examples/demo6.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo6.py)
 
-The following figure illustrates a visualization example:
+- [examples/demo7.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.py)
+
+Note that learning how to use [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) would be very helpful.
+
+**3.2.4** RayCloudSim supports multiple visualization features: static visualization of system topology, dynamic visualization of the simulation process, etc.
+
+- static visualization of system topology
 
 <div style="text-align: center;">
-  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/network_demo3.png" alt="可视化示例" width="500"/>
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/vis/demo_base.png" alt="" width="400"/>
 </div>
 
+- dynamic visualization of the simulation process
+
+<div style="text-align: center;">
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/gifs/simulation_vis1.gif" alt="" width="600"/>
+</div>
+
+<div style="text-align: center;">
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/gifs/simulation_vis2.gif" alt="" width="600"/>
+</div>
+
+The complete video:
+
+ - [Github](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/videos/out.avi)
+
+ - [Baidu Netdisk (Access code: xa1r)](https://pan.baidu.com/s/16X1Mdn-wvMu_o4GpUFtRDw?pwd=xa1r)
+
 ## IV. Development Plan
-### 1. TODO
+### 4.1 TODO
+
+> For subsequent updates, please refer to the [update summary](https://github.com/ZhangRui111/RayCloudSim/blob/main/README.md#update-summary)
+
 - [X] The basic version. (2023/05/10)
 - [X] Added modules zoo, including WirelessNode, etc. (2023/10/24)
 - [X] Computational nodes now support queue space to facilitate task buffering. (2023/11/10)
-- [ ] ~~Support using wireless nodes as relay communication nodes?~~
+<!-- - [ ] ~~Support using wireless nodes as relay communication nodes?~~ -->
 - [X] Modeling of 'computational energy consumption' and 'task timeout' supported, etc. (2024/04/14)
-- [ ] Modeling of divisible tasks
-- [ ] Details such as the energy consumption and transmission of wireless nodes
+<!-- - [ ] Modeling of divisible tasks (Application >>> Task)-->
+<!-- - [ ] Details such as the energy consumption and transmission of wireless nodes -->
 - [X] Metric/* (2024/04/16)
 - [X] Evaluation APIs (2024/04/16)
 - [ ] Anything reasonable
 
-### 2. Contribute Code to RayCloudSim
+### 4.2 Contribute Code to RayCloudSim
 We welcome any contributions to the codebase. However, please note that the **main** branch is protected, and we recommend that you submit/push your code to the **dev-open** branch.
 
-## Citation
+<!-- ## Citation
 
 To cite this repository, you can use the following BibTeX entry:
 
@@ -197,7 +220,7 @@ Besides, RayCloudSim is inspired by [LEAF](https://github.com/dos-group/leaf) an
   pages={29-36},
   doi={10.1109/ICFEC51620.2021.00012}
 }
-```
+``` -->
 
 ## More
 
