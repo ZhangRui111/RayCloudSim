@@ -15,17 +15,20 @@ sys.path.append(root_path)
 
 from core.env import Env
 from core.task import Task
+from core.vis import *
 
-# User should customize this class: Scenario
-from examples.scenarios.simple_scenario_1 import Scenario
+from examples.scenarios.scenario_1 import Scenario
 
 
 def main():
     # Create the Env
-    env = Env(scenario=Scenario())
+    scenario=Scenario(config_file="examples/scenarios/configs/config_1.json")
+    env = Env(scenario, config_file="core/configs/env_config.json")
 
-    # # Visualize the scenario/network
-    # env.vis_graph(save_as="examples/vis/network_demo1.png")
+    # # Visualization: the topology
+    # vis_graph(env,
+    #           config_file="core/vis/configs/vis_config_base.json", 
+    #           save_as="examples/vis/demo_1.png")
 
     # Begin Simulation
     task = Task(task_id=0,
@@ -49,6 +52,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 # # ==================== Simulation log ====================
 # [0.00]: Task {0} generated in Node {n0}

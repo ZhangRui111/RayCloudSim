@@ -5,7 +5,7 @@ import warnings
 from collections import deque, namedtuple
 from typing import Optional, Iterator, List
 
-__all__ = ["Location", "Data", "DataFlow", "Node", "Link", "Infrastructure"]
+__all__ = ["Location", "Data", "DataFlow", "Buffer", "Node", "Link", "Infrastructure"]
 
 
 BufferStatus = namedtuple("BufferStatus", "free_size, max_size")
@@ -100,6 +100,7 @@ class Buffer(object):
 
     def __init__(self, max_size):
         self.buffer = deque()  # FIFO
+        self.task_ids = []  # buffered task ids
         self.max_size = max_size
         self.free_size = max_size
 
@@ -108,6 +109,7 @@ class Buffer(object):
         if task.task_size <= self.free_size:
             self.free_size -= task.task_size
             self.buffer.append(task)
+            self.task_ids.append(task.task_id)
         else:
             raise EnvironmentError(
                 ('InsufficientBufferError', 
@@ -118,6 +120,7 @@ class Buffer(object):
         """Pop the first task from the buffer."""
         if len(self.buffer) > 0:
             task = self.buffer.popleft()
+            self.task_ids.remove(task.task_id)
             self.free_size += task.task_size
             return task
         else:
@@ -130,6 +133,7 @@ class Buffer(object):
     def reset(self):
         """Reset the buffer."""
         self.buffer.clear()
+        del self.task_ids[:]
         self.free_size = self.max_size
 
 
@@ -178,7 +182,8 @@ class Node(object):
         self.idle_energy_coef = idle_energy_coef
         self.exe_energy_coef = exe_energy_coef
         
-        self.tasks: List["Task"] = []
+        self.active_tasks: List["Task"] = []
+        self.active_task_ids = []
 
         self.flag_only_wireless = False
 
@@ -222,16 +227,26 @@ class Node(object):
             CPUStatus, BufferStatus
         """
         return CPUStatus(self.free_cpu_freq, self.max_cpu_freq), self.task_buffer.utilization()
+    
+    def quantify_cpu_freq(self):
+        """The ratio of the used cpu frequencies and the maximum cpu frequencies."""
+        return (self.max_cpu_freq - self.free_cpu_freq) / self.max_cpu_freq
+
+    def quantify_buffer_size(self):
+        """The ratio of the used buffer size and the maximum buffer size."""
+        return (self.task_buffer.max_size - self.task_buffer.free_size) / self.task_buffer.max_size
 
     def add_task(self, task: "Task"):
         """Add a task to the node."""
         self._reserve_resource(task)
-        self.tasks.append(task)
+        self.active_tasks.append(task)
+        self.active_task_ids.append(task.task_id)
 
     def remove_task(self, task: "Task"):
         """Remove a task from the node."""
         self._release_resource(task)
-        self.tasks.remove(task)
+        self.active_tasks.remove(task)
+        self.active_task_ids.remove(task.task_id)
 
     def _reserve_resource(self, task: "Task"):
         if self.free_cpu_freq > 0:  # trying to allocating CPU frequency
@@ -247,7 +262,8 @@ class Node(object):
             raise ValueError(f"Cannot release enough resources on compute node {self}.")
     
     def reset(self):
-        self.tasks = []
+        self.active_tasks = []
+        self.active_task_ids = []
         self.free_cpu_freq = self.max_cpu_freq
         self.task_buffer.reset()
         self.energy_consumption = 0
@@ -325,6 +341,10 @@ class Link(object):
                              f"network link {self}.")
         self.free_bandwidth += bandwidth
     
+    def quantify_bandwidth(self):
+        """The ratio of the used bandwidth and the maximum bandwidth."""
+        return (self.max_bandwidth - self.free_bandwidth) / self.max_bandwidth
+
     def reset(self):
         self.data_flows = []
         self.free_bandwidth = self.max_bandwidth
@@ -338,7 +358,7 @@ class Infrastructure(object):
     def add_node(self, node: Node):
         """Add a node to the infrastructure."""
         if node.name not in self.graph:
-            self.graph.add_node(node.name, data=node)
+            self.graph.add_node(node.name, data=node, pos=list(node.location.loc()))
 
     def remove_node(self, name: str):
         """Remove a node from the infrastructure by the node name.
@@ -387,15 +407,25 @@ class Infrastructure(object):
         """Return a specific link by src node name and dst node name."""
         return self.graph.edges[src_name, dst_name, key]["data"]
 
-    def nodes(self) -> List["Node"]:
+    def get_nodes(self):
         """Return all nodes in the infrastructure."""
-        nodes: Iterator[Node] = (v for _, v in self.graph.nodes.data("data"))
-        return list(nodes)
+        # # v1: return as a list
+        # nodes: Iterator[Node] = (v for _, v in self.graph.nodes.data("data"))
+        # return list(nodes)
+        # --------------------
+        # v2: return as a dict
+        node_data = dict(nx.get_node_attributes(self.graph, 'data'))
+        return node_data
 
-    def links(self) -> List["Link"]:
+    def get_links(self):
         """Return all links in the infrastructure."""
-        links: Iterator[Link] = (v for _, _, v in self.graph.edges.data("data"))
-        return list(links)
+        # # v1: return as a list
+        # links: Iterator[Link] = (v for _, _, v in self.graph.edges.data("data"))
+        # return list(links)
+        # --------------------
+        # v2: return as a dict
+        edge_data = nx.get_edge_attributes(self.graph, 'data')
+        return edge_data
 
     def get_shortest_path(self, src_name: str, dst_name: str, weight=None):
         """The shortest path between two nodes.

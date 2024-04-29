@@ -1,3 +1,5 @@
+import json
+import os
 import simpy
 import networkx as nx
 
@@ -5,11 +7,13 @@ from typing import Optional, Tuple
 
 from core.base_scenario import BaseScenario
 from core.infrastructure import Link
-from core.flag import *
 from core.task import Task
-from core.visualization import plot_2d_network_graph
 
 __all__ = ["EnvLogger", "Env"]
+
+
+# Flags
+FLAG_TASK_EXECUTION_DONE = 0
 
 
 class EnvLogger:
@@ -44,8 +48,13 @@ class EnvLogger:
 
 class Env:
 
-    def __init__(self, scenario: BaseScenario):
-        # Main components
+    def __init__(self, scenario: BaseScenario, config_file):
+        # Load the config file
+        with open(config_file, 'r') as fr:
+            self.config = json.load(fr)
+        assert len(self.config['Log']['TargetNodeList']) <= 10, \
+            "For aesthetic considerations, the number of tracked nodes is limited to less than 10."
+        
         self.scenario = scenario
         self.controller = simpy.Environment()
         self.logger = EnvLogger(self.controller)
@@ -65,8 +74,15 @@ class Env:
         
         # Launch all energy recorder processes
         self.energy_recorders = {}
-        for node in self.scenario.nodes():
+        for _, node in self.scenario.get_nodes().items():
             self.energy_recorders[node.node_id] = self.controller.process(self.energy_clock(node))
+
+        # Launch the info recorder for frames
+        if self.config['Basic']['Log'] == "on":
+            os.makedirs(self.config['Log']['LogInfoPath'], exist_ok=True)
+            os.makedirs(self.config['Log']['LogFramesPath'], exist_ok=True)
+            self.info4frame = {}
+            self.info4frame_recorder = self.controller.process(self.info4frame_clock())
 
     @property
     def now(self):
@@ -316,7 +332,25 @@ class Env:
         """Recorder of node's energy consumption."""
         while True:
             node.energy_consumption += node.idle_energy_coef
-            node.energy_consumption += node.exe_energy_coef * (node.max_cpu_freq - node.free_cpu_freq) ** 3
+            node.energy_consumption += node.exe_energy_coef * (
+                node.max_cpu_freq - node.free_cpu_freq) ** 3
+            yield self.controller.timeout(1)
+    
+    def info4frame_clock(self):
+        """Recorder the info required for simulation frames."""
+        while True:
+            self.info4frame[self.now] = {
+                'node': {k: item.quantify_cpu_freq() 
+                         for k, item in self.scenario.get_nodes().items()},
+                'edge': {str(k): item.quantify_bandwidth() 
+                         for k, item in self.scenario.get_links().items()},
+            }
+            if len(self.config['Log']['TargetNodeList']) > 0:
+                self.info4frame[self.now]['target'] = {
+                    item: [self.scenario.get_node(item).active_task_ids[:], 
+                           self.scenario.get_node(item).task_buffer.task_ids[:]]
+                    for item in self.config['Log']['TargetNodeList']
+                }
             yield self.controller.timeout(1)
 
     @property
@@ -324,24 +358,27 @@ class Env:
         """The number of current active tasks."""
         return len(self.active_task_dict)
 
-    def vis_graph(self, save_as):
-        """Visualize the graph/network."""
-        plot_2d_network_graph(self.scenario.infrastructure.graph,
-                              save_as=save_as)
-
     def status(self, node_name: Optional[str] = None,
                link_args: Optional[Tuple] = None):
         return self.scenario.status(node_name, link_args)
 
     def close(self):
         # Record nodes' energy consumption.
-        for node in self.scenario.nodes():
+        for _, node in self.scenario.get_nodes().items():
             self.logger.append(info_type='node', key=node.node_id, val=node.energy_consumption)
         
+        # Save the info4frame
+        if self.info4frame:
+            info4frame_json_object = json.dumps(self.info4frame, indent=4)
+            with open(f"{self.config['Log']['LogInfoPath']}/info4frame.json", 'w+') as fw:
+                fw.write(info4frame_json_object)
+
         # Terminate activate processes
-        self.logger.log("Simulation completed!")
         self.monitor_process.interrupt()
         for p in self.energy_recorders.values():
             if p.is_alive:
                 p.interrupt()
         self.energy_recorders.clear()
+        self.info4frame_recorder.interrupt()
+
+        self.logger.log("Simulation completed!")

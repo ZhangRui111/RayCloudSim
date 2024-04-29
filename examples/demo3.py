@@ -10,11 +10,13 @@ while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
 root_path = os.path.split(root_path)[0]
 sys.path.append(root_path)
 
+import pandas as pd
+
 from core.env import Env
 from core.task import Task
+from core.vis import *
 
-# User should customize this class: Scenario
-from examples.scenarios.random_topology import Scenario
+from examples.scenarios.scenario_3 import Scenario
 
 # Global statistics
 dup_task_id_error = []
@@ -64,28 +66,32 @@ def error_handler(error: Exception):
 
 def main():
     # Create the Env
-    env = Env(scenario=Scenario())
+    scenario=Scenario(config_file="examples/scenarios/configs/config_3.json")
+    env = Env(scenario, config_file="core/configs/env_config.json")
 
-    # # Visualize the scenario/network
-    # env.vis_graph(save_as="examples/vis/network_demo3.png")
+    # # Visualization: the topology
+    # vis_graph(env,
+    #           config_file="core/vis/configs/vis_config_base.json", 
+    #           save_as="examples/vis/demo_3.png")
 
     # Load simulated tasks
-    with open("examples/utils/demo3_dataset.txt", 'r') as f:
-        simulated_tasks = eval(f.read())
-        n_tasks = len(simulated_tasks)
+    data = pd.read_csv("examples/dataset/demo3_dataset.csv")
+    simulated_tasks = list(data.iloc[:].values)
+    n_tasks = len(simulated_tasks)
 
     # Begin Simulation
     until = 1
     for task_info in simulated_tasks:
-
-        generated_time, task_attrs, dst_name = task_info
-        task = Task(task_id=task_attrs[0],
-                    task_size=task_attrs[1],
-                    cycles_per_bit=task_attrs[2],
-                    trans_bit_rate=task_attrs[3],
-                    ddl=task_attrs[4],
-                    src_name=task_attrs[5],
-                    task_name=task_attrs[6])
+        # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
+        #           'TransBitRate', 'DDL', 'SrcName', 'DstName']
+        generated_time, dst_name = task_info[1], task_info[8]
+        task = Task(task_id=task_info[2],
+                    task_size=task_info[3],
+                    cycles_per_bit=task_info[4],
+                    trans_bit_rate=task_info[5],
+                    ddl=task_info[6],
+                    src_name=task_info[7],
+                    task_name=task_info[0])
 
         while True:
             # Catch the returned info of completed tasks
@@ -125,8 +131,8 @@ def main():
 
     print("\n-----------------------------------------------")
     print("Energy consumption during simulation:\n")
-    for node in env.scenario.nodes():
-        print(f"{node.name}: {node.energy_consumption:.3f}")
+    for key, node in env.scenario.get_nodes().items():
+        print(f"{key}: {node.energy_consumption:.3f}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -135,13 +141,14 @@ def main():
 if __name__ == '__main__':
     main()
 
+
 # # ==================== Simulation log ====================
 # ...
-# [1059.00]: Processing Task {395} in {n4}
-# [1070.00]: Task {395} accomplished in Node {n4} with {11.00}s
-# [1124.00]: Task {379} accomplished in Node {n2} with {98.00}s
-# [1124.00]: **TimeoutError: Task {390}** timeout in Node {n2}
-# [1156.00]: Task {397} accomplished in Node {n9} with {102.00}s
+# [1093.00]: Task {376} accomplished in Node {n8} with {110.00}s
+# [1093.00]: **TimeoutError: Task {392}** timeout in Node {n8}
+# [1093.00]: **TimeoutError: Task {397}** timeout in Node {n8}
+# [1093.00]: **TimeoutError: Task {398}** timeout in Node {n8}
+# [1102.00]: Task {396} accomplished in Node {n5} with {72.00}s
 
 # -----------------------------------------------
 # Done simulation with 400 tasks!
@@ -149,25 +156,25 @@ if __name__ == '__main__':
 # DuplicateTaskIdError   : 0
 # NetworkXNoPathError    : 0
 # IsolatedWirelessNode   : 0
-# NetCongestionError     : 9
-# InsufficientBufferError: 39
-# TimeoutError           : 53
+# NetCongestionError     : 6
+# InsufficientBufferError: 56
+# TimeoutError           : 26
 # -----------------------------------------------
 
 
 # -----------------------------------------------
 # Energy consumption during simulation:
 
-# n0: 1399274.590
-# n1: 5335104.130
-# n2: 15116.450
-# n3: 1038401.650
-# n4: 5618648.650
-# n5: 84165.220
-# n6: 210114.710
-# n7: 1664013.650
-# n8: 686937.850
-# n9: 87349.420
+# n0: 4314940.270
+# n1: 471211.030
+# n2: 1595788.240
+# n3: 382576.220
+# n4: 3059430.150
+# n5: 538625.960
+# n6: 4145651.420
+# n7: 1944706.180
+# n8: 31342.060
+# n9: 1301801.670
 # -----------------------------------------------
 
-# [1157.00]: Simulation completed!
+# [1103.00]: Simulation completed!
