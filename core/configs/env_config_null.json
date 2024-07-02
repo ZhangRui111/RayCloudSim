@@ -1,0 +1,10 @@
+{
+    "Basic": {
+        "Log": "off"
+    },
+    "Log": {
+        "LogInfoPath": "log/vis",
+        "LogFramesPath": "log/vis/frames",
+        "TargetNodeList": []
+    }
+}

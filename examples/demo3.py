@@ -67,7 +67,7 @@ def error_handler(error: Exception):
 def main():
     # Create the Env
     scenario=Scenario(config_file="examples/scenarios/configs/config_3.json")
-    env = Env(scenario, config_file="core/configs/env_config.json")
+    env = Env(scenario, config_file="core/configs/env_config_null.json")
 
     # # Visualization: the topology
     # vis_graph(env,

@@ -295,7 +295,10 @@ class Link(object):
         self.dst = dst
         self.max_bandwidth = max_bandwidth
         self.base_latency = base_latency
-        self.dis = self.distance()
+        try:
+            self.dis = self.distance()
+        except AttributeError:
+            self.dis = 1
 
         self.free_bandwidth = max_bandwidth
         self.data_flows: List["DataFlow"] = []
@@ -358,7 +361,10 @@ class Infrastructure(object):
     def add_node(self, node: Node):
         """Add a node to the infrastructure."""
         if node.name not in self.graph:
-            self.graph.add_node(node.name, data=node, pos=list(node.location.loc()))
+            if node.location:
+                self.graph.add_node(node.name, data=node, pos=list(node.location.loc()))
+            else:
+                self.graph.add_node(node.name, data=node)
 
     def remove_node(self, name: str):
         """Remove a node from the infrastructure by the node name.

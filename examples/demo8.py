@@ -1,6 +1,4 @@
-"""Evaluation
-
-An example of evaluating the performance of offloading strategies using unified benchmarks.
+"""Example on how to use the Topo4MEC dataset.
 """
 import os
 import sys
@@ -17,20 +15,25 @@ from core.env import Env
 from core.task import Task
 from core.vis import *
 
-from eval.benchmarks.caseA.small.scenario import Scenario  # testbed
+from eval.benchmarks.Topo4MEC.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
 from policies.demo.demo_random import DemoRandom  # policy
 
 
 def main():
-    # Init the Env
-    scenario=Scenario(config_file="eval/benchmarks/caseA/small/config.json")
+    flag = '25N50E'
+    # flag = '50N50E'
+    # flag = '100N150E'
+    # flag = 'MilanCityCenter'
+
+    # Create the Env
+    scenario=Scenario(config_file=f"eval/benchmarks/Topo4MEC/data/{flag}/config.json", flag=flag)
     env = Env(scenario, config_file="core/configs/env_config_null.json")
-    
+
     # # Visualization: the topology
     # vis_graph(env,
-    #           config_file="core/vis/configs/vis_config_base.json", 
-    #           save_as="examples/vis/caseA_small.png")
+    #           config_file="core/vis/configs/vis_config_topo4mec.json", 
+    #           save_as=f"eval/benchmarks/Topo4MEC/data/{flag}/vis_{flag}.png")
 
     # Init the policy
     policy = DemoRandom()
@@ -96,21 +99,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-# # ==================== Simulation log ====================
-# ...
-# [1048.00]: Task {498} accomplished in Node {n19} with {2.00}s
-# [1055.00]: Task {480} accomplished in Node {n14} with {25.00}s
-# [1055.00]: **TimeoutError: Task {487}** timeout in Node {n14}
-# [1090.00]: Task {496} accomplished in Node {n16} with {62.00}s
-# [1090.00]: **TimeoutError: Task {499}** timeout in Node {n16}
-
-# -----------------------------------------------
-# Evaluation:
-
-# The success rate of all tasks: 0.792
-# The average latency per task: 34.447
-# -----------------------------------------------
-
-# [1090.00]: Simulation completed!

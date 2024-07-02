@@ -1,0 +1,696 @@
+{
+    "Nodes": [
+        {
+            "NodeType": "Node",
+            "NodeName": "n0",
+            "NodeId": 0,
+            "MaxCpuFreq": 40,
+            "MaxBufferSize": 420,
+            "IdleEnergyCoef": 0.04,
+            "ExeEnergyCoef": 0.45
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n1",
+            "NodeId": 1,
+            "MaxCpuFreq": 15,
+            "MaxBufferSize": 190,
+            "IdleEnergyCoef": 0.07,
+            "ExeEnergyCoef": 0.65
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n2",
+            "NodeId": 2,
+            "MaxCpuFreq": 50,
+            "MaxBufferSize": 230,
+            "IdleEnergyCoef": 0.05,
+            "ExeEnergyCoef": 0.51
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n3",
+            "NodeId": 3,
+            "MaxCpuFreq": 10,
+            "MaxBufferSize": 270,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 0.1
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n4",
+            "NodeId": 4,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 180,
+            "IdleEnergyCoef": 0.04,
+            "ExeEnergyCoef": 0.38
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n5",
+            "NodeId": 5,
+            "MaxCpuFreq": 25,
+            "MaxBufferSize": 90,
+            "IdleEnergyCoef": 0.05,
+            "ExeEnergyCoef": 0.49
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n6",
+            "NodeId": 6,
+            "MaxCpuFreq": 10,
+            "MaxBufferSize": 230,
+            "IdleEnergyCoef": 0.05,
+            "ExeEnergyCoef": 0.51
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n7",
+            "NodeId": 7,
+            "MaxCpuFreq": 35,
+            "MaxBufferSize": 130,
+            "IdleEnergyCoef": 0.09,
+            "ExeEnergyCoef": 0.9
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n8",
+            "NodeId": 8,
+            "MaxCpuFreq": 35,
+            "MaxBufferSize": 430,
+            "IdleEnergyCoef": 0.1,
+            "ExeEnergyCoef": 0.99
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n9",
+            "NodeId": 9,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 110,
+            "IdleEnergyCoef": 0.09,
+            "ExeEnergyCoef": 0.9
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n10",
+            "NodeId": 10,
+            "MaxCpuFreq": 15,
+            "MaxBufferSize": 380,
+            "IdleEnergyCoef": 0.08,
+            "ExeEnergyCoef": 0.84
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n11",
+            "NodeId": 11,
+            "MaxCpuFreq": 15,
+            "MaxBufferSize": 110,
+            "IdleEnergyCoef": 0.02,
+            "ExeEnergyCoef": 0.2
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n12",
+            "NodeId": 12,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 70,
+            "IdleEnergyCoef": 0.03,
+            "ExeEnergyCoef": 0.32
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n13",
+            "NodeId": 13,
+            "MaxCpuFreq": 10,
+            "MaxBufferSize": 110,
+            "IdleEnergyCoef": 0.07,
+            "ExeEnergyCoef": 0.74
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n14",
+            "NodeId": 14,
+            "MaxCpuFreq": 15,
+            "MaxBufferSize": 340,
+            "IdleEnergyCoef": 0.09,
+            "ExeEnergyCoef": 0.94
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n15",
+            "NodeId": 15,
+            "MaxCpuFreq": 15,
+            "MaxBufferSize": 60,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 0.11
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n16",
+            "NodeId": 16,
+            "MaxCpuFreq": 30,
+            "MaxBufferSize": 470,
+            "IdleEnergyCoef": 0.03,
+            "ExeEnergyCoef": 0.27
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n17",
+            "NodeId": 17,
+            "MaxCpuFreq": 45,
+            "MaxBufferSize": 350,
+            "IdleEnergyCoef": 0.0,
+            "ExeEnergyCoef": 0.04
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n18",
+            "NodeId": 18,
+            "MaxCpuFreq": 30,
+            "MaxBufferSize": 370,
+            "IdleEnergyCoef": 0.02,
+            "ExeEnergyCoef": 0.17
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n19",
+            "NodeId": 19,
+            "MaxCpuFreq": 30,
+            "MaxBufferSize": 320,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 0.12
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n20",
+            "NodeId": 20,
+            "MaxCpuFreq": 5,
+            "MaxBufferSize": 480,
+            "IdleEnergyCoef": 0.09,
+            "ExeEnergyCoef": 0.86
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n21",
+            "NodeId": 21,
+            "MaxCpuFreq": 45,
+            "MaxBufferSize": 430,
+            "IdleEnergyCoef": 0.04,
+            "ExeEnergyCoef": 0.44
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n22",
+            "NodeId": 22,
+            "MaxCpuFreq": 25,
+            "MaxBufferSize": 430,
+            "IdleEnergyCoef": 0.03,
+            "ExeEnergyCoef": 0.29
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n23",
+            "NodeId": 23,
+            "MaxCpuFreq": 40,
+            "MaxBufferSize": 90,
+            "IdleEnergyCoef": 0.05,
+            "ExeEnergyCoef": 0.46
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n24",
+            "NodeId": 24,
+            "MaxCpuFreq": 25,
+            "MaxBufferSize": 190,
+            "IdleEnergyCoef": 0.06,
+            "ExeEnergyCoef": 0.59
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n25",
+            "NodeId": 25,
+            "MaxCpuFreq": 35,
+            "MaxBufferSize": 210,
+            "IdleEnergyCoef": 0.08,
+            "ExeEnergyCoef": 0.79
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n26",
+            "NodeId": 26,
+            "MaxCpuFreq": 35,
+            "MaxBufferSize": 300,
+            "IdleEnergyCoef": 0.07,
+            "ExeEnergyCoef": 0.73
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n27",
+            "NodeId": 27,
+            "MaxCpuFreq": 10,
+            "MaxBufferSize": 50,
+            "IdleEnergyCoef": 0.03,
+            "ExeEnergyCoef": 0.31
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n28",
+            "NodeId": 28,
+            "MaxCpuFreq": 40,
+            "MaxBufferSize": 230,
+            "IdleEnergyCoef": 0.09,
+            "ExeEnergyCoef": 0.92
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n29",
+            "NodeId": 29,
+            "MaxCpuFreq": 40,
+            "MaxBufferSize": 270,
+            "IdleEnergyCoef": 0.06,
+            "ExeEnergyCoef": 0.57
+        }
+    ],
+    "Edges": [
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 3,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 5,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 11,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 12,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 20,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 23,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 24,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 28,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 1,
+            "DstNodeID": 15,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 1,
+            "DstNodeID": 19,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 1,
+            "DstNodeID": 23,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 2,
+            "DstNodeID": 12,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 2,
+            "DstNodeID": 13,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 2,
+            "DstNodeID": 21,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 3,
+            "DstNodeID": 0,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 3,
+            "DstNodeID": 22,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 4,
+            "DstNodeID": 5,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 4,
+            "DstNodeID": 12,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 4,
+            "DstNodeID": 16,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 4,
+            "DstNodeID": 25,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 5,
+            "DstNodeID": 0,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 5,
+            "DstNodeID": 4,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 5,
+            "DstNodeID": 8,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 6,
+            "DstNodeID": 20,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 6,
+            "DstNodeID": 22,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 7,
+            "DstNodeID": 16,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 7,
+            "DstNodeID": 27,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 8,
+            "DstNodeID": 5,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 8,
+            "DstNodeID": 15,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 8,
+            "DstNodeID": 18,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 8,
+            "DstNodeID": 23,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 9,
+            "DstNodeID": 19,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 10,
+            "DstNodeID": 22,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 11,
+            "DstNodeID": 0,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 11,
+            "DstNodeID": 17,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 12,
+            "DstNodeID": 0,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 12,
+            "DstNodeID": 2,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 12,
+            "DstNodeID": 4,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 12,
+            "DstNodeID": 13,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 13,
+            "DstNodeID": 2,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 13,
+            "DstNodeID": 12,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 14,
+            "DstNodeID": 18,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 15,
+            "DstNodeID": 1,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 15,
+            "DstNodeID": 8,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 16,
+            "DstNodeID": 4,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 16,
+            "DstNodeID": 7,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 16,
+            "DstNodeID": 27,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 17,
+            "DstNodeID": 11,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 18,
+            "DstNodeID": 8,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 18,
+            "DstNodeID": 14,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 19,
+            "DstNodeID": 1,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 19,
+            "DstNodeID": 9,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 19,
+            "DstNodeID": 29,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 20,
+            "DstNodeID": 0,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 20,
+            "DstNodeID": 6,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 21,
+            "DstNodeID": 2,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 22,
+            "DstNodeID": 3,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 22,
+            "DstNodeID": 6,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 22,
+            "DstNodeID": 10,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 23,
+            "DstNodeID": 0,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 23,
+            "DstNodeID": 1,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 23,
+            "DstNodeID": 8,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 24,
+            "DstNodeID": 0,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 24,
+            "DstNodeID": 26,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 25,
+            "DstNodeID": 4,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 26,
+            "DstNodeID": 24,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 27,
+            "DstNodeID": 7,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 27,
+            "DstNodeID": 16,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 28,
+            "DstNodeID": 0,
+            "Bandwidth": 100.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 29,
+            "DstNodeID": 19,
+            "Bandwidth": 100.0
+        }
+    ]
+}

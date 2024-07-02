@@ -5,6 +5,9 @@
 # RayCloudSim: A Simulation Platform Written in Python for Cloud/Fog/Edge Computing
 
 ## Update Summary
+- **2024/07/02**
+  - [**New**] Adding support for the [Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py) dataset
+
 - **2024/04/26**
 
   - [**New**] Users can now easily create the Scenario using configuration files in **JSON** format

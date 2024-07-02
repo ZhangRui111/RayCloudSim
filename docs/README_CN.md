@@ -5,6 +5,9 @@
 # RayCloudSim: 一款用 Python 编写的用于云/雾/边缘计算的仿真平台
 
 ## 更新摘要
+- **2024/07/02**
+  - [**新增**] 支持数据集 [Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py)
+
 - **2024/04/26**
 
   - [**新增**] 用户现在可以使用 **json 格式**的配置文件轻松创建 Scenario
