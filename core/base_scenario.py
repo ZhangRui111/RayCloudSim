@@ -37,13 +37,18 @@ class BaseScenario(metaclass=ABCMeta):
             assert node_info['NodeType'] == 'Node', \
             f"Unrecognized NodeType {node_info['NodeType']}; \
               One possible solution is to overwrite the init_infrastructure_nodes()"
-
+            
+            if 'LocX' in node_info.keys() and 'LocY' in node_info.keys():
+                location=Location(node_info['LocX'], node_info['LocY'])
+            else:
+                location = None
+            
             self.infrastructure.add_node(
                 Node(node_id=node_info['NodeId'], 
                      name=node_info['NodeName'], 
                      max_cpu_freq=node_info['MaxCpuFreq'], 
                      max_buffer_size=node_info['MaxBufferSize'], 
-                     location=Location(node_info['LocX'], node_info['LocY']),
+                     location=location,
                      idle_energy_coef=node_info['IdleEnergyCoef'], 
                      exe_energy_coef=node_info['ExeEnergyCoef']))
             self.node_id2name[node_info['NodeId']] = node_info['NodeName']
@@ -53,13 +58,18 @@ class BaseScenario(metaclass=ABCMeta):
         # keys = ['SrcNodeID', 'DstNodeID', 'Bandwidth']
         for edge_info in self.json_edges:
 
-            assert edge_info['EdgeType'] == 'Link', \
+            assert edge_info['EdgeType'] in ['Link', 'SingleLink'], \
             f"Unrecognized EdgeType {edge_info['EdgeType']}; \
               One possible solution is to overwrite the init_infrastructure_links()"
-
-            self.add_bilateral_links(self.node_id2name[edge_info['SrcNodeID']],
-                                     self.node_id2name[edge_info['DstNodeID']], 
-                                     edge_info['Bandwidth'])
+            
+            if edge_info['EdgeType'] == 'SingleLink':
+                self.add_unilateral_link(self.node_id2name[edge_info['SrcNodeID']],
+                                         self.node_id2name[edge_info['DstNodeID']], 
+                                         edge_info['Bandwidth'])
+            else:
+                self.add_bilateral_links(self.node_id2name[edge_info['SrcNodeID']],
+                                        self.node_id2name[edge_info['DstNodeID']], 
+                                        edge_info['Bandwidth'])
 
     @abstractmethod
     def status(self, node_name: Optional[str] = None,

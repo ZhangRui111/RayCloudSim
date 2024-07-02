@@ -14,10 +14,14 @@ def plot_graph(graph, config_file, save_as):
         json_edge = json_object['Edge']
     
     plt.figure(figsize=(8, 8))
-
+    
+    pos = nx.get_node_attributes(graph, 'pos')
+    if not pos:
+        pos = nx.spring_layout(graph, seed=512)
+    
     nx.draw(
         graph,
-        pos=nx.get_node_attributes(graph, 'pos'),
+        pos=pos,
         node_size=json_node['Basic']['size'],
         node_color=json_node['Basic']['color'],
         node_shape=json_node['Basic']['shape'],
