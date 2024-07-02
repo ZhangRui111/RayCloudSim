@@ -25,7 +25,7 @@ from policies.demo.demo_random import DemoRandom  # policy
 def main():
     # Init the Env
     scenario=Scenario(config_file="eval/benchmarks/caseA/small/config.json")
-    env = Env(scenario, config_file="core/configs/env_config.json")
+    env = Env(scenario, config_file="core/configs/env_config_null.json")
     
     # # Visualization: the topology
     # vis_graph(env,

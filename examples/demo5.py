@@ -23,7 +23,7 @@ from examples.scenarios.scenario_5 import Scenario
 def main():
     # Create the Env
     scenario=Scenario(config_file="examples/scenarios/configs/config_5.json")
-    env = Env(scenario, config_file="core/configs/env_config.json")
+    env = Env(scenario, config_file="core/configs/env_config_null.json")
 
     # # Visualization: the topology
     # vis_graph(env,

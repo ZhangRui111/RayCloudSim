@@ -368,7 +368,7 @@ class Env:
             self.logger.append(info_type='node', key=node.node_id, val=node.energy_consumption)
         
         # Save the info4frame
-        if self.info4frame:
+        if self.config['Basic']['Log'] == "on":
             info4frame_json_object = json.dumps(self.info4frame, indent=4)
             with open(f"{self.config['Log']['LogInfoPath']}/info4frame.json", 'w+') as fw:
                 fw.write(info4frame_json_object)
@@ -379,6 +379,7 @@ class Env:
             if p.is_alive:
                 p.interrupt()
         self.energy_recorders.clear()
-        self.info4frame_recorder.interrupt()
+        if self.config['Basic']['Log'] == "on":
+            self.info4frame_recorder.interrupt()
 
         self.logger.log("Simulation completed!")
