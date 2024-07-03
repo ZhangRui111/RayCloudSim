@@ -43,8 +43,9 @@ def main():
 
     print("\n-----------------------------------------------")
     print("Energy consumption during simulation:\n")
-    print(f"n0: {env.scenario.get_node('n0').energy_consumption:.3f}")
-    print(f"n1: {env.scenario.get_node('n1').energy_consumption:.3f}")
+    print(f"n0: {env.node_energy('n0'):.3f}")
+    print(f"n1: {env.node_energy('n1'):.3f}")
+    print(f"Averaged: {env.avg_node_energy():.3f}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -66,6 +67,7 @@ if __name__ == '__main__':
 
 # n0: 0.200
 # n1: 72000.200
+# Averaged: 36000.200
 # -----------------------------------------------
 
 # [20.00]: Simulation completed!

@@ -78,6 +78,19 @@ class BaseScenario(metaclass=ABCMeta):
         nodes = self.get_nodes()
         links = self.get_links()
         return nodes, links
+    
+    def avg_node_energy(self, node_name_list=None):
+        if not node_name_list:
+            node_list = self.get_nodes().values()
+        else:
+            node_list = [self.get_node(node_name) for node_name in node_name_list]
+        energy_val = 0
+        for node in node_list:
+            energy_val += node.energy_consumption
+        return energy_val / len(node_list)
+    
+    def node_energy(self, node_name):
+        return self.get_node(node_name).energy_consumption
 
     def get_node(self, name):
         return self.infrastructure.get_node(name)

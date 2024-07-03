@@ -153,6 +153,8 @@ n1: 72000.200
 
 - [examples/demo7.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.py)
 
+- [examples/demo8.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo8.py)
+
 需要注意的是学会使用 [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) 对于使用 RayCloudSim 会很有帮助.
 
 **3.2.4** RayCloudSim 支持多个可视化功能：系统拓扑静态可视化、仿真过程动态可视化等

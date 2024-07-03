@@ -4,181 +4,181 @@
             "NodeType": "Node",
             "NodeName": "n0",
             "NodeId": 0,
-            "MaxCpuFreq": 35,
-            "MaxBufferSize": 440,
-            "IdleEnergyCoef": 0.02,
-            "ExeEnergyCoef": 0.22
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 290,
+            "IdleEnergyCoef": 0.001,
+            "ExeEnergyCoef": 0.01
         },
         {
             "NodeType": "Node",
             "NodeName": "n1",
             "NodeId": 1,
-            "MaxCpuFreq": 5,
-            "MaxBufferSize": 110,
-            "IdleEnergyCoef": 0.01,
-            "ExeEnergyCoef": 0.05
+            "MaxCpuFreq": 45,
+            "MaxBufferSize": 320,
+            "IdleEnergyCoef": 0.001,
+            "ExeEnergyCoef": 0.01
         },
         {
             "NodeType": "Node",
             "NodeName": "n2",
             "NodeId": 2,
-            "MaxCpuFreq": 30,
-            "MaxBufferSize": 410,
-            "IdleEnergyCoef": 0.05,
-            "ExeEnergyCoef": 0.52
+            "MaxCpuFreq": 50,
+            "MaxBufferSize": 240,
+            "IdleEnergyCoef": 0.001,
+            "ExeEnergyCoef": 0.01
         },
         {
             "NodeType": "Node",
             "NodeName": "n3",
             "NodeId": 3,
-            "MaxCpuFreq": 40,
-            "MaxBufferSize": 410,
-            "IdleEnergyCoef": 0.06,
-            "ExeEnergyCoef": 0.58
+            "MaxCpuFreq": 50,
+            "MaxBufferSize": 80,
+            "IdleEnergyCoef": 0.008,
+            "ExeEnergyCoef": 0.0802
         },
         {
             "NodeType": "Node",
             "NodeName": "n4",
             "NodeId": 4,
-            "MaxCpuFreq": 25,
-            "MaxBufferSize": 200,
-            "IdleEnergyCoef": 0.07,
-            "ExeEnergyCoef": 0.66
+            "MaxCpuFreq": 50,
+            "MaxBufferSize": 110,
+            "IdleEnergyCoef": 0.0058,
+            "ExeEnergyCoef": 0.0577
         },
         {
             "NodeType": "Node",
             "NodeName": "n5",
             "NodeId": 5,
-            "MaxCpuFreq": 50,
-            "MaxBufferSize": 60,
-            "IdleEnergyCoef": 0.01,
-            "ExeEnergyCoef": 0.15
+            "MaxCpuFreq": 15,
+            "MaxBufferSize": 230,
+            "IdleEnergyCoef": 0.0047,
+            "ExeEnergyCoef": 0.0473
         },
         {
             "NodeType": "Node",
             "NodeName": "n6",
             "NodeId": 6,
-            "MaxCpuFreq": 30,
-            "MaxBufferSize": 170,
-            "IdleEnergyCoef": 0.07,
-            "ExeEnergyCoef": 0.69
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 280,
+            "IdleEnergyCoef": 0.001,
+            "ExeEnergyCoef": 0.01
         },
         {
             "NodeType": "Node",
             "NodeName": "n7",
             "NodeId": 7,
             "MaxCpuFreq": 30,
-            "MaxBufferSize": 370,
-            "IdleEnergyCoef": 0.02,
-            "ExeEnergyCoef": 0.16
+            "MaxBufferSize": 240,
+            "IdleEnergyCoef": 0.0082,
+            "ExeEnergyCoef": 0.0823
         },
         {
             "NodeType": "Node",
             "NodeName": "n8",
             "NodeId": 8,
-            "MaxCpuFreq": 5,
-            "MaxBufferSize": 40,
-            "IdleEnergyCoef": 0.03,
-            "ExeEnergyCoef": 0.28
+            "MaxCpuFreq": 35,
+            "MaxBufferSize": 270,
+            "IdleEnergyCoef": 0.0074,
+            "ExeEnergyCoef": 0.0738
         },
         {
             "NodeType": "Node",
             "NodeName": "n9",
             "NodeId": 9,
-            "MaxCpuFreq": 10,
-            "MaxBufferSize": 300,
-            "IdleEnergyCoef": 0.04,
-            "ExeEnergyCoef": 0.45
+            "MaxCpuFreq": 45,
+            "MaxBufferSize": 340,
+            "IdleEnergyCoef": 0.0078,
+            "ExeEnergyCoef": 0.078
         },
         {
             "NodeType": "Node",
             "NodeName": "n10",
             "NodeId": 10,
             "MaxCpuFreq": 40,
-            "MaxBufferSize": 180,
-            "IdleEnergyCoef": 0.09,
-            "ExeEnergyCoef": 0.91
+            "MaxBufferSize": 350,
+            "IdleEnergyCoef": 0.0025,
+            "ExeEnergyCoef": 0.0251
         },
         {
             "NodeType": "Node",
             "NodeName": "n11",
             "NodeId": 11,
-            "MaxCpuFreq": 10,
-            "MaxBufferSize": 470,
-            "IdleEnergyCoef": 0.05,
-            "ExeEnergyCoef": 0.49
+            "MaxCpuFreq": 35,
+            "MaxBufferSize": 140,
+            "IdleEnergyCoef": 0.0082,
+            "ExeEnergyCoef": 0.0823
         },
         {
             "NodeType": "Node",
             "NodeName": "n12",
             "NodeId": 12,
-            "MaxCpuFreq": 10,
+            "MaxCpuFreq": 15,
             "MaxBufferSize": 210,
-            "IdleEnergyCoef": 0.06,
-            "ExeEnergyCoef": 0.6
+            "IdleEnergyCoef": 0.0048,
+            "ExeEnergyCoef": 0.0476
         },
         {
             "NodeType": "Node",
             "NodeName": "n13",
             "NodeId": 13,
-            "MaxCpuFreq": 25,
-            "MaxBufferSize": 210,
-            "IdleEnergyCoef": 0.01,
-            "ExeEnergyCoef": 0.08
+            "MaxCpuFreq": 10,
+            "MaxBufferSize": 350,
+            "IdleEnergyCoef": 0.0073,
+            "ExeEnergyCoef": 0.0727
         },
         {
             "NodeType": "Node",
             "NodeName": "n14",
             "NodeId": 14,
-            "MaxCpuFreq": 45,
-            "MaxBufferSize": 380,
-            "IdleEnergyCoef": 0.04,
-            "ExeEnergyCoef": 0.43
+            "MaxCpuFreq": 25,
+            "MaxBufferSize": 90,
+            "IdleEnergyCoef": 0.0025,
+            "ExeEnergyCoef": 0.0251
         },
         {
             "NodeType": "Node",
             "NodeName": "n15",
             "NodeId": 15,
-            "MaxCpuFreq": 45,
-            "MaxBufferSize": 420,
-            "IdleEnergyCoef": 0.06,
-            "ExeEnergyCoef": 0.57
+            "MaxCpuFreq": 30,
+            "MaxBufferSize": 100,
+            "IdleEnergyCoef": 0.0027,
+            "ExeEnergyCoef": 0.0271
         },
         {
             "NodeType": "Node",
             "NodeName": "n16",
             "NodeId": 16,
-            "MaxCpuFreq": 40,
-            "MaxBufferSize": 160,
-            "IdleEnergyCoef": 0.08,
-            "ExeEnergyCoef": 0.78
+            "MaxCpuFreq": 30,
+            "MaxBufferSize": 360,
+            "IdleEnergyCoef": 0.0024,
+            "ExeEnergyCoef": 0.024
         },
         {
             "NodeType": "Node",
             "NodeName": "n17",
             "NodeId": 17,
-            "MaxCpuFreq": 20,
-            "MaxBufferSize": 500,
-            "IdleEnergyCoef": 0.01,
-            "ExeEnergyCoef": 0.12
+            "MaxCpuFreq": 45,
+            "MaxBufferSize": 170,
+            "IdleEnergyCoef": 0.001,
+            "ExeEnergyCoef": 0.01
         },
         {
             "NodeType": "Node",
             "NodeName": "n18",
             "NodeId": 18,
-            "MaxCpuFreq": 45,
-            "MaxBufferSize": 230,
-            "IdleEnergyCoef": 0.1,
-            "ExeEnergyCoef": 0.97
+            "MaxCpuFreq": 10,
+            "MaxBufferSize": 390,
+            "IdleEnergyCoef": 0.0068,
+            "ExeEnergyCoef": 0.0679
         },
         {
             "NodeType": "Node",
             "NodeName": "n19",
             "NodeId": 19,
             "MaxCpuFreq": 20,
-            "MaxBufferSize": 400,
-            "IdleEnergyCoef": 0.06,
-            "ExeEnergyCoef": 0.57
+            "MaxBufferSize": 230,
+            "IdleEnergyCoef": 0.0031,
+            "ExeEnergyCoef": 0.0306
         },
         {
             "NodeType": "Node",
@@ -186,44 +186,44 @@
             "NodeId": 20,
             "MaxCpuFreq": 20,
             "MaxBufferSize": 320,
-            "IdleEnergyCoef": 0.08,
-            "ExeEnergyCoef": 0.8
+            "IdleEnergyCoef": 0.0099,
+            "ExeEnergyCoef": 0.0988
         },
         {
             "NodeType": "Node",
             "NodeName": "n21",
             "NodeId": 21,
-            "MaxCpuFreq": 5,
-            "MaxBufferSize": 430,
-            "IdleEnergyCoef": 0.01,
-            "ExeEnergyCoef": 0.06
+            "MaxCpuFreq": 25,
+            "MaxBufferSize": 280,
+            "IdleEnergyCoef": 0.0092,
+            "ExeEnergyCoef": 0.0918
         },
         {
             "NodeType": "Node",
             "NodeName": "n22",
             "NodeId": 22,
-            "MaxCpuFreq": 20,
-            "MaxBufferSize": 290,
-            "IdleEnergyCoef": 0.06,
-            "ExeEnergyCoef": 0.63
+            "MaxCpuFreq": 50,
+            "MaxBufferSize": 140,
+            "IdleEnergyCoef": 0.0022,
+            "ExeEnergyCoef": 0.0221
         },
         {
             "NodeType": "Node",
             "NodeName": "n23",
             "NodeId": 23,
-            "MaxCpuFreq": 10,
-            "MaxBufferSize": 80,
-            "IdleEnergyCoef": 0.03,
-            "ExeEnergyCoef": 0.32
+            "MaxCpuFreq": 50,
+            "MaxBufferSize": 380,
+            "IdleEnergyCoef": 0.0025,
+            "ExeEnergyCoef": 0.0253
         },
         {
             "NodeType": "Node",
             "NodeName": "n24",
             "NodeId": 24,
             "MaxCpuFreq": 45,
-            "MaxBufferSize": 480,
-            "IdleEnergyCoef": 0.03,
-            "ExeEnergyCoef": 0.32
+            "MaxBufferSize": 340,
+            "IdleEnergyCoef": 0.0096,
+            "ExeEnergyCoef": 0.0959
         }
     ],
     "Edges": [

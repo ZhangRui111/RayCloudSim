@@ -32,7 +32,7 @@ def main():
     lambdas = [0.1] * len(ingress_line)  # Average rate of arrivals per time unit for each ingress node
     param_TaskSize = (10, 100 + 1)
     param_CyclesPerBit = (1, 10 + 1)
-    param_TransBitRate = (20, 80 + 1)
+    param_TransBitRate = (1, 5)
     param_DDL = (50, 100 + 1)
 
     # 3. synthetic tasks
@@ -52,7 +52,7 @@ def main():
                     0,  # TaskID (invalid)
                     np.random.randint(*param_TaskSize),  # TaskSize
                     np.random.randint(*param_CyclesPerBit),  # CyclesPerBit
-                    np.random.randint(*param_TransBitRate),  # TransBitRate
+                    10 * np.random.randint(*param_TransBitRate),  # TransBitRate
                     np.random.randint(*param_DDL),  # DDL
                     f'n{node_id}',  # SrcName
                 ]
