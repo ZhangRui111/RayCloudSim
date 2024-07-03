@@ -153,6 +153,8 @@ n1: 72000.200
 
 - [examples/demo7.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.py)
 
+- [examples/demo8.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo8.py)
+
 Note that learning how to use [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) would be very helpful.
 
 **3.2.4** RayCloudSim supports multiple visualization features: static visualization of system topology, dynamic visualization of the simulation process, etc.

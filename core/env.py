@@ -361,6 +361,12 @@ class Env:
     def status(self, node_name: Optional[str] = None,
                link_args: Optional[Tuple] = None):
         return self.scenario.status(node_name, link_args)
+    
+    def avg_node_energy(self, node_name_list=None):
+        return self.scenario.avg_node_energy(node_name_list)
+    
+    def node_energy(self, node_name):
+        return self.scenario.node_energy(node_name)
 
     def close(self):
         # Record nodes' energy consumption.

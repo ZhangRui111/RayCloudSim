@@ -33,7 +33,7 @@ def main():
     nodes = []
     for node_id in range(n):
 
-        idle_energy_coef = 0.1 * random.random()
+        idle_energy_coef = max(0.01 * random.random(), 0.001)
         exe_energy_coef = 10 * idle_energy_coef
 
         nodes.append(
@@ -41,10 +41,10 @@ def main():
                 'NodeType': 'Node',
                 'NodeName': f'n{node_id}',
                 'NodeId': node_id,
-                'MaxCpuFreq': random.randint(1, 10) * 5,
-                'MaxBufferSize': random.randint(1, 50) * 10,
-                'IdleEnergyCoef': round(idle_energy_coef, 2),
-                'ExeEnergyCoef': round(exe_energy_coef, 2),
+                'MaxCpuFreq': random.randint(2, 10) * 5,
+                'MaxBufferSize': random.randint(5, 40) * 10,
+                'IdleEnergyCoef': round(idle_energy_coef, 4),
+                'ExeEnergyCoef': round(exe_energy_coef, 4),
             }
         )
     # keys = ['EdgeType', 'SrcNodeID', 'DstNodeID', 'Bandwidth']
