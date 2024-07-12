@@ -82,7 +82,9 @@ class Task:
             self._pre_allocate_dst(node)
         else:
             if node is None:
-                self.wait_time = now - self.wait_time  # re-active, thus, end waiting
+                # Re-active task, thus, end waiting
+                # self.wait_time = now - self.wait_time  # trans_time is not involved
+                self.wait_time = (now - self.wait_time) + self.trans_time  # trans_time is involved
                 # TimeoutError check
                 if self.wait_time > self.ddl:
                     raise EnvironmentError(
