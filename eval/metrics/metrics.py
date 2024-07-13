@@ -33,8 +33,8 @@ class AvgLatency(object):
         latencies = []
         for _, val in info.items():
             if val[0] == 0:
-                t = [item if item > -1 else 0 for item in val[1]]
-                latencies.append(sum(t))
+                task_wait_time, task_exe_time = val[1][1], val[1][2]
+                latencies.append(task_wait_time + task_exe_time)
         return sum(latencies) / len(latencies)
 
 

@@ -22,6 +22,34 @@ from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
 from policies.demo.demo_random import DemoRandom  # policy
 
 
+# Global statistics
+net_cong_error = []
+insufficient_buffer_error = []
+timeout_error = []
+
+
+def error_handler(error: Exception):
+    """Customized error handler."""
+    message = error.args[0]
+    if message[0] == 'NetCongestionError':
+        # Error: network congestion
+        # print(message[1])
+        # ----- handle this error here -----
+        net_cong_error.append(message[2])
+    elif message[0] == 'InsufficientBufferError':
+        # Error: insufficient buffer in the destination node
+        # print(message[1])
+        # ----- handle this error here -----
+        insufficient_buffer_error.append(message[2])
+    elif message[0] == 'TimeoutError':
+        # Error: the task is not executed before the deadline (ddl).
+        # print(message[1])
+        # ----- handle this error here -----
+        timeout_error.append(message[2])
+    else:
+        raise NotImplementedError(error)
+
+
 def main():
     # Init the Env
     scenario=Scenario(config_file="eval/benchmarks/caseA/small/config.json")
@@ -65,7 +93,7 @@ def main():
             try:
                 env.run(until=until)
             except Exception as e:
-                pass
+                error_handler(e)
 
             until += 1
 
@@ -75,20 +103,31 @@ def main():
         try:
             env.run(until=until)
         except Exception as e:
-            pass
+            error_handler(e)
 
     # Evaluation
-    print("\n-----------------------------------------------")
-    print("Evaluation:\n")
+    print("\n===============================================")
+    print("Evaluation:")
+    print("===============================================\n")
+
+    print("-----------------------------------------------")
+    print(f"Analysis on failed tasks:\n\n"
+          f"    NetCongestionError     : {len(net_cong_error)}\n"
+          f"    InsufficientBufferError: {len(insufficient_buffer_error)}\n"
+          f"    TimeoutError           : {len(timeout_error)}")
 
     m1 = SuccessRate()
     r1 = m1.eval(env.logger.task_info)
-    print(f"The success rate of all tasks: {r1:.3f}")
+    print(f"\nThe success rate of all tasks: {r1:.4f}")
 
+    print("-----------------------------------------------\n")
+
+    print("-----------------------------------------------")
     m2 = AvgLatency()
     r2 = m2.eval(env.logger.task_info)
-    print(f"The average latency per task: {r2:.3f}")
+    print(f"The average latency per task: {r2:.4f}")
 
+    print(f"The average energy consumption per node: {env.avg_node_energy():.4f}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -100,17 +139,29 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # ...
-# [1048.00]: Task {498} accomplished in Node {n19} with {2.00}s
-# [1055.00]: Task {480} accomplished in Node {n14} with {25.00}s
-# [1055.00]: **TimeoutError: Task {487}** timeout in Node {n14}
-# [1090.00]: Task {496} accomplished in Node {n16} with {62.00}s
-# [1090.00]: **TimeoutError: Task {499}** timeout in Node {n16}
+# [1015.00]: Task {499} re-actives in Node {n11}, waiting {6.34}s
+# [1015.00]: Processing Task {499} in {n11}
+# [1038.00]: Task {499} accomplished in Node {n11} with {23.00}s
+# [1048.00]: Task {492} accomplished in Node {n15} with {35.00}s
+# [1089.00]: Task {484} accomplished in Node {n10} with {115.00}s
+
+# ===============================================
+# Evaluation:
+# ===============================================
 
 # -----------------------------------------------
-# Evaluation:
+# Analysis on failed tasks:
 
-# The success rate of all tasks: 0.792
-# The average latency per task: 34.447
+#     NetCongestionError     : 48
+#     InsufficientBufferError: 37
+#     TimeoutError           : 22
+
+# The success rate of all tasks: 0.7860
+# -----------------------------------------------
+
+# -----------------------------------------------
+# The average latency per task: 33.2912
+# The average energy consumption per node: 1221102.2975
 # -----------------------------------------------
 
 # [1090.00]: Simulation completed!
