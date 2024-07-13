@@ -81,17 +81,22 @@ def main():
             pass
 
     # Evaluation
-    print("\n-----------------------------------------------")
-    print("Evaluation:\n")
+    print("\n===============================================")
+    print("Evaluation:")
+    print("===============================================\n")
 
+    print("-----------------------------------------------")
     m1 = SuccessRate()
     r1 = m1.eval(env.logger.task_info)
-    print(f"The success rate of all tasks: {r1:.3f}")
+    print(f"The success rate of all tasks: {r1:.4f}")
+    print("-----------------------------------------------\n")
 
+    print("-----------------------------------------------")
     m2 = AvgLatency()
     r2 = m2.eval(env.logger.task_info)
-    print(f"The average latency per task: {r2:.3f}")
+    print(f"The average latency per task: {r2:.4f}")
 
+    print(f"The average energy consumption per node: {env.avg_node_energy():.4f}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -99,3 +104,27 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# # ==================== Simulation log ====================
+# ...
+# [2233.00]: Task {793} accomplished in Node {n20} with {18.00}s
+# [2236.30]: Task {799} arrived Node {n22} with {9.30}s
+# [2236.30]: Processing Task {799} in {n22}
+# [2239.00]: Task {799} accomplished in Node {n22} with {2.00}s
+# [2271.00]: Task {797} accomplished in Node {n12} with {42.00}s
+
+# ===============================================
+# Evaluation:
+# ===============================================
+
+# -----------------------------------------------
+# The success rate of all tasks: 0.9900
+# -----------------------------------------------
+
+# -----------------------------------------------
+# The average latency per task: 20.9117
+# The average energy consumption per node: 564744.8256
+# -----------------------------------------------
+
+# [2272.00]: Simulation completed!

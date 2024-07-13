@@ -139,11 +139,11 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # ...
-# [1019.00]: Task {452} accomplished in Node {n19} with {59.00}s
-# [1022.00]: Task {493} accomplished in Node {n0} with {16.00}s
-# [1028.00]: Task {495} accomplished in Node {n2} with {25.00}s
-# [1035.00]: Task {499} accomplished in Node {n9} with {26.00}s
-# [1063.00]: Task {469} accomplished in Node {n16} with {74.00}s
+# [1015.00]: Task {499} re-actives in Node {n11}, waiting {6.34}s
+# [1015.00]: Processing Task {499} in {n11}
+# [1038.00]: Task {499} accomplished in Node {n11} with {23.00}s
+# [1048.00]: Task {492} accomplished in Node {n15} with {35.00}s
+# [1089.00]: Task {484} accomplished in Node {n10} with {115.00}s
 
 # ===============================================
 # Evaluation:
@@ -153,15 +153,15 @@ if __name__ == '__main__':
 # Analysis on failed tasks:
 
 #     NetCongestionError     : 48
-#     InsufficientBufferError: 45
-#     TimeoutError           : 19
+#     InsufficientBufferError: 37
+#     TimeoutError           : 22
 
-# The success rate of all tasks: 0.7760
+# The success rate of all tasks: 0.7860
 # -----------------------------------------------
 
 # -----------------------------------------------
-# The average latency per task: 34.8798
-# The average energy consumption per node: 1252272.7380
+# The average latency per task: 33.2912
+# The average energy consumption per node: 1221102.2975
 # -----------------------------------------------
 
 # [1090.00]: Simulation completed!

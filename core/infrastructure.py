@@ -262,11 +262,11 @@ class Node(object):
             raise ValueError(f"Cannot release enough resources on compute node {self}.")
     
     def reset(self):
-        self.active_tasks = []
-        self.active_task_ids = []
         self.free_cpu_freq = self.max_cpu_freq
         self.task_buffer.reset()
         self.energy_consumption = 0
+        self.active_tasks = []
+        self.active_task_ids = []
 
 
 class Link(object):
@@ -349,8 +349,8 @@ class Link(object):
         return (self.max_bandwidth - self.free_bandwidth) / self.max_bandwidth
 
     def reset(self):
-        self.data_flows = []
         self.free_bandwidth = self.max_bandwidth
+        self.data_flows = []
 
 
 class Infrastructure(object):

@@ -77,12 +77,13 @@ class Task:
             node: dst node
             pre_allocate: if True, pre-allocation and the target node has not allocated resources.
         """
+        # Case 1: buffer task, thus, begin queuing
         if pre_allocate:
-            self.wait_time = now  # begin waiting
+            self.wait_time = now
             self._pre_allocate_dst(node)
         else:
+            # Case 2: re-active task, thus, end queuing
             if node is None:
-                # Re-active task, thus, end waiting
                 # self.wait_time = now - self.wait_time  # trans_time is not involved
                 self.wait_time = (now - self.wait_time) + self.trans_time  # trans_time is involved
                 # TimeoutError check
@@ -92,10 +93,14 @@ class Task:
                         f"**TimeoutError: Task {{{self.task_id}}}** "
                         f"timeout in Node {{{self.dst.name}}}", self.task_id))
                 self._post_allocate_dst()
+            # Case 3: execute task immediately, without queuing
             else:
+                self.wait_time = 0 + self.trans_time
                 self._allocate_dst(node)
+            
+            # Estimated execution time
             self.exe_time = math.ceil(
-                (self.task_size * self.cycles_per_bit) / self.cpu_freq)  # estimated execution time
+                (self.task_size * self.cycles_per_bit) / self.cpu_freq)
 
     def _allocate_dst(self, dst: Node):
         """Attach the task with the dst node and allocate resources."""

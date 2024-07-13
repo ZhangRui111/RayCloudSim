@@ -16,15 +16,22 @@ __all__ = ["EnvLogger", "Env"]
 FLAG_TASK_EXECUTION_DONE = 0
 
 
+def user_defined_info():
+    """This is where user can define more infos for completed tasks."""
+    return None
+
+
 class EnvLogger:
-    def __init__(self, controller):
+    def __init__(self, controller, is_open=True):
         self.controller = controller
+        self.is_open = is_open  # is_open=False can speed up training
 
         self.task_info = {}
         self.node_info = {}
 
     def log(self, content):
-        print("[{:.2f}]: {}".format(self.controller.now, content))
+        if self.is_open:
+            print("[{:.2f}]: {}".format(self.controller.now, content))
 
     def append(self, info_type, key, val):
         """Record key information during the simulation.
@@ -44,6 +51,10 @@ class EnvLogger:
             self.task_info[key] = val
         else:
             self.node_info[key] = val
+
+    def reset(self):
+        self.task_info = {}
+        self.node_info = {}
 
 
 class Env:
@@ -106,6 +117,9 @@ class Env:
         # Reset scenario state
         self.scenario.reset()
 
+        # Reset the logger
+        self.logger.reset()
+
         # Clear task monitor info
         self.done_task_collector.items.clear()
         del self.done_task_info[:]
@@ -135,10 +149,8 @@ class Env:
                 ('DuplicateTaskIdError', log_info, task.task_id)
             )
 
-        if dst_name is None:
-            flag_reactive = True
-        else:
-            flag_reactive = False
+        # Check whether the task is re-activated from queuing
+        flag_reactive = True if dst_name is None else False
 
         if flag_reactive:
             dst = task.dst
@@ -199,6 +211,7 @@ class Env:
                             )
 
                 task.trans_time = 0
+
                 # ---- Customize the wired/wireless transmission mode here ----
                 # wireless transmission:
                 if isinstance(links_in_path[0], Tuple):
@@ -236,6 +249,8 @@ class Env:
                                     f"{{{task.trans_time:.2f}}}s")
                 except simpy.Interrupt:
                     pass
+            else:
+                task.trans_time = 0  # To avoid task.trans_time = -1
 
         # Task execution
         if not dst.free_cpu_freq > 0:
@@ -254,7 +269,6 @@ class Env:
                 # self.processed_tasks.append(task.task_id)
                 self.logger.log(e.args[0][1])
                 raise e
-            
 
         # ------------ Customize the execution mode here ------------
         if flag_reactive:
@@ -275,8 +289,10 @@ class Env:
                     self.process(task=waiting_task)
                 
                 raise e
+            
             self.logger.log(f"Task {{{task.task_id}}} re-actives in "
-                            f"Node {{{task.dst_name}}}")
+                            f"Node {{{task.dst_name}}}, "
+                            f"waiting {{{(task.wait_time - task.trans_time):.2f}}}s")
         else:
             task.allocate(self.now, dst)
         # -----------------------------------------------------------
@@ -287,9 +303,10 @@ class Env:
             self.logger.log(f"Processing Task {{{task.task_id}}} in"
                             f" {{{task.dst_name}}}")
             yield self.controller.timeout(task.exe_time)
-            self.done_task_collector.put((task.task_id,
-                                          FLAG_TASK_EXECUTION_DONE,
-                                          [dst_name, task.exe_time]))
+            self.done_task_collector.put(
+                (task.task_id,
+                 FLAG_TASK_EXECUTION_DONE,
+                 [dst_name, user_defined_info()]))
         except simpy.Interrupt:
             pass
 
