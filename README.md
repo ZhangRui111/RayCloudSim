@@ -99,8 +99,9 @@ env.run(until=20)
 
 print("\n-----------------------------------------------")
 print("Energy consumption during simulation:\n")
-print(f"n0: {env.scenario.get_node('n0').energy_consumption:.3f}")
-print(f"n1: {env.scenario.get_node('n1').energy_consumption:.3f}")
+print(f"n0: {env.node_energy('n0'):.3f}")
+print(f"n1: {env.node_energy('n1'):.3f}")
+print(f"Averaged: {env.avg_node_energy():.3f}")
 print("-----------------------------------------------\n")
 
 env.close()
@@ -116,10 +117,11 @@ Simulation log:
 [11.00]: Task {0} accomplished in Node {n1} with {10.00}s
 
 -----------------------------------------------
-Power consumption during simulation:
+Energy consumption during simulation:
 
-n0: 0.200
-n1: 72000.200
+n0: 0.000
+n1: 0.072
+Averaged: 0.036
 -----------------------------------------------
 
 [20.00]: Simulation completed!
