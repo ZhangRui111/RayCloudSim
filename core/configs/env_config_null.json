@@ -1,10 +1,16 @@
 {
     "Basic": {
-        "Log": "off"
+        "VisFrame": "off",
+        "Train": "off",
+        "Test": "off"
     },
-    "Log": {
+    "VisFrame": {
         "LogInfoPath": "logs/vis",
         "LogFramesPath": "logs/vis/frames",
         "TargetNodeList": []
-    }
+    },
+    "Train": {
+        "CloseLogger": "True"
+    },
+    "Test": {}
 }

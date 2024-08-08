@@ -177,7 +177,7 @@ if __name__ == '__main__':
 # [5.00]: **InsufficientBufferError: Task {5}** insufficient buffer in Node {n0}
 # [8.00]: Task {0} accomplished in Node {n0} with {8.00}s
 # [8.00]: Task {1} accomplished in Node {n2} with {4.00}s
-# [8.00]: Task {4} re-actives in Node {n0}
+# [8.00]: Task {4} re-actives in Node {n0}, waiting {4.00}s
 # [8.00]: Processing Task {4} in {n0}
 # [10.00]: Task {6} generated in Node {n0}
 # [10.00]: Task {6}: {n0} --> {n2}
@@ -199,8 +199,8 @@ if __name__ == '__main__':
 # n1: 5000.610
 # n2: 1000.610
 # n3: 0.610
-# Averaged: 1844.360
-# Averaged ('n0', 'n1'): 3188.110
+# Averaged: 0.002
+# Averaged ('n0', 'n1'): 0.003
 # -----------------------------------------------
 
 # [60.00]: Simulation completed!

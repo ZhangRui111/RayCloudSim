@@ -63,12 +63,13 @@ class Env:
         # Load the config file
         with open(config_file, 'r') as fr:
             self.config = json.load(fr)
-        assert len(self.config['Log']['TargetNodeList']) <= 10, \
-            "For aesthetic considerations, the number of tracked nodes is limited to less than 10."
+        assert len(self.config['VisFrame']['TargetNodeList']) <= 10, \
+            "For visualization layout considerations, the default number of tracked nodes " \
+            "does not exceed ten, and users are permitted to modify the layout for extension."
         
         self.scenario = scenario
         self.controller = simpy.Environment()
-        self.logger = EnvLogger(self.controller)
+        self.logger = EnvLogger(self.controller, is_open=True)
 
         self.active_task_dict = {}  # store current active tasks
         self.done_task_info = []  # catch infos of completed tasks
@@ -89,9 +90,9 @@ class Env:
             self.energy_recorders[node.node_id] = self.controller.process(self.energy_clock(node))
 
         # Launch the info recorder for frames
-        if self.config['Basic']['Log'] == "on":
-            os.makedirs(self.config['Log']['LogInfoPath'], exist_ok=True)
-            os.makedirs(self.config['Log']['LogFramesPath'], exist_ok=True)
+        if self.config['Basic']['VisFrame'] == "on":
+            os.makedirs(self.config['VisFrame']['LogInfoPath'], exist_ok=True)
+            os.makedirs(self.config['VisFrame']['LogFramesPath'], exist_ok=True)
             self.info4frame = {}
             self.info4frame_recorder = self.controller.process(self.info4frame_clock())
 
@@ -362,11 +363,11 @@ class Env:
                 'edge': {str(k): item.quantify_bandwidth() 
                          for k, item in self.scenario.get_links().items()},
             }
-            if len(self.config['Log']['TargetNodeList']) > 0:
+            if len(self.config['VisFrame']['TargetNodeList']) > 0:
                 self.info4frame[self.now]['target'] = {
                     item: [self.scenario.get_node(item).active_task_ids[:], 
                            self.scenario.get_node(item).task_buffer.task_ids[:]]
-                    for item in self.config['Log']['TargetNodeList']
+                    for item in self.config['VisFrame']['TargetNodeList']
                 }
             yield self.controller.timeout(1)
 
@@ -383,7 +384,7 @@ class Env:
         return self.scenario.avg_node_energy(node_name_list) / 1000000
     
     def node_energy(self, node_name):
-        return self.scenario.node_energy(node_name)
+        return self.scenario.node_energy(node_name) / 1000000
 
     def close(self):
         # Record nodes' energy consumption.
@@ -391,9 +392,9 @@ class Env:
             self.logger.append(info_type='node', key=node.node_id, val=node.energy_consumption)
         
         # Save the info4frame
-        if self.config['Basic']['Log'] == "on":
+        if self.config['Basic']['VisFrame'] == "on":
             info4frame_json_object = json.dumps(self.info4frame, indent=4)
-            with open(f"{self.config['Log']['LogInfoPath']}/info4frame.json", 'w+') as fw:
+            with open(f"{self.config['VisFrame']['LogInfoPath']}/info4frame.json", 'w+') as fw:
                 fw.write(info4frame_json_object)
 
         # Terminate activate processes
@@ -402,7 +403,7 @@ class Env:
             if p.is_alive:
                 p.interrupt()
         self.energy_recorders.clear()
-        if self.config['Basic']['Log'] == "on":
+        if self.config['Basic']['VisFrame'] == "on":
             self.info4frame_recorder.interrupt()
 
         self.logger.log("Simulation completed!")

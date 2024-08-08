@@ -16,7 +16,7 @@
         },
         "ColorWeight": {
             "metric": "free_cpu_freq",
-            "cmap": "coolwarm"
+            "cmap": "viridis"
         }
     },
     "Edge": {
@@ -36,7 +36,7 @@
         },
         "ColorWeight": {
             "metric": "free_bandwidth",
-            "cmap": "plasma"
+            "cmap": "viridis"
         }
     }
 }
