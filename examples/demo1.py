@@ -5,13 +5,10 @@ A toy example.
 import os
 import sys
 
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 from core.env import Env
 from core.task import Task
@@ -65,9 +62,9 @@ if __name__ == '__main__':
 # -----------------------------------------------
 # Energy consumption during simulation:
 
-# n0: 0.200
-# n1: 72000.200
-# Averaged: 36000.200
+# n0: 0.000
+# n1: 0.072
+# Averaged: 0.036
 # -----------------------------------------------
 
 # [20.00]: Simulation completed!

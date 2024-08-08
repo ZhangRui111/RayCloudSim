@@ -99,14 +99,15 @@ env.run(until=20)
 
 print("\n-----------------------------------------------")
 print("Energy consumption during simulation:\n")
-print(f"n0: {env.scenario.get_node('n0').energy_consumption:.3f}")
-print(f"n1: {env.scenario.get_node('n1').energy_consumption:.3f}")
+print(f"n0: {env.node_energy('n0'):.3f}")
+print(f"n1: {env.node_energy('n1'):.3f}")
+print(f"Averaged: {env.avg_node_energy():.3f}")
 print("-----------------------------------------------\n")
 
 env.close()
 ```
 
-日志/打印信息:
+Simulation log:
 
 ```text
 [0.00]: Task {0} generated in Node {n0}
@@ -116,10 +117,11 @@ env.close()
 [11.00]: Task {0} accomplished in Node {n1} with {10.00}s
 
 -----------------------------------------------
-Power consumption during simulation:
+Energy consumption during simulation:
 
-n0: 0.200
-n1: 72000.200
+n0: 0.000
+n1: 0.072
+Averaged: 0.036
 -----------------------------------------------
 
 [20.00]: Simulation completed!
@@ -132,7 +134,7 @@ n1: 72000.200
 [comment]: <> (![RayCloudSim 的框架架构]&#40;docs/framework.jpg&#41;)
 
 <div style="text-align: center;">
-  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/framework.jpg" alt="RayCloudSim 的框架架构" width="500"/>
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/raycloudsim.jpg" alt="RayCloudSim 的框架架构" width="600"/>
 </div>
 
 **3.2.2** 一个简单的系统建模介绍：[docs/RayCloudSim.md](docs/RayCloudSim.md)

@@ -3,13 +3,12 @@
 import os
 import sys
 
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+
+import pandas as pd
 
 from core.env import Env
 from core.task import Task
@@ -30,17 +29,16 @@ def main():
     scenario=Scenario(config_file=f"eval/benchmarks/Topo4MEC/data/{flag}/config.json", flag=flag)
     env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-    # # Visualization: the topology
-    # vis_graph(env,
-    #           config_file="core/vis/configs/vis_config_topo4mec.json", 
-    #           save_as=f"eval/benchmarks/Topo4MEC/data/{flag}/vis_{flag}.png")
+    # Load the test dataset
+    data = pd.read_csv(f"eval/benchmarks/Topo4MEC/data/{flag}/testset.csv")
+    test_tasks = list(data.iloc[:].values)
 
     # Init the policy
     policy = DemoRandom()
 
     # Begin Simulation
     until = 1
-    for task_info in env.scenario.simulated_tasks:
+    for task_info in test_tasks:
         # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
         #           'TransBitRate', 'DDL', 'SrcName']  # field names
         generated_time = task_info[1]
@@ -73,7 +71,7 @@ def main():
             until += 1
 
     # Continue the simulation until the last task successes/fails.
-    while env.process_task_cnt < len(env.scenario.simulated_tasks):
+    while env.process_task_cnt < len(test_tasks):
         until += 1
         try:
             env.run(until=until)
@@ -104,27 +102,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-# # ==================== Simulation log ====================
-# ...
-# [2233.00]: Task {793} accomplished in Node {n20} with {18.00}s
-# [2236.30]: Task {799} arrived Node {n22} with {9.30}s
-# [2236.30]: Processing Task {799} in {n22}
-# [2239.00]: Task {799} accomplished in Node {n22} with {2.00}s
-# [2271.00]: Task {797} accomplished in Node {n12} with {42.00}s
-
-# ===============================================
-# Evaluation:
-# ===============================================
-
-# -----------------------------------------------
-# The success rate of all tasks: 0.9900
-# -----------------------------------------------
-
-# -----------------------------------------------
-# The average latency per task: 20.9117
-# The average energy consumption per node: 564744.8256
-# -----------------------------------------------
-
-# [2272.00]: Simulation completed!

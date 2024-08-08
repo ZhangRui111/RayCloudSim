@@ -2,13 +2,10 @@
 import os
 import sys
 
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 import pandas as pd
 
@@ -166,17 +163,17 @@ if __name__ == '__main__':
 # -----------------------------------------------
 # Energy consumption during simulation:
 
-# n0: 4314940.270
-# n1: 471211.030
-# n2: 1595788.240
-# n3: 382576.220
-# n4: 3059430.150
-# n5: 538625.960
-# n6: 4145651.420
-# n7: 1944706.180
-# n8: 31342.060
-# n9: 1301801.670
-# Averaged: 1778607.320
+# n0: 4.315
+# n1: 0.471
+# n2: 1.596
+# n3: 0.383
+# n4: 3.059
+# n5: 0.539
+# n6: 4.146
+# n7: 1.945
+# n8: 0.031
+# n9: 1.302
+# Averaged: 1.779
 # -----------------------------------------------
 
 # [1103.00]: Simulation completed!

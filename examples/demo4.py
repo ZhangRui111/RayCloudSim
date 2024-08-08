@@ -6,13 +6,10 @@ simulate multiple epochs.
 import os
 import sys
 
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 import pandas as pd
 
@@ -160,11 +157,11 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # ...
-# [3565.00]: Task {376} accomplished in Node {n8} with {110.00}s
-# [3565.00]: **TimeoutError: Task {392}** timeout in Node {n8}
-# [3565.00]: **TimeoutError: Task {397}** timeout in Node {n8}
-# [3565.00]: **TimeoutError: Task {398}** timeout in Node {n8}
-# [3574.00]: Task {396} accomplished in Node {n5} with {72.00}s
+# [3567.00]: Task {376} accomplished in Node {n8} with {110.00}s
+# [3567.00]: **TimeoutError: Task {392}** timeout in Node {n8}
+# [3567.00]: **TimeoutError: Task {397}** timeout in Node {n8}
+# [3567.00]: **TimeoutError: Task {398}** timeout in Node {n8}
+# [3576.00]: Task {396} accomplished in Node {n5} with {72.00}s
 
 # -----------------------------------------------
 # Done simulation with 400 tasks!
@@ -181,17 +178,17 @@ if __name__ == '__main__':
 # -----------------------------------------------
 # Energy consumption during simulation:
 
-# n0: 4314949.120
-# n1: 471212.800
-# n2: 1595802.400
-# n3: 382588.610
-# n4: 3059439.000
-# n5: 538638.350
-# n6: 4145669.120
-# n7: 1944716.800
-# n8: 31345.600
-# n9: 1301817.600
-# Averaged: 1778617.940
+# n0: 4.315
+# n1: 0.463
+# n2: 1.596
+# n3: 0.383
+# n4: 3.059
+# n5: 0.539
+# n6: 4.146
+# n7: 1.945
+# n8: 0.031
+# n9: 1.302
+# Averaged: 1.778
 # -----------------------------------------------
 
-# [3575.00]: Simulation completed!
+# [3577.00]: Simulation completed!

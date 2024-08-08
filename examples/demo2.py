@@ -5,13 +5,10 @@ Example on how to obtain system status and catch various errors.
 import os
 import sys
 
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 from core.env import Env
 from core.task import Task
@@ -180,7 +177,7 @@ if __name__ == '__main__':
 # [5.00]: **InsufficientBufferError: Task {5}** insufficient buffer in Node {n0}
 # [8.00]: Task {0} accomplished in Node {n0} with {8.00}s
 # [8.00]: Task {1} accomplished in Node {n2} with {4.00}s
-# [8.00]: Task {4} re-actives in Node {n0}
+# [8.00]: Task {4} re-actives in Node {n0}, waiting {4.00}s
 # [8.00]: Processing Task {4} in {n0}
 # [10.00]: Task {6} generated in Node {n0}
 # [10.00]: Task {6}: {n0} --> {n2}
@@ -198,12 +195,12 @@ if __name__ == '__main__':
 # -----------------------------------------------
 # Energy consumption during simulation:
 
-# n0: 1375.610
-# n1: 5000.610
-# n2: 1000.610
-# n3: 0.610
-# Averaged: 1844.360
-# Averaged ('n0', 'n1'): 3188.110
+# n0: 0.001
+# n1: 0.005
+# n2: 0.001
+# n3: 0.000
+# Averaged: 0.002
+# Averaged ('n0', 'n1'): 0.003
 # -----------------------------------------------
 
 # [60.00]: Simulation completed!

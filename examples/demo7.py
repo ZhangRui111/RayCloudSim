@@ -4,13 +4,10 @@ Visualization tools."""
 import os
 import sys
 
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 import pandas as pd
 
@@ -28,11 +25,6 @@ def main():
     # Create the Env
     scenario=Scenario(config_file="examples/scenarios/configs/config_3.json")
     env = Env(scenario, config_file="core/configs/env_config.json")
-
-    # # Visualization: the topology
-    # vis_graph(env,
-    #           config_file="core/vis/configs/vis_config_base.json", 
-    #           save_as="examples/vis/demo_3.png")
 
     # Load simulated tasks
     data = pd.read_csv("examples/dataset/demo3_dataset.csv")
