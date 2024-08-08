@@ -1,16 +1,5 @@
 import os
-import sys
-
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
-
 import json
-import numpy as np
 import random
 
 
@@ -41,8 +30,8 @@ def main():
                 'NodeType': 'Node',
                 'NodeName': f'n{node_id}',
                 'NodeId': node_id,
-                'MaxCpuFreq': random.randint(2, 10) * 5,
-                'MaxBufferSize': random.randint(5, 40) * 10,
+                'MaxCpuFreq': random.randint(10, 50) * 100,  # MHz, 1 GHz = 1000 MHz
+                'MaxBufferSize': random.randint(5, 40) * 10,  # Mb
                 'IdleEnergyCoef': round(idle_energy_coef, 4),
                 'ExeEnergyCoef': round(exe_energy_coef, 4),
             }
@@ -55,7 +44,7 @@ def main():
                 'EdgeType': 'SingleLink', 
                 'SrcNodeID': src,
                 'DstNodeID': dst, 
-                'Bandwidth': bw,
+                'Bandwidth': 10 * bw,  # Mbps
             }
         )
     

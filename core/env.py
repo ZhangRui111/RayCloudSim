@@ -380,7 +380,7 @@ class Env:
         return self.scenario.status(node_name, link_args)
     
     def avg_node_energy(self, node_name_list=None):
-        return self.scenario.avg_node_energy(node_name_list)
+        return self.scenario.avg_node_energy(node_name_list) / 1000000
     
     def node_energy(self, node_name):
         return self.scenario.node_energy(node_name)

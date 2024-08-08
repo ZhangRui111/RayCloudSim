@@ -3,8 +3,8 @@
         "Log": "off"
     },
     "Log": {
-        "LogInfoPath": "log/vis",
-        "LogFramesPath": "log/vis/frames",
+        "LogInfoPath": "logs/vis",
+        "LogFramesPath": "logs/vis/frames",
         "TargetNodeList": []
     }
 }
