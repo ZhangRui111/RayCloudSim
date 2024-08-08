@@ -134,7 +134,7 @@ Averaged: 0.036
 [comment]: <> (![The framework of RayCloudSim]&#40;docs/framework.jpg&#41;)
 
 <div style="text-align: center;">
-  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/raycloudsim.jpg" alt="The framework of RayCloudSim" width="600"/>
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/raycloudsim.png" alt="The framework of RayCloudSim" width="600"/>
 </div>
 
 **3.2.2** A Simple Introduction to System Modeling: [docs/RayCloudSim.md](docs/RayCloudSim.md)

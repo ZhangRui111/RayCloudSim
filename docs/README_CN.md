@@ -134,7 +134,7 @@ Averaged: 0.036
 [comment]: <> (![RayCloudSim 的框架架构]&#40;docs/framework.jpg&#41;)
 
 <div style="text-align: center;">
-  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/raycloudsim.jpg" alt="RayCloudSim 的框架架构" width="600"/>
+  <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/raycloudsim.png" alt="RayCloudSim 的框架架构" width="600"/>
 </div>
 
 **3.2.2** 一个简单的系统建模介绍：[docs/RayCloudSim.md](docs/RayCloudSim.md)
