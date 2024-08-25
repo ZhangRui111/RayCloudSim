@@ -60,22 +60,23 @@ RayCloudSim 可以用于以下研究课题:
 主要依赖模块：
 
 - **python >= 3.8**：更早的 Python 版本可能可行，但是没有经过测试
-- **numpy**：NumPy 是一个用于数组操作的 Python 库
 - **networkx**：NetworkX 是一个用于创建、操作和研究复杂网络的结构、动态和功能的 Python 包
 - **simpy**：SimPy 是一个基于标准 Python 的基于进程的离散事件仿真框架
+- **numpy**：NumPy 是一个用于数组操作的 Python 库
+- **pandas**：Pandas 是一个快速、强大、灵活且易于使用的开源数据分析和处理工具
 
 以下模块用于可视化工具：
 
 - **matplotlib**
 - **cv2**
+- **tensorboard**
 
 推荐使用 Anaconda 配置 RayCloudSim 运行环境的相关命令：
 
 ```text
 conda create --name raycloudsim python=3.8
 conda activate raycloudsim
-conda install -c anaconda numpy
-...
+pip install -r requirements.txt
 ```
 
 ## III. 起航
