@@ -1,8 +1,0 @@
-.idea/
-__pycache__/
-backup/
-log/
-logs/
-
-*.sh
-toy_debug.py
