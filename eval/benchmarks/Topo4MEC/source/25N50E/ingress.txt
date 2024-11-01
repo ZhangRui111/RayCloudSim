@@ -1,2 +1,0 @@
-# ingress nodes
-9 17 22 24
