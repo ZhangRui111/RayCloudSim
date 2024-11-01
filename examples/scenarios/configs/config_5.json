@@ -1,0 +1,108 @@
+{
+    "Nodes": [
+        {
+            "NodeType": "Node",
+            "NodeName": "n0",
+            "NodeId": 0,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 100,
+            "LocX": 16,
+            "LocY": 68,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n1",
+            "NodeId": 1,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 100,
+            "LocX": 50,
+            "LocY": 50,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n2",
+            "NodeId": 2,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 100,
+            "LocX": 63,
+            "LocY": 47,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n3",
+            "NodeId": 3,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 100,
+            "LocX": 58,
+            "LocY": 45,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        },
+        {
+            "NodeType": "WirelessNode",
+            "NodeName": "n4",
+            "NodeId": 4,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 100,
+            "LocX": 14,
+            "LocY": 64,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1,
+            "MaxTransmitPower": 10,
+            "Radius": 10
+        },
+        {
+            "NodeType": "MobileNode",
+            "NodeName": "n5",
+            "NodeId": 5,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 100,
+            "LocX": 60,
+            "LocY": 44,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1,
+            "MaxTransmitPower": 10,
+            "Radius": 10,
+            "Power": 10
+        },
+        {
+            "NodeType": "WirelessNode",
+            "NodeName": "n6",
+            "NodeId": 6,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 100,
+            "LocX": 30,
+            "LocY": 40,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1,
+            "MaxTransmitPower": 10,
+            "Radius": 10
+        }
+    ],
+    "Edges": [
+        {
+            "EdgeType": "Link",
+            "SrcNodeID": 0,
+            "DstNodeID": 1,
+            "Bandwidth": 100
+        },
+        {
+            "EdgeType": "Link",
+            "SrcNodeID": 1,
+            "DstNodeID": 2,
+            "Bandwidth": 100
+        },
+        {
+            "EdgeType": "Link",
+            "SrcNodeID": 2,
+            "DstNodeID": 3,
+            "Bandwidth": 100
+        }
+    ]
+}

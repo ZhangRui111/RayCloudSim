@@ -1,0 +1,62 @@
+{
+    "Nodes": [
+        {
+            "NodeType": "Node",
+            "NodeName": "n0",
+            "NodeId": 0,
+            "MaxCpuFreq": 5,
+            "MaxBufferSize": 100,
+            "LocX": 16,
+            "LocY": 68,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n1",
+            "NodeId": 1,
+            "MaxCpuFreq": 5,
+            "MaxBufferSize": 100,
+            "LocX": 63,
+            "LocY": 47,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n2",
+            "NodeId": 2,
+            "MaxCpuFreq": 5,
+            "MaxBufferSize": 100,
+            "LocX": 30,
+            "LocY": 30,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n3",
+            "NodeId": 3,
+            "MaxCpuFreq": 5,
+            "MaxBufferSize": 100,
+            "LocX": 15,
+            "LocY": 45,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        }
+    ],
+    "Edges": [
+        {
+            "EdgeType": "Link",
+            "SrcNodeID": 0,
+            "DstNodeID": 1,
+            "Bandwidth": 15
+        },
+        {
+            "EdgeType": "Link",
+            "SrcNodeID": 1,
+            "DstNodeID": 2,
+            "Bandwidth": 15
+        }
+    ]
+}
