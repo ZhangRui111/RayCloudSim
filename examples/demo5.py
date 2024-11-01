@@ -5,27 +5,27 @@ Example on simulation that considers the wireless transmission.
 import os
 import sys
 
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 from core.env import Env
 from core.task import Task
+from core.vis import *
 
-# User should customize this class: Scenario
-from examples.scenarios.simple_scenario_2 import Scenario
+from examples.scenarios.scenario_5 import Scenario
 
 
 def main():
     # Create the Env
-    env = Env(scenario=Scenario())
+    scenario=Scenario(config_file="examples/scenarios/configs/config_5.json")
+    env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-    # # Visualize the scenario/network
-    # env.vis_graph(save_as="examples/vis/network_demo5.png")
+    # # Visualization: the topology
+    # vis_graph(env,
+    #           config_file="core/vis/configs/vis_config_base.json", 
+    #           save_as="examples/vis/demo_5.png")
 
     # Begin Simulation
     task0 = Task(task_id=0,
@@ -51,14 +51,10 @@ def main():
     # routing path: [n1 --> n2, n2 --> n3, ('n3', 'n5')]
 
     print("\n-----------------------------------------------")
-    print("Power consumption during simulation:\n")
-    print(f"n0: {env.scenario.get_node('n0').power_consumption:.3f}")
-    print(f"n1: {env.scenario.get_node('n1').power_consumption:.3f}")
-    print(f"n2: {env.scenario.get_node('n2').power_consumption:.3f}")
-    print(f"n3: {env.scenario.get_node('n3').power_consumption:.3f}")
-    print(f"n4: {env.scenario.get_node('n4').power_consumption:.3f}")
-    print(f"n5: {env.scenario.get_node('n5').power_consumption:.3f}")
-    print(f"n6: {env.scenario.get_node('n6').power_consumption:.3f}")
+    print("Energy consumption during simulation:\n")
+    for key in env.scenario.get_nodes().keys():
+        print(f"{key}: {env.node_energy(key):.3f}")
+    print(f"Averaged: {env.avg_node_energy():.3f}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -66,6 +62,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 # # ==================== Simulation log ====================
 # [0.00]: Task {0} generated in Node {n4}
@@ -80,15 +77,16 @@ if __name__ == '__main__':
 # [13.00]: Task {1} accomplished in Node {n5} with {1.00}s
 
 # -----------------------------------------------
-# Power consumption during simulation:
+# Energy consumption during simulation:
 
-# n0: 0.200
-# n1: 0.200
-# n2: 0.200
-# n3: 0.200
-# n4: 0.200
-# n5: 1600.200
-# n6: 0.200
+# n0: 0.000
+# n1: 0.000
+# n2: 0.000
+# n3: 0.000
+# n4: 0.000
+# n5: 0.016
+# n6: 0.000
+# Averaged: 0.002
 # -----------------------------------------------
 
 # [20.00]: Simulation completed!

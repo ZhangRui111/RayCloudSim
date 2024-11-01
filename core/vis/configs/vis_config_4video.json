@@ -1,0 +1,42 @@
+{
+    "Node": {
+        "Basic": {
+            "size": 300,
+            "color": "red",
+            "shape": "o",
+            "linewidths": 1,
+            "alpha": 1.0,
+            "label": "on",
+            "colorWeight": "on"
+        },
+        "Label": {
+            "attribute": "id",
+            "fontSize": 12,
+            "fontColor": "black"
+        },
+        "ColorWeight": {
+            "metric": "free_cpu_freq",
+            "cmap": "viridis"
+        }
+    },
+    "Edge": {
+        "Basic": {
+            "arrows": "false",
+            "color": "black",
+            "style": "solid",
+            "width": 2.0,
+            "alpha": 0.5,
+            "label": "off",
+            "colorWeight": "on"
+        },
+        "Label": {
+            "attribute": "",
+            "fontSize": 12,
+            "fontColor": "black"
+        },
+        "ColorWeight": {
+            "metric": "free_bandwidth",
+            "cmap": "viridis"
+        }
+    }
+}

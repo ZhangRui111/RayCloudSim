@@ -5,27 +5,27 @@ A toy example.
 import os
 import sys
 
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 from core.env import Env
 from core.task import Task
+from core.vis import *
 
-# User should customize this class: Scenario
-from examples.scenarios.simple_scenario_1 import Scenario
+from examples.scenarios.scenario_1 import Scenario
 
 
 def main():
     # Create the Env
-    env = Env(scenario=Scenario())
+    scenario=Scenario(config_file="examples/scenarios/configs/config_1.json")
+    env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-    # # Visualize the scenario/network
-    # env.vis_graph(save_as="examples/vis/network_demo1.png")
+    # # Visualization: the topology
+    # vis_graph(env,
+    #           config_file="core/vis/configs/vis_config_base.json", 
+    #           save_as="examples/vis/demo_1.png")
 
     # Begin Simulation
     task = Task(task_id=0,
@@ -39,9 +39,10 @@ def main():
     env.run(until=20)  # execute the simulation all at once
 
     print("\n-----------------------------------------------")
-    print("Power consumption during simulation:\n")
-    print(f"n0: {env.scenario.get_node('n0').power_consumption:.3f}")
-    print(f"n1: {env.scenario.get_node('n1').power_consumption:.3f}")
+    print("Energy consumption during simulation:\n")
+    print(f"n0: {env.node_energy('n0'):.3f}")
+    print(f"n1: {env.node_energy('n1'):.3f}")
+    print(f"Averaged: {env.avg_node_energy():.3f}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -49,6 +50,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 # # ==================== Simulation log ====================
 # [0.00]: Task {0} generated in Node {n0}
@@ -58,10 +60,11 @@ if __name__ == '__main__':
 # [11.00]: Task {0} accomplished in Node {n1} with {10.00}s
 
 # -----------------------------------------------
-# Power consumption during simulation:
+# Energy consumption during simulation:
 
-# n0: 0.200
-# n1: 72000.200
+# n0: 0.000
+# n1: 0.072
+# Averaged: 0.036
 # -----------------------------------------------
 
 # [20.00]: Simulation completed!
