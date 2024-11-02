@@ -6,19 +6,18 @@ simulate multiple epochs.
 import os
 import sys
 
-PROJECT_NAME = 'RayCloudSim'
-cur_path = os.path.abspath(os.path.dirname(__file__))
-root_path = cur_path
-while os.path.split(os.path.split(root_path)[0])[-1] != PROJECT_NAME:
-    root_path = os.path.split(root_path)[0]
-root_path = os.path.split(root_path)[0]
-sys.path.append(root_path)
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+
+import pandas as pd
 
 from core.env import Env
 from core.task import Task
+from core.vis import *
 
-# User should customize this class: Scenario
-from examples.scenarios.random_topology import Scenario
+from examples.scenarios.scenario_3 import Scenario
 
 # Global statistics
 dup_task_id_error = []
@@ -68,15 +67,18 @@ def error_handler(error: Exception):
 
 def main():
     # Create the Env
-    env = Env(scenario=Scenario())
+    scenario=Scenario(config_file="examples/scenarios/configs/config_3.json")
+    env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-    # # Visualize the scenario/network
-    # env.vis_graph(save_as="examples/vis/network_demo3.png")
+    # # Visualization: the topology
+    # vis_graph(env,
+    #           config_file="core/vis/configs/vis_config_base.json", 
+    #           save_as="examples/vis/demo_3.png")
 
     # Load simulated tasks
-    with open("examples/utils/demo3_dataset.txt", 'r') as f:
-        simulated_tasks = eval(f.read())
-        n_tasks = len(simulated_tasks)
+    data = pd.read_csv("examples/dataset/demo3_dataset.csv")
+    simulated_tasks = list(data.iloc[:].values)
+    n_tasks = len(simulated_tasks)
 
     # Begin Simulation
     until = 1
@@ -92,15 +94,16 @@ def main():
         del timeout_error[:]
 
         for task_info in simulated_tasks:
-
-            generated_time, task_attrs, dst_name = task_info
-            task = Task(task_id=task_attrs[0],
-                       task_size=task_attrs[1],
-                       cycles_per_bit=task_attrs[2],
-                       trans_bit_rate=task_attrs[3],
-                       ddl=task_attrs[4],
-                       src_name=task_attrs[5],
-                       task_name=task_attrs[6])
+            # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
+            #           'TransBitRate', 'DDL', 'SrcName', 'DstName']
+            generated_time, dst_name = task_info[1], task_info[8]
+            task = Task(task_id=task_info[2],
+                        task_size=task_info[3],
+                        cycles_per_bit=task_info[4],
+                        trans_bit_rate=task_info[5],
+                        ddl=task_info[6],
+                        src_name=task_info[7],
+                        task_name=task_info[0])
 
             while True:
                 # Catch the returned info of completed tasks
@@ -114,17 +117,17 @@ def main():
 
                 # Execute the simulation with error handler
                 try:
-                    env.run(until=until)  # execute the simulation step by step
+                    env.run(until=until)
                 except Exception as e:
                     error_handler(e)
 
                 until += 1
 
-        # Continue the simulation until the last task is completed.
+        # Continue the simulation until the last task successes/fails.
         while env.process_task_cnt < len(simulated_tasks):
             until += 1
             try:
-                env.run(until=until)  # execute the simulation step by step
+                env.run(until=until)
             except Exception as e:
                 error_handler(e)
 
@@ -139,9 +142,10 @@ def main():
         print("-----------------------------------------------\n")
 
         print("\n-----------------------------------------------")
-        print("Power consumption during simulation:\n")
-        for node in env.scenario.nodes():
-            print(f"{node.name}: {node.power_consumption:.3f}")
+        print("Energy consumption during simulation:\n")
+        for key in env.scenario.get_nodes().keys():
+            print(f"{key}: {env.node_energy(key):.3f}")
+        print(f"Averaged: {env.avg_node_energy():.3f}")
         print("-----------------------------------------------\n")
 
     env.close()
@@ -150,13 +154,14 @@ def main():
 if __name__ == '__main__':
     main()
 
+
 # # ==================== Simulation log ====================
 # ...
-# [3678.00]: Processing Task {395} in {n4}
-# [3689.00]: Task {395} accomplished in Node {n4} with {11.00}s
-# [3743.00]: Task {379} accomplished in Node {n2} with {98.00}s
-# [3743.00]: **TimeoutError: Task {390}** timeout in Node {n2}
-# [3775.00]: Task {397} accomplished in Node {n9} with {102.00}s
+# [3567.00]: Task {376} accomplished in Node {n8} with {110.00}s
+# [3567.00]: **TimeoutError: Task {392}** timeout in Node {n8}
+# [3567.00]: **TimeoutError: Task {397}** timeout in Node {n8}
+# [3567.00]: **TimeoutError: Task {398}** timeout in Node {n8}
+# [3576.00]: Task {396} accomplished in Node {n5} with {72.00}s
 
 # -----------------------------------------------
 # Done simulation with 400 tasks!
@@ -164,25 +169,26 @@ if __name__ == '__main__':
 # DuplicateTaskIdError   : 0
 # NetworkXNoPathError    : 0
 # IsolatedWirelessNode   : 0
-# NetCongestionError     : 9
-# InsufficientBufferError: 39
-# TimeoutError           : 53
+# NetCongestionError     : 6
+# InsufficientBufferError: 56
+# TimeoutError           : 26
 # -----------------------------------------------
 
 
 # -----------------------------------------------
-# Power consumption during simulation:
+# Energy consumption during simulation:
 
-# n0: 1399288.800
-# n1: 5335122.400
-# n2: 15118.480
-# n3: 1038403.680
-# n4: 5618664.890
-# n5: 84169.280
-# n6: 210120.800
-# n7: 1664033.950
-# n8: 686948.000
-# n9: 87361.600
+# n0: 4.315
+# n1: 0.463
+# n2: 1.596
+# n3: 0.383
+# n4: 3.059
+# n5: 0.539
+# n6: 4.146
+# n7: 1.945
+# n8: 0.031
+# n9: 1.302
+# Averaged: 1.778
 # -----------------------------------------------
 
-# [3776.00]: Simulation completed!
+# [3577.00]: Simulation completed!

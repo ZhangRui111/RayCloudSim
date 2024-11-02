@@ -1,0 +1,34 @@
+{
+    "Nodes": [
+        {
+            "NodeType": "Node",
+            "NodeName": "n0",
+            "NodeId": 0,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 100,
+            "LocX": 16,
+            "LocY": 68,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "n1",
+            "NodeId": 1,
+            "MaxCpuFreq": 20,
+            "MaxBufferSize": 100,
+            "LocX": 63,
+            "LocY": 47,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 1
+        }
+    ],
+    "Edges": [
+        {
+            "EdgeType": "Link",
+            "SrcNodeID": 0,
+            "DstNodeID": 1,
+            "Bandwidth": [100, 9]
+        }
+    ]
+}

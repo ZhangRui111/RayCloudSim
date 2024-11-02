@@ -1,22 +1,28 @@
+import json
+
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Union, Tuple, List
 
-from core.infrastructure import Infrastructure, Link, DataFlow
+from core.infrastructure import Infrastructure, Link, DataFlow, Node, Location
 
 __all__ = ["BaseScenario"]
 
 
 class BaseScenario(metaclass=ABCMeta):
-    """The base class of customized scenario."""
+    """The base class of customized scenarios."""
 
-    def __init__(self):
+    def __init__(self, config_file):
+        # Load the config file
+        with open(config_file, 'r') as fr:
+            self.json_object = json.load(fr)
+        self.json_nodes, self.json_edges = self.json_object['Nodes'], self.json_object['Edges']
+        
         self.infrastructure = Infrastructure()
         self.node_id2name = dict()
 
         self.init_infrastructure_nodes()
         self.init_infrastructure_links()
 
-    @abstractmethod
     def init_infrastructure_nodes(self):
         """Initialize nodes in the infrastructure.
 
@@ -24,20 +30,67 @@ class BaseScenario(metaclass=ABCMeta):
             Node id must be **strictly increasing from zero**, i.e., 0, 1, ...
             Node name is user-defined.
         """
-        pass
+        # keys = ['NodeType', 'NodeName', 'NodeId', 'MaxCpuFreq', 'MaxBufferSize', 
+        #         'LocX', 'LocY', 'IdleEnergyCoef', 'ExeEnergyCoef', ]
+        for node_info in self.json_nodes:
 
-    @abstractmethod
+            assert node_info['NodeType'] == 'Node', \
+            f"Unrecognized NodeType {node_info['NodeType']}; \
+              One possible solution is to overwrite the init_infrastructure_nodes()"
+            
+            if 'LocX' in node_info.keys() and 'LocY' in node_info.keys():
+                location=Location(node_info['LocX'], node_info['LocY'])
+            else:
+                location = None
+            
+            self.infrastructure.add_node(
+                Node(node_id=node_info['NodeId'], 
+                     name=node_info['NodeName'], 
+                     max_cpu_freq=node_info['MaxCpuFreq'], 
+                     max_buffer_size=node_info['MaxBufferSize'], 
+                     location=location,
+                     idle_energy_coef=node_info['IdleEnergyCoef'], 
+                     exe_energy_coef=node_info['ExeEnergyCoef']))
+            self.node_id2name[node_info['NodeId']] = node_info['NodeName']
+
     def init_infrastructure_links(self):
         """Initialize links in the infrastructure."""
-        pass
+        # keys = ['SrcNodeID', 'DstNodeID', 'Bandwidth']
+        for edge_info in self.json_edges:
+
+            assert edge_info['EdgeType'] in ['Link', 'SingleLink'], \
+            f"Unrecognized EdgeType {edge_info['EdgeType']}; \
+              One possible solution is to overwrite the init_infrastructure_links()"
+            
+            if edge_info['EdgeType'] == 'SingleLink':
+                self.add_unilateral_link(self.node_id2name[edge_info['SrcNodeID']],
+                                         self.node_id2name[edge_info['DstNodeID']], 
+                                         edge_info['Bandwidth'])
+            else:
+                self.add_bilateral_links(self.node_id2name[edge_info['SrcNodeID']],
+                                        self.node_id2name[edge_info['DstNodeID']], 
+                                        edge_info['Bandwidth'])
 
     @abstractmethod
     def status(self, node_name: Optional[str] = None,
                link_args: Optional[Tuple] = None):
         """User-defined Scenario status."""
-        nodes = self.nodes()
-        links = self.links()
+        nodes = self.get_nodes()
+        links = self.get_links()
         return nodes, links
+    
+    def avg_node_energy(self, node_name_list=None):
+        if not node_name_list:
+            node_list = self.get_nodes().values()
+        else:
+            node_list = [self.get_node(node_name) for node_name in node_name_list]
+        energy_val = 0
+        for node in node_list:
+            energy_val += node.energy_consumption
+        return energy_val / len(node_list)
+    
+    def node_energy(self, node_name):
+        return self.get_node(node_name).energy_consumption
 
     def get_node(self, name):
         return self.infrastructure.get_node(name)
@@ -45,11 +98,11 @@ class BaseScenario(metaclass=ABCMeta):
     def get_link(self, src_name: str, dst_name: str, key=0):
         return self.infrastructure.get_link(src_name, dst_name, key)
 
-    def nodes(self):
-        return self.infrastructure.nodes()
+    def get_nodes(self):
+        return self.infrastructure.get_nodes()
 
-    def links(self):
-        return self.infrastructure.links()
+    def get_links(self):
+        return self.infrastructure.get_links()
 
     def add_unilateral_link(self, src_name: str, dst_name: str, bandwidth: float,
                             base_latency: Optional[float] = 0):
@@ -78,13 +131,13 @@ class BaseScenario(metaclass=ABCMeta):
 
     def reset(self):
         """Remove all tasks and data flows in the infrastructure."""
-        for node in self.nodes():
+        for node in self.get_nodes().values():
             node.reset()
             # for wireless nodes
             if node.flag_only_wireless:
-                node.update_access_dst_nodes(self.nodes())
+                node.update_access_dst_nodes(self.get_nodes())
 
-        for link in self.links():
+        for link in self.get_links().values():
             link.reset()
 
     def send_data_flow(self, data_flow: DataFlow, links=None,
@@ -94,6 +147,5 @@ class BaseScenario(metaclass=ABCMeta):
         Send a data flow from the src node to the dst node.
         """
         if not links:
-            links = self.infrastructure.get_shortest_links(src_name, dst_name,
-                                                           weight)
+            links = self.infrastructure.get_shortest_links(src_name, dst_name, weight)
         data_flow.allocate(links)

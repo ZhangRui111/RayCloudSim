@@ -29,10 +29,10 @@ class WirelessNode(Node):
             Note: The buffer is not used for executing tasks; 
             tasks can be executed even when the buffer is zero.
         location: geographical location.
-        idle_power_coef: power/energy consumption coefficient during idle state.
-        exe_power_coef: power/energy consumption coefficient during working/computing state.
+        idle_energy_coef: energy consumption coefficient during idle state.
+        exe_energy_coef: energy consumption coefficient during working/computing state.
         tasks: tasks placed in the node.
-        power_consumption: power consumption since the simulation begins;
+        energy_consumption: energy consumption since the simulation begins;
             wired nodes do not need to worry about the current device battery level.
         flag_only_wireless: only wireless transmission is allowed.
         max_transmit_power: maximum transmit power.
@@ -48,14 +48,14 @@ class WirelessNode(Node):
                  max_cpu_freq: float,
                  max_buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
-                 idle_power_coef: Optional[float] = 0, 
-                 exe_power_coef: Optional[float] = 0,
+                 idle_energy_coef: Optional[float] = 0, 
+                 exe_energy_coef: Optional[float] = 0,
                  max_transmit_power: int = 0,
                  radius: float = 100):
         super().__init__(node_id, name, 
                          max_cpu_freq, max_buffer_size, 
                          location, 
-                         idle_power_coef, exe_power_coef)
+                         idle_energy_coef, exe_energy_coef)
 
         self.flag_only_wireless = True
 
@@ -72,13 +72,13 @@ class WirelessNode(Node):
         return f"{self.name} ({self.free_cpu_freq}/{self.max_cpu_freq}) || " \
                f"{self.max_transmit_power})"
 
-    def update_access_dst_nodes(self, nodes: List[Node]):
+    def update_access_dst_nodes(self, nodes: dict):
         """Update the current wireless-accessible nodes."""
         del self.access_dst_nodes[:]
         self.default_dst_node = None
 
         wired_dis = math.inf
-        for item in nodes:
+        for _, item in nodes.items():
             if item.node_id != self.node_id:
                 dis = self.distance(item)
                 if dis < self.radius:
@@ -104,10 +104,10 @@ class MobileNode(WirelessNode):
             Note: The buffer is not used for executing tasks; 
             tasks can be executed even when the buffer is zero.
         location: geographical location.
-        idle_power_coef: power/energy consumption coefficient during idle state.
-        exe_power_coef: power/energy consumption coefficient during working/computing state.
+        idle_energy_coef: energy consumption coefficient during idle state.
+        exe_energy_coef: energy consumption coefficient during working/computing state.
         tasks: tasks placed in the node.
-        power_consumption: power consumption since the simulation begins;
+        energy_consumption: energy consumption since the simulation begins;
             wired nodes do not need to worry about the current device battery level.
         flag_only_wireless: only wireless transmission is allowed.
         max_transmit_power: maximum transmit power.
@@ -119,15 +119,15 @@ class MobileNode(WirelessNode):
                  max_cpu_freq: float, 
                  max_buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
-                 idle_power_coef: Optional[float] = 0, 
-                 exe_power_coef: Optional[float] = 0,
+                 idle_energy_coef: Optional[float] = 0, 
+                 exe_energy_coef: Optional[float] = 0,
                  max_transmit_power: int = 0,
                  radius: float = 100,
                  power: float = 100):
         super().__init__(node_id, name, 
                          max_cpu_freq, max_buffer_size, 
                          location,
-                         idle_power_coef, exe_power_coef,
+                         idle_energy_coef, exe_energy_coef,
                          max_transmit_power, radius)
 
         # dynamic attributes

@@ -1,3 +1,5 @@
+import json
+import os
 import simpy
 import networkx as nx
 
@@ -5,28 +7,69 @@ from typing import Optional, Tuple
 
 from core.base_scenario import BaseScenario
 from core.infrastructure import Link
-from core.flag import *
 from core.task import Task
-from core.visualization import plot_2d_network_graph
 
 __all__ = ["EnvLogger", "Env"]
 
 
+# Flags
+FLAG_TASK_EXECUTION_DONE = 0
+
+
+def user_defined_info():
+    """This is where user can define more infos for completed tasks."""
+    return None
+
+
 class EnvLogger:
-    def __init__(self, controller):
+    def __init__(self, controller, is_open=True):
         self.controller = controller
+        self.is_open = is_open  # is_open=False can speed up training
+
+        self.task_info = {}
+        self.node_info = {}
 
     def log(self, content):
-        print("[{:.2f}]: {}".format(self.controller.now, content))
+        if self.is_open:
+            print("[{:.2f}]: {}".format(self.controller.now, content))
+
+    def append(self, info_type, key, val):
+        """Record key information during the simulation.
+
+        Args:
+            info_type: 'task' or 'node'
+            key: task id or node id
+            val: 
+                if info_type == 'task': (code: int, info: list)
+                    - 0 (success) || [*]
+                    - 1 (failure) || [detailed error info,]
+                if info_type == 'node':
+                    - energy consumption
+        """
+        assert info_type in ['task', 'node']
+        if info_type == 'task':
+            self.task_info[key] = val
+        else:
+            self.node_info[key] = val
+
+    def reset(self):
+        self.task_info = {}
+        self.node_info = {}
 
 
 class Env:
 
-    def __init__(self, scenario: BaseScenario):
-        # Main components
+    def __init__(self, scenario: BaseScenario, config_file):
+        # Load the config file
+        with open(config_file, 'r') as fr:
+            self.config = json.load(fr)
+        assert len(self.config['VisFrame']['TargetNodeList']) <= 10, \
+            "For visualization layout considerations, the default number of tracked nodes " \
+            "does not exceed ten, and users are permitted to modify the layout for extension."
+        
         self.scenario = scenario
         self.controller = simpy.Environment()
-        self.logger = EnvLogger(self.controller)
+        self.logger = EnvLogger(self.controller, is_open=True)
 
         self.active_task_dict = {}  # store current active tasks
         self.done_task_info = []  # catch infos of completed tasks
@@ -41,10 +84,17 @@ class Env:
         self.monitor_process = self.controller.process(
             self.monitor_on_done_task_collector())
         
-        # Launch all power recorder processes
-        self.power_recorders = {}
-        for node in self.scenario.nodes():
-            self.power_recorders[node.node_id] = self.controller.process(self.power_clock(node))
+        # Launch all energy recorder processes
+        self.energy_recorders = {}
+        for _, node in self.scenario.get_nodes().items():
+            self.energy_recorders[node.node_id] = self.controller.process(self.energy_clock(node))
+
+        # Launch the info recorder for frames
+        if self.config['Basic']['VisFrame'] == "on":
+            os.makedirs(self.config['VisFrame']['LogInfoPath'], exist_ok=True)
+            os.makedirs(self.config['VisFrame']['LogFramesPath'], exist_ok=True)
+            self.info4frame = {}
+            self.info4frame_recorder = self.controller.process(self.info4frame_clock())
 
     @property
     def now(self):
@@ -68,6 +118,9 @@ class Env:
         # Reset scenario state
         self.scenario.reset()
 
+        # Reset the logger
+        self.logger.reset()
+
         # Clear task monitor info
         self.done_task_collector.items.clear()
         del self.done_task_info[:]
@@ -85,6 +138,9 @@ class Env:
         # DuplicateTaskIdError check
         if task.task_id in self.active_task_dict.keys():
             self.process_task_cnt += 1
+            self.logger.append(info_type='task', 
+                               key=task.task_id, 
+                               val=(1, ['DuplicateTaskIdError',]))
             # self.processed_tasks.append(task.task_id)
             log_info = f"**DuplicateTaskIdError: Task {{{task.task_id}}}** " \
                        f"new task (name {{{task.task_name}}}) with a " \
@@ -94,10 +150,8 @@ class Env:
                 ('DuplicateTaskIdError', log_info, task.task_id)
             )
 
-        if dst_name is None:
-            flag_reactive = True
-        else:
-            flag_reactive = False
+        # Check whether the task is re-activated from queuing
+        flag_reactive = True if dst_name is None else False
 
         if flag_reactive:
             dst = task.dst
@@ -109,12 +163,15 @@ class Env:
         if not flag_reactive:
             # Do task transmission, if necessary
             if dst_name != task.src_name:  # task transmission
-                # NetworkXNoPathError check
                 try:
                     links_in_path = self.scenario.infrastructure.\
                         get_shortest_links(task.src_name, dst_name)
+                # NetworkXNoPathError check
                 except nx.exception.NetworkXNoPath:
                     self.process_task_cnt += 1
+                    self.logger.append(info_type='task', 
+                                       key=task.task_id, 
+                                       val=(1, ['NetworkXNoPathError',]))
                     # self.processed_tasks.append(task.task_id)
                     log_info = f"**NetworkXNoPathError: Task " \
                                f"{{{task.task_id}}}** Node {{{dst_name}}} " \
@@ -123,12 +180,27 @@ class Env:
                     raise EnvironmentError(
                         ('NetworkXNoPathError', log_info, task.task_id)
                     )
+                # IsolatedWirelessNode check
+                except EnvironmentError as e:
+                    message = e.args[0]
+                    if message[0] == 'IsolatedWirelessNode':
+                        self.process_task_cnt += 1
+                        self.logger.append(info_type='task', 
+                                           key=task.task_id, 
+                                           val=(1, ['IsolatedWirelessNode',]))
+                        # self.processed_tasks.append(task.task_id)
+                        log_info = f"**IsolatedWirelessNode"
+                        self.logger.log(log_info)
+                        raise e
 
                 for link in links_in_path:
                     if isinstance(link, Link):
                         # NetCongestionError check
                         if link.free_bandwidth < task.trans_bit_rate:
                             self.process_task_cnt += 1
+                            self.logger.append(info_type='task', 
+                                               key=task.task_id, 
+                                               val=(1, ['NetCongestionError',]))
                             # self.processed_tasks.append(task.task_id)
                             log_info = f"**NetCongestionError: Task " \
                                        f"{{{task.task_id}}}** network " \
@@ -140,6 +212,7 @@ class Env:
                             )
 
                 task.trans_time = 0
+
                 # ---- Customize the wired/wireless transmission mode here ----
                 # wireless transmission:
                 if isinstance(links_in_path[0], Tuple):
@@ -177,6 +250,8 @@ class Env:
                                     f"{{{task.trans_time:.2f}}}s")
                 except simpy.Interrupt:
                     pass
+            else:
+                task.trans_time = 0  # To avoid task.trans_time = -1
 
         # Task execution
         if not dst.free_cpu_freq > 0:
@@ -189,10 +264,12 @@ class Env:
                 return
             except EnvironmentError as e:
                 self.process_task_cnt += 1
+                self.logger.append(info_type='task', 
+                                   key=task.task_id, 
+                                   val=(1, ['InsufficientBufferError',]))
                 # self.processed_tasks.append(task.task_id)
                 self.logger.log(e.args[0][1])
                 raise e
-            
 
         # ------------ Customize the execution mode here ------------
         if flag_reactive:
@@ -201,6 +278,9 @@ class Env:
                 task.allocate(self.now)
             except EnvironmentError as e:  # TimeoutError
                 self.process_task_cnt += 1
+                self.logger.append(info_type='task', 
+                                   key=task.task_id, 
+                                   val=(1, ['TimeoutError',]))
                 # self.processed_tasks.append(task.task_id)
                 self.logger.log(e.args[0][1])
 
@@ -210,8 +290,10 @@ class Env:
                     self.process(task=waiting_task)
                 
                 raise e
+            
             self.logger.log(f"Task {{{task.task_id}}} re-actives in "
-                            f"Node {{{task.dst_name}}}")
+                            f"Node {{{task.dst_name}}}, "
+                            f"waiting {{{(task.wait_time - task.trans_time):.2f}}}s")
         else:
             task.allocate(self.now, dst)
         # -----------------------------------------------------------
@@ -222,9 +304,10 @@ class Env:
             self.logger.log(f"Processing Task {{{task.task_id}}} in"
                             f" {{{task.dst_name}}}")
             yield self.controller.timeout(task.exe_time)
-            self.done_task_collector.put((task.task_id,
-                                          FLAG_TASK_EXECUTION_DONE,
-                                          [dst_name, task.exe_time]))
+            self.done_task_collector.put(
+                (task.task_id,
+                 FLAG_TASK_EXECUTION_DONE,
+                 [dst_name, user_defined_info()]))
         except simpy.Interrupt:
             pass
 
@@ -244,6 +327,9 @@ class Env:
                         self.logger.log(f"Task {{{task_id}}} accomplished in "
                                         f"Node {{{task.dst_name}}} with "
                                         f"{{{task.exe_time:.2f}}}s")
+                        self.logger.append(info_type='task', 
+                                           key=task.task_id, 
+                                           val=(0, [task.trans_time, task.wait_time, task.exe_time]))
                         task.deallocate()
                         del self.active_task_dict[task_id]
                         self.process_task_cnt += 1
@@ -260,11 +346,29 @@ class Env:
 
             yield self.controller.timeout(1)
     
-    def power_clock(self, node):
-        """Recorder of node's power consumption."""
+    def energy_clock(self, node):
+        """Recorder of node's energy consumption."""
         while True:
-            node.power_consumption += node.idle_power_coef
-            node.power_consumption += node.exe_power_coef * (node.max_cpu_freq - node.free_cpu_freq) ** 3
+            node.energy_consumption += node.idle_energy_coef
+            node.energy_consumption += node.exe_energy_coef * (
+                node.max_cpu_freq - node.free_cpu_freq) ** 3
+            yield self.controller.timeout(1)
+    
+    def info4frame_clock(self):
+        """Recorder the info required for simulation frames."""
+        while True:
+            self.info4frame[self.now] = {
+                'node': {k: item.quantify_cpu_freq() 
+                         for k, item in self.scenario.get_nodes().items()},
+                'edge': {str(k): item.quantify_bandwidth() 
+                         for k, item in self.scenario.get_links().items()},
+            }
+            if len(self.config['VisFrame']['TargetNodeList']) > 0:
+                self.info4frame[self.now]['target'] = {
+                    item: [self.scenario.get_node(item).active_task_ids[:], 
+                           self.scenario.get_node(item).task_buffer.task_ids[:]]
+                    for item in self.config['VisFrame']['TargetNodeList']
+                }
             yield self.controller.timeout(1)
 
     @property
@@ -272,19 +376,34 @@ class Env:
         """The number of current active tasks."""
         return len(self.active_task_dict)
 
-    def vis_graph(self, save_as):
-        """Visualize the graph/network."""
-        plot_2d_network_graph(self.scenario.infrastructure.graph,
-                              save_as=save_as)
-
     def status(self, node_name: Optional[str] = None,
                link_args: Optional[Tuple] = None):
         return self.scenario.status(node_name, link_args)
+    
+    def avg_node_energy(self, node_name_list=None):
+        return self.scenario.avg_node_energy(node_name_list) / 1000000
+    
+    def node_energy(self, node_name):
+        return self.scenario.node_energy(node_name) / 1000000
 
     def close(self):
-        self.logger.log("Simulation completed!")
+        # Record nodes' energy consumption.
+        for _, node in self.scenario.get_nodes().items():
+            self.logger.append(info_type='node', key=node.node_id, val=node.energy_consumption)
+        
+        # Save the info4frame
+        if self.config['Basic']['VisFrame'] == "on":
+            info4frame_json_object = json.dumps(self.info4frame, indent=4)
+            with open(f"{self.config['VisFrame']['LogInfoPath']}/info4frame.json", 'w+') as fw:
+                fw.write(info4frame_json_object)
+
+        # Terminate activate processes
         self.monitor_process.interrupt()
-        for p in self.power_recorders.values():
+        for p in self.energy_recorders.values():
             if p.is_alive:
                 p.interrupt()
-        self.power_recorders.clear()
+        self.energy_recorders.clear()
+        if self.config['Basic']['VisFrame'] == "on":
+            self.info4frame_recorder.interrupt()
+
+        self.logger.log("Simulation completed!")

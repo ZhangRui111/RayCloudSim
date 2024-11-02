@@ -1,0 +1,31 @@
+{
+    "num_arrivals_per_ingress": 200,
+    "lambdas": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+    ],
+    "ingress": [
+        8,
+        16,
+        21,
+        23
+    ],
+    "param_TaskSize": [
+        10,
+        101
+    ],
+    "param_CyclesPerBit": [
+        100,
+        1001
+    ],
+    "param_TransBitRate": [
+        1,
+        5
+    ],
+    "param_DDL": [
+        20,
+        101
+    ]
+}
