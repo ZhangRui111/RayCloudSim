@@ -4,6 +4,8 @@
 
 # RayCloudSim: A Simulation Platform Written in Python for Cloud/Fog/Edge Computing
 
+[<img src="https://img.shields.io/badge/License-MIT-blue.svg" height="30px" />](https://github.com/ZhangRui111/RayCloudSim/blob/main/LICENSE) [<img src="https://api.gitsponsors.com/api/badge/img?id=638982897" height="30">](https://api.gitsponsors.com/api/badge/link?p=JIrAC5FDNZDuOserq1+rtHF3mPUWeJGZeLb6haSMZc85CkeKzq3GNOnnjHpzioKJ)
+
 ## Update Summary
 - **2024/07/02**
   - [**New**] Adding support for the [Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py) dataset
