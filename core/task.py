@@ -37,7 +37,7 @@ class Task:
         exe_cnt: execution times counter.
     """
     def __init__(self, task_id, task_size, cycles_per_bit, trans_bit_rate, src_name, 
-                 ddl: Optional[int] = -1, task_name: Optional[str] = ""):
+                 ddl: Optional[int] = -1, task_name: Optional[str] = "", refresh_rate=1):
         self.task_id = task_id
         self.task_size = task_size
         self.cycles_per_bit = cycles_per_bit
@@ -54,6 +54,8 @@ class Task:
         self.exe_time = -1
 
         self.exe_energy = -1  # TODO
+        
+        self.refresh_rate = refresh_rate
 
         # self.src: Optional[Node] = src
         # self.src_id = self.src.node_id
@@ -99,8 +101,7 @@ class Task:
                 self._allocate_dst(node)
             
             # Estimated execution time
-            self.exe_time = math.ceil(
-                (self.task_size * self.cycles_per_bit) / self.cpu_freq)
+            self.exe_time = round((self.task_size * self.cycles_per_bit) / self.cpu_freq / self.refresh_rate)*self.refresh_rate
 
     def _allocate_dst(self, dst: Node):
         """Attach the task with the dst node and allocate resources."""
