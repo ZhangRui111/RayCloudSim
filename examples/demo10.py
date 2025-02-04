@@ -2,6 +2,7 @@
 """
 import os
 import sys
+import decimal
 
 current_file_path = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file_path)
@@ -14,45 +15,43 @@ from core.env import Env
 from core.task import Task
 from core.vis import *
 
-from eval.benchmarks.Topo4MEC.scenario import Scenario
+from eval.benchmarks.Pakistan.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
 from policies.demo.demo_random import DemoRandom  # policy
 from policies.demo.demo_greedy import GreedyPolicy  # policy
 
 
 def main():
-    flag = '25N50E'
-    # flag = '50N50E'
-    # flag = '100N150E'
-    # flag = 'MilanCityCenter'
+    flag = 'Tuple30K'
+    # flag = 'Tuple50K'
+    # flag = 'Tuple100K'
+
     
-    refresh_rate = 0.01
+    refresh_rate = 0.001
+    
 
     # Create the Env
-    scenario=Scenario(config_file=f"eval/benchmarks/Topo4MEC/data/{flag}/config.json", flag=flag)
-    env = Env(scenario, config_file="core/configs/env_config_null.json", refresh_rate=refresh_rate, verbose=False)
+    scenario=Scenario(config_file=f"eval/benchmarks/Pakistan/data/{flag}/config.json", flag=flag)
+    env = Env(scenario, config_file="core/configs/env_config_null.json", refresh_rate=refresh_rate, verbose=False, dec_place=3)
 
     # Load the test dataset
-    data = pd.read_csv(f"eval/benchmarks/Topo4MEC/data/{flag}/testset.csv")
-    test_tasks = list(data.iloc[:].values)
-
+    data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{flag}/testset.csv")
     # Init the policy
     policy = GreedyPolicy(env)
 
     # Begin Simulation
     until = 0
-    for task_info in test_tasks:
+    for i, task_info in data.iterrows():
         # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
         #           'TransBitRate', 'DDL', 'SrcName']  # field names
         generated_time = task_info[1]
-        task = Task(task_id=task_info[2],
-                    task_size=task_info[3],
-                    cycles_per_bit=task_info[4],
-                    trans_bit_rate=task_info[5],
-                    ddl=task_info[6],
-                    src_name=task_info[7],
-                    task_name=task_info[0],
-                    refresh_rate=refresh_rate
+        task = Task(task_id=task_info['TaskID'],
+                    task_size=task_info['TaskSize'],
+                    cycles_per_bit=task_info['CyclesPerBit'],
+                    trans_bit_rate=task_info['TransBitRate'],
+                    ddl=task_info['DDL'],
+                    src_name='e0',
+                    task_name=task_info['TaskName'],
                     )
 
         while True:
@@ -61,8 +60,10 @@ def main():
                 item = env.done_task_info.pop(0)
                 # print(f"[{item[0]}]: {item[1:]}")
                 
+            
+            if abs(env.now - generated_time) < refresh_rate:
                 
-            if abs(env.now - generated_time) < 1e-6:
+                
                 
                 dst_id = policy.act(env, task)  # offloading decision
                 dst_name = env.scenario.node_id2name[dst_id]
@@ -78,7 +79,7 @@ def main():
             until += refresh_rate
 
     # Continue the simulation until the last task successes/fails.
-    while env.process_task_cnt < len(test_tasks):
+    while env.process_task_cnt < len(data):
         until += refresh_rate
         try:
             env.run(until=until)
