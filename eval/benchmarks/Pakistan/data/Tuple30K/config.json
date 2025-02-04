@@ -1,0 +1,178 @@
+{
+    "Nodes": [
+        {
+            "DeviceType": "Edge",
+            "NodeType": "Node",
+            "NodeName": "e0",
+            "NodeId": 0,
+            "MaxCpuFreq": 10000,
+            "MaxBufferSize": 4096,
+            "IdleEnergyCoef": 0.01,
+            "ExeEnergyCoef": 0.4,
+            "LocX": 33.68742,
+            "LocY": 73.0078,
+            "Location": "Islamabad, Pakistan"
+        },
+        {
+            "DeviceType": "Fog",
+            "NodeType": "Node",
+            "NodeName": "f0",
+            "NodeId": 1,
+            "MaxCpuFreq": 110000,
+            "MaxBufferSize": 16384,
+            "IdleEnergyCoef": 0.05,
+            "ExeEnergyCoef": 0.2,
+            "LocX": 30.29023,
+            "LocY": 71.4201,
+            "Location": "Multan, Pakistan"
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "f1",
+            "NodeId": 2,
+            "MaxCpuFreq": 50000,
+            "MaxBufferSize": 6144,
+            "IdleEnergyCoef": 0.048,
+            "ExeEnergyCoef": 0.19,
+            "Location": "Gilgit, Pakistan", 
+            "LocX": 35.9208,
+            "LocY": 74.3147
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "f2",
+            "NodeId": 3,
+            "MaxCpuFreq": 95000,
+            "MaxBufferSize": 12288,
+            "IdleEnergyCoef": 0.045,
+            "ExeEnergyCoef": 0.21,
+            "Location": "Karachi, Pakistan",
+            "LocX": 24.8607,
+            "LocY": 67.0011
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "f3",
+            "NodeId": 4,
+            "MaxCpuFreq": 85000,
+            "MaxBufferSize": 10240,
+            "IdleEnergyCoef": 0.047,
+            "ExeEnergyCoef": 0.2,
+            "Location": "Lahore, Pakistan",
+            "LocX": 31.5497,
+            "LocY": 74.3436
+        },
+        {
+            "NodeType": "Node",
+            "NodeName": "f4",
+            "NodeId": 5,
+            "MaxCpuFreq": 75000,
+            "MaxBufferSize": 8192,
+            "IdleEnergyCoef": 0.05,
+            "ExeEnergyCoef": 0.19,
+            "Location": "Peshawar, Pakistan",
+            "LocX": 34.0151,
+            "LocY": 71.5249
+        },
+        {
+            "DeviceType": "Cloud",
+            "NodeType": "Node",
+            "NodeName": "c0",
+            "NodeId": 6,
+            "MaxCpuFreq": 500000,
+            "MaxBufferSize": 51200,
+            "IdleEnergyCoef": 0.09,
+            "ExeEnergyCoef": 0.14,
+            "LocX": 1.277911, 
+            "LocY": 103.848,
+            "Location": "Singapore"
+        },
+        {
+            "DeviceType": "Cloud",
+            "NodeType": "Node",
+            "NodeName": "c1",
+            "NodeId": 7,
+            "MaxCpuFreq": 500000,
+            "MaxBufferSize": 51200,
+            "IdleEnergyCoef": 0.1,
+            "ExeEnergyCoef": 0.16,
+            "LocX": 50.4738, 
+            "LocY": 3.8038,
+            "Location": "Saint-Ghislain, Belgium"
+        }
+    ],
+    "Edges": [
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 1,
+            "Bandwidth": 2500
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 1,
+            "DstNodeID": 0,
+            "Bandwidth": 1700
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 2,
+            "Bandwidth": 1000.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 2,
+            "DstNodeID": 0,
+            "Bandwidth": 700.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 3,
+            "Bandwidth": 2000.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 3,
+            "DstNodeID": 0,
+            "Bandwidth": 1500.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 4,
+            "Bandwidth": 1500.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 4,
+            "DstNodeID": 0,
+            "Bandwidth": 1200.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 0,
+            "DstNodeID": 5,
+            "Bandwidth": 1200.0
+        },
+        {
+            "EdgeType": "SingleLink",
+            "SrcNodeID": 5,
+            "DstNodeID": 0,
+            "Bandwidth": 1000.0
+        },
+        {
+            "EdgeType": "Link",
+            "SrcNodeID": 0,
+            "DstNodeID": 6,
+            "Bandwidth": 50000
+        },
+        {
+            "EdgeType": "Link",
+            "SrcNodeID": 0,
+            "DstNodeID": 7,
+            "Bandwidth": 50000
+        }
+    ]
+}
