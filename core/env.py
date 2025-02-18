@@ -22,16 +22,17 @@ def user_defined_info():
 
 
 class EnvLogger:
-    def __init__(self, controller, is_open=True):
+    def __init__(self, controller, is_open=True, dec_place=3):
         self.controller = controller
         self.is_open = is_open  # is_open=False can speed up training
 
         self.task_info = {}
         self.node_info = {}
+        self.decimal_place = dec_place
 
     def log(self, content):
         if self.is_open:
-            print("[{:.2f}]: {}".format(self.controller.now, content))
+            print(f"[{self.controller.now:.{self.decimal_place}f}]: {content}")
 
     def append(self, info_type, key, val):
         """Record key information during the simulation.
@@ -59,17 +60,20 @@ class EnvLogger:
 
 class Env:
 
-    def __init__(self, scenario: BaseScenario, config_file):
+    def __init__(self, scenario: BaseScenario, config_file, verbose=True, refresh_rate=1, dec_place=1):
         # Load the config file
         with open(config_file, 'r') as fr:
             self.config = json.load(fr)
         assert len(self.config['VisFrame']['TargetNodeList']) <= 10, \
             "For visualization layout considerations, the default number of tracked nodes " \
             "does not exceed ten, and users are permitted to modify the layout for extension."
+            
+        self.refresh_rate = refresh_rate
+        self.decimal_place = dec_place
         
         self.scenario = scenario
         self.controller = simpy.Environment()
-        self.logger = EnvLogger(self.controller, is_open=True)
+        self.logger = EnvLogger(self.controller, is_open=verbose, dec_place=self.decimal_place)
 
         self.active_task_dict = {}  # store current active tasks
         self.done_task_info = []  # catch infos of completed tasks
@@ -247,7 +251,7 @@ class Env:
                     task.trans_flow.deallocate()
                     self.logger.log(f"Task {{{task.task_id}}} arrived "
                                     f"Node {{{dst_name}}} with "
-                                    f"{{{task.trans_time:.2f}}}s")
+                                    f"{{{task.trans_time:.{self.decimal_place}f}}}s")
                 except simpy.Interrupt:
                     pass
             else:
@@ -293,7 +297,7 @@ class Env:
             
             self.logger.log(f"Task {{{task.task_id}}} re-actives in "
                             f"Node {{{task.dst_name}}}, "
-                            f"waiting {{{(task.wait_time - task.trans_time):.2f}}}s")
+                            f"waiting {{{(task.wait_time - task.trans_time):.{self.decimal_place}f}}}s")
         else:
             task.allocate(self.now, dst)
         # -----------------------------------------------------------
@@ -326,7 +330,7 @@ class Env:
 
                         self.logger.log(f"Task {{{task_id}}} accomplished in "
                                         f"Node {{{task.dst_name}}} with "
-                                        f"{{{task.exe_time:.2f}}}s")
+                                        f"{{{task.exe_time:.{self.decimal_place}f}}}s")
                         self.logger.append(info_type='task', 
                                            key=task.task_id, 
                                            val=(0, [task.trans_time, task.wait_time, task.exe_time]))
@@ -344,7 +348,7 @@ class Env:
                 self.done_task_info = []
                 # self.logger.log("")  # turn on: log on every time slot
 
-            yield self.controller.timeout(1)
+            yield self.controller.timeout(self.refresh_rate)
     
     def energy_clock(self, node):
         """Recorder of node's energy consumption."""
@@ -352,7 +356,7 @@ class Env:
             node.energy_consumption += node.idle_energy_coef
             node.energy_consumption += node.exe_energy_coef * (
                 node.max_cpu_freq - node.free_cpu_freq) ** 3
-            yield self.controller.timeout(1)
+            yield self.controller.timeout(self.refresh_rate)
     
     def info4frame_clock(self):
         """Recorder the info required for simulation frames."""
@@ -369,7 +373,7 @@ class Env:
                            self.scenario.get_node(item).task_buffer.task_ids[:]]
                     for item in self.config['VisFrame']['TargetNodeList']
                 }
-            yield self.controller.timeout(1)
+            yield self.controller.timeout(self.refresh_rate)
 
     @property
     def n_active_tasks(self):

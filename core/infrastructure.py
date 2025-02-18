@@ -214,11 +214,45 @@ class Node(object):
             DeprecationWarning)
         return
 
-    def distance(self, another) -> float:
-        """Calculate the Euclidean distance to another node."""
-        return math.sqrt(
+    def distance(self, another, type='haversine') -> float:
+        """Calculate the distance to another node. type can be 'haversine' or 'euclidean'."""
+        if type == 'haversine':
+            return self.haversine(self.location.x, self.location.y, 
+                                  another.location.x, another.location.y)
+        elif type == 'euclidean':
+            
+            return math.sqrt(
             (self.location.x - another.location.x) ** 2 +
             (self.location.y - another.location.y) ** 2)
+        else:
+            raise ValueError(f"Unsupported distance type: {type}")
+        
+    def haversine(self, lat1, lon1, lat2, lon2):
+        """
+        Calculate the great-circle distance between two points on Earth (specified in decimal degrees).
+
+        Parameters:
+            lat1, lon1: Latitude and longitude of point 1 (in decimal degrees)
+            lat2, lon2: Latitude and longitude of point 2 (in decimal degrees)
+
+        Returns:
+            Distance in kilometers.
+        """
+        # Convert decimal degrees to radians.
+        lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+
+        # Compute differences.
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+
+        # Haversine formula.
+        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+        # Radius of Earth in kilometers (6371000 for meters)
+        R = 6371000
+        distance = R * c
+        return distance
 
     def utilization(self) -> float:
         """The current status.

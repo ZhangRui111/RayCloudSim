@@ -19,9 +19,15 @@ class BaseScenario(metaclass=ABCMeta):
         
         self.infrastructure = Infrastructure()
         self.node_id2name = dict()
+        
+        self.signal_speed = 2.0e8  ## 2.0e8 m/s signal speed in fiber   
+        self.hops_delay = 0.0002 / 30000 # 0.2 ms per 30 km ( hop delay * avg hop distance)
 
         self.init_infrastructure_nodes()
+
         self.init_infrastructure_links()
+        
+        # print({(link.src.name, link.dst.name): link.base_latency for link in self.get_links().values()})
 
     def init_infrastructure_nodes(self):
         """Initialize nodes in the infrastructure.
@@ -56,20 +62,37 @@ class BaseScenario(metaclass=ABCMeta):
     def init_infrastructure_links(self):
         """Initialize links in the infrastructure."""
         # keys = ['SrcNodeID', 'DstNodeID', 'Bandwidth']
+        
+        node = self.infrastructure.get_nodes()
+        
         for edge_info in self.json_edges:
 
             assert edge_info['EdgeType'] in ['Link', 'SingleLink'], \
             f"Unrecognized EdgeType {edge_info['EdgeType']}; \
               One possible solution is to overwrite the init_infrastructure_links()"
+              
+            src_node_id, dst_node_id = edge_info['SrcNodeID'], edge_info['DstNodeID']
+              
+            if 'BaseLatency' in edge_info:
+                base_latency = edge_info['BaseLatency']
+            elif node[self.node_id2name[src_node_id]].location is not None and node[self.node_id2name[dst_node_id]].location is not None:
+                distance = node[self.node_id2name[src_node_id]].distance(node[self.node_id2name[dst_node_id]]) * 2 ## distance in m 2 for round trip
+
+                base_latency = round(distance * (1/self.signal_speed + self.hops_delay), 3)
+            else:
+                base_latency = 0
+                
             
             if edge_info['EdgeType'] == 'SingleLink':
                 self.add_unilateral_link(self.node_id2name[edge_info['SrcNodeID']],
                                          self.node_id2name[edge_info['DstNodeID']], 
-                                         edge_info['Bandwidth'])
+                                         edge_info['Bandwidth'],
+                                         base_latency)
             else:
                 self.add_bilateral_links(self.node_id2name[edge_info['SrcNodeID']],
                                         self.node_id2name[edge_info['DstNodeID']], 
-                                        edge_info['Bandwidth'])
+                                        edge_info['Bandwidth'],
+                                        base_latency)
 
     @abstractmethod
     def status(self, node_name: Optional[str] = None,

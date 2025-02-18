@@ -96,7 +96,7 @@ def main():
                 item = env.done_task_info.pop(0)
                 # print(f"[{item[0]}]: {item[1:]}")
 
-            if env.now == generated_time:
+            if abs(env.now - generated_time) < 1e-6:
                 env.process(task=task, dst_name=dst_name)
                 break
 
