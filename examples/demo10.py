@@ -20,16 +20,13 @@ from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
 from policies.demo.demo_random import DemoRandom  # policy
 from policies.demo.demo_greedy import GreedyPolicy  # policy
 
-
 def main():
     flag = 'Tuple30K'
     # flag = 'Tuple50K'
     # flag = 'Tuple100K'
-
     
     refresh_rate = 0.001
     
-
     # Create the Env
     scenario=Scenario(config_file=f"eval/benchmarks/Pakistan/data/{flag}/config.json", flag=flag)
     env = Env(scenario, config_file="core/configs/env_config_null.json", refresh_rate=refresh_rate, verbose=False, dec_place=3)
@@ -44,7 +41,7 @@ def main():
     for i, task_info in data.iterrows():
         # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
         #           'TransBitRate', 'DDL', 'SrcName']  # field names
-        generated_time = task_info[1]
+        generated_time = task_info['GenerationTime']
         task = Task(task_id=task_info['TaskID'],
                     task_size=task_info['TaskSize'],
                     cycles_per_bit=task_info['CyclesPerBit'],
@@ -59,9 +56,9 @@ def main():
             while env.done_task_info:
                 item = env.done_task_info.pop(0)
                 # print(f"[{item[0]}]: {item[1:]}")
-                
+
             
-            if abs(env.now - generated_time) < refresh_rate:
+            if env.now >= generated_time:
                 
                 
                 
