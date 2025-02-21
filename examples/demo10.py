@@ -14,6 +14,7 @@ import pandas as pd
 from core.env import Env
 from core.task import Task
 from core.vis import *
+from core.utils import create_log_dir
 
 from eval.benchmarks.Pakistan.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
@@ -35,6 +36,8 @@ def main():
     data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{flag}/testset.csv")
     # Init the policy
     policy = GreedyPolicy(env)
+    
+    create_log_dir("DemoGreedy", flag=flag)
 
     # Begin Simulation
     until = 0
