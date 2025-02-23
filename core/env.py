@@ -6,7 +6,7 @@ import networkx as nx
 from typing import Optional, Tuple
 
 from core.base_scenario import BaseScenario
-from core.infrastructure import Link
+from core.infrastructure import Link, Node
 from core.task import Task
 
 __all__ = ["EnvLogger", "Env"]
@@ -91,7 +91,7 @@ class Env:
         # Launch all energy recorder processes
         self.energy_recorders = {}
         for _, node in self.scenario.get_nodes().items():
-            self.energy_recorders[node.node_id] = self.controller.process(self.energy_clock(node))
+            self.energy_recorders[node.node_id] = self.controller.process(self.node_clock(node))
 
         # Launch the info recorder for frames
         if self.config['Basic']['VisFrame'] == "on":
@@ -144,7 +144,7 @@ class Env:
             self.process_task_cnt += 1
             self.logger.append(info_type='task', 
                                key=task.task_id, 
-                               val=(1, ['DuplicateTaskIdError',]))
+                               val=(1, ['DuplicateTaskIdError',], (task.src_name, dst_name)))
             # self.processed_tasks.append(task.task_id)
             log_info = f"**DuplicateTaskIdError: Task {{{task.task_id}}}** " \
                        f"new task (name {{{task.task_name}}}) with a " \
@@ -175,7 +175,7 @@ class Env:
                     self.process_task_cnt += 1
                     self.logger.append(info_type='task', 
                                        key=task.task_id, 
-                                       val=(1, ['NetworkXNoPathError',]))
+                                       val=(1, ['NetworkXNoPathError',], (task.src_name, dst_name)))
                     # self.processed_tasks.append(task.task_id)
                     log_info = f"**NetworkXNoPathError: Task " \
                                f"{{{task.task_id}}}** Node {{{dst_name}}} " \
@@ -191,7 +191,7 @@ class Env:
                         self.process_task_cnt += 1
                         self.logger.append(info_type='task', 
                                            key=task.task_id, 
-                                           val=(1, ['IsolatedWirelessNode',]))
+                                           val=(1, ['IsolatedWirelessNode',], (task.src_name, dst_name)))
                         # self.processed_tasks.append(task.task_id)
                         log_info = f"**IsolatedWirelessNode"
                         self.logger.log(log_info)
@@ -204,7 +204,7 @@ class Env:
                             self.process_task_cnt += 1
                             self.logger.append(info_type='task', 
                                                key=task.task_id, 
-                                               val=(1, ['NetCongestionError',]))
+                                               val=(1, ['NetCongestionError',], (task.src_name, dst_name)))
                             # self.processed_tasks.append(task.task_id)
                             log_info = f"**NetCongestionError: Task " \
                                        f"{{{task.task_id}}}** network " \
@@ -270,7 +270,7 @@ class Env:
                 self.process_task_cnt += 1
                 self.logger.append(info_type='task', 
                                    key=task.task_id, 
-                                   val=(1, ['InsufficientBufferError',]))
+                                   val=(1, ['InsufficientBufferError',], (task.src_name, dst_name if dst_name is not None else task.src_name)))
                 # self.processed_tasks.append(task.task_id)
                 self.logger.log(e.args[0][1])
                 raise e
@@ -284,7 +284,7 @@ class Env:
                 self.process_task_cnt += 1
                 self.logger.append(info_type='task', 
                                    key=task.task_id, 
-                                   val=(1, ['TimeoutError',]))
+                                   val=(1, ['TimeoutError',], (task.src_name, dst_name if dst_name is not None else task.src_name)))
                 # self.processed_tasks.append(task.task_id)
                 self.logger.log(e.args[0][1])
 
@@ -333,7 +333,7 @@ class Env:
                                         f"{{{task.exe_time:.{self.decimal_place}f}}}s")
                         self.logger.append(info_type='task', 
                                            key=task.task_id, 
-                                           val=(0, [task.trans_time, task.wait_time, task.exe_time]))
+                                           val=(0, [task.trans_time, task.wait_time, task.exe_time], (task.src_name, task.dst_name if task.dst_name is not None else task.src_name)))
                         task.deallocate()
                         del self.active_task_dict[task_id]
                         self.process_task_cnt += 1
@@ -350,12 +350,14 @@ class Env:
 
             yield self.controller.timeout(self.refresh_rate)
     
-    def energy_clock(self, node):
+    def node_clock(self, node: Node):
         """Recorder of node's energy consumption."""
         while True:
             node.energy_consumption += node.idle_energy_coef
             node.energy_consumption += node.exe_energy_coef * (
                 node.max_cpu_freq - node.free_cpu_freq) ** 3
+            node.total_cpu_freq += node.free_cpu_freq
+            node.clock += 1
             yield self.controller.timeout(self.refresh_rate)
     
     def info4frame_clock(self):
@@ -393,7 +395,7 @@ class Env:
     def close(self):
         # Record nodes' energy consumption.
         for _, node in self.scenario.get_nodes().items():
-            self.logger.append(info_type='node', key=node.node_id, val=node.energy_consumption)
+            self.logger.append(info_type='node', key=node.node_id, val=[node.energy_consumption/node.clock, node.total_cpu_freq/node.clock])
         
         # Save the info4frame
         if self.config['Basic']['VisFrame'] == "on":

@@ -15,6 +15,7 @@ from core.env import Env
 from core.task import Task
 from core.vis import *
 from core.utils import create_log_dir
+from core.vis.vis_stats import VisStats
 
 from eval.benchmarks.Pakistan.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
@@ -106,6 +107,13 @@ def main():
     print("-----------------------------------------------\n")
 
     env.close()
+    
+    # Visualization
+    vis = VisStats()
+    vis.vis(env)
+    
+    
+    
 
 
 if __name__ == '__main__':

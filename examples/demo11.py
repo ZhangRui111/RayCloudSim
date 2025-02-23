@@ -23,7 +23,7 @@ from core.vis.plot_score import PlotScore
 num_epoch = 200
 batch_size = 256
 
-def run_epoch(env, policy, data, refresh_rate=1, train=True):
+def run_epoch(env: Env, policy, data: pd.DataFrame, refresh_rate=1, train=True):
     """
     Run one simulation epoch over the provided task data.
 
@@ -52,6 +52,8 @@ def run_epoch(env, policy, data, refresh_rate=1, train=True):
                     ddl=task_info['DDL'],
                     src_name='e0',
                     task_name=task_info['TaskName'])
+        
+        print(env.logger.node_info  )
 
         # Wait until the simulation reaches the task's generation time.
         while True:
@@ -138,9 +140,6 @@ def main():
     
     for epoch in range(num_epoch):
         print(f"Epoch {epoch+1}/{num_epoch}")
-        
-    
-
         
         # Training phase.
         env = create_env(scenario)

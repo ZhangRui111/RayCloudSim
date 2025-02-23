@@ -186,6 +186,9 @@ class Node(object):
         self.active_task_ids = []
 
         self.flag_only_wireless = False
+        
+        self.total_cpu_freq = 0
+        self.clock = 0
 
     def __repr__(self):
         return f"{self.name} ({self.free_cpu_freq}/{self.max_cpu_freq})"
