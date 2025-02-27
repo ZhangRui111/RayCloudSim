@@ -246,7 +246,7 @@ class Env:
 
                 try:
                     self.logger.log(f"Task {{{task.task_id}}}: "
-                                    f"{{{task.src_name}}} --> {{{dst_name}}}")
+                                    f"{{{task.src_name}}} --> {{{task.dst_name}}}")
                     yield self.controller.timeout(task.trans_time)
                     task.trans_flow.deallocate()
                     self.logger.log(f"Task {{{task.task_id}}} arrived "
@@ -270,7 +270,7 @@ class Env:
                 self.process_task_cnt += 1
                 self.logger.append(info_type='task', 
                                    key=task.task_id, 
-                                   val=(1, ['InsufficientBufferError',], (task.src_name, dst_name if dst_name is not None else task.src_name)))
+                                   val=(1, ['InsufficientBufferError',], (task.src_name, task.dst_name)))
                 # self.processed_tasks.append(task.task_id)
                 self.logger.log(e.args[0][1])
                 raise e
@@ -284,7 +284,7 @@ class Env:
                 self.process_task_cnt += 1
                 self.logger.append(info_type='task', 
                                    key=task.task_id, 
-                                   val=(1, ['TimeoutError',], (task.src_name, dst_name if dst_name is not None else task.src_name)))
+                                   val=(1, ['TimeoutError',], (task.src_name, task.dst_name)))
                 # self.processed_tasks.append(task.task_id)
                 self.logger.log(e.args[0][1])
 
@@ -333,7 +333,7 @@ class Env:
                                         f"{{{task.exe_time:.{self.decimal_place}f}}}s")
                         self.logger.append(info_type='task', 
                                            key=task.task_id, 
-                                           val=(0, [task.trans_time, task.wait_time, task.exe_time], (task.src_name, task.dst_name if task.dst_name is not None else task.src_name)))
+                                           val=(0, [task.trans_time, task.wait_time, task.exe_time], (task.src_name, task.dst_name)))
                         task.deallocate()
                         del self.active_task_dict[task_id]
                         self.process_task_cnt += 1
@@ -356,7 +356,7 @@ class Env:
             node.energy_consumption += node.idle_energy_coef
             node.energy_consumption += node.exe_energy_coef * (
                 node.max_cpu_freq - node.free_cpu_freq) ** 3
-            node.total_cpu_freq += node.free_cpu_freq
+            node.total_cpu_freq += node.max_cpu_freq - node.free_cpu_freq
             node.clock += 1
             yield self.controller.timeout(self.refresh_rate)
     

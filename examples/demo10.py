@@ -38,7 +38,7 @@ def main():
     # Init the policy
     policy = GreedyPolicy(env)
     
-    create_log_dir("DemoGreedy", flag=flag)
+    path_dir = create_log_dir("DemoGreedy", flag=flag)
 
     # Begin Simulation
     until = 0
@@ -108,12 +108,9 @@ def main():
 
     env.close()
     
-    # Visualization
-    vis = VisStats()
+    # Stats Visualization
+    vis = VisStats(path_dir)
     vis.vis(env)
-    
-    
-    
 
 
 if __name__ == '__main__':

@@ -14,13 +14,15 @@ from core.env import Env
 from core.task import Task
 from core.vis import *
 from core.utils import create_log_dir   
+from core.vis.vis_stats import VisStats
+
 from eval.benchmarks.Pakistan.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency
 from policies.dqrl_policy import DQRLPolicy
 from core.vis.plot_score import PlotScore
 
 # Global parameters
-num_epoch = 200
+num_epoch = 50
 batch_size = 256
 
 def run_epoch(env: Env, policy, data: pd.DataFrame, refresh_rate=1, train=True):
@@ -52,8 +54,6 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, refresh_rate=1, train=True):
                     ddl=task_info['DDL'],
                     src_name='e0',
                     task_name=task_info['TaskName'])
-        
-        print(env.logger.node_info  )
 
         # Wait until the simulation reaches the task's generation time.
         while True:
@@ -158,6 +158,17 @@ def main():
         plotter.append(mode='Testing', metric='AvgLatency', value=m2.eval(env.logger.task_info))
         env.close()
         
+    
+    # Final testing phase.
+    print("Final Testing Phase")
+    env = create_env(scenario)
+    env = run_epoch(env, policy, test_data, refresh_rate=refresh_rate, train=False)
+    print(f"Testing  - AvgLatency: {m2.eval(env.logger.task_info):.4f}, SuccessRate: {m1.eval(env.logger.task_info):.4f}")
+    env.close()
+    
+    vis_stats = VisStats(save_path=log_dir)
+    vis_stats.vis(env)
+
     plotter.plot(num_epoch)
 
 if __name__ == '__main__':

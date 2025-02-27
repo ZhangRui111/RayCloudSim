@@ -5,7 +5,7 @@
             "NodeType": "Node",
             "NodeName": "e0",
             "NodeId": 0,
-            "MaxCpuFreq": 10000000,
+            "MaxCpuFreq": 10000,
             "MaxBufferSize": 4096,
             "IdleEnergyCoef": 0.01,
             "ExeEnergyCoef": 0.4,

@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 
 class PlotScore:
     """Plot the training and testing scores."""
-    def __init__(self, metrics, modes, save_dir=None):
+    def __init__(self, metrics, modes, save_dir=None, display=False):    
         self.metrics = metrics 
         self.modes = modes
         self.score = {mode: {metric: [] for metric in metrics} for mode in modes}
         self.save_dir = save_dir
+        self.display = display
         
         
     def append(self, mode, metric, value):
@@ -31,7 +32,9 @@ class PlotScore:
                 
         if self.save_dir is not None:
             fig.savefig(f"{self.save_dir}/score_plot.png")
-            
-        plt.show()
+
+        if self.display:
+            plt.show()
+
         
 

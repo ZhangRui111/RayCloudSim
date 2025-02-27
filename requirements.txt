@@ -7,3 +7,5 @@ matplotlib==3.5.3
 opencv-python==4.9.0.80
 tqdm==4.66.2
 PyQt5
+
+# torch==2.4.1
