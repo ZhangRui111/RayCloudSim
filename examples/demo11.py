@@ -111,9 +111,10 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, refresh_rate=1, train=True):
             pass
     return env
 
-def create_env(scenario):
+def create_env(scenario, refresh_rate
+               =1):
     """Create and return an environment instance."""
-    return Env(scenario, config_file="core/configs/env_config_null.json", refresh_rate=1, verbose=False)
+    return Env(scenario, config_file="core/configs/env_config_null.json", refresh_rate=refresh_rate, verbose=False)
 
 
 def main():
@@ -130,7 +131,8 @@ def main():
     
     
     # Initialize the policy.
-    env = create_env(scenario)
+    env = create_env(scenario, refresh_rate
+                     =refresh_rate)
     policy = DQRLPolicy(env=env, lr=1e-3)
     
     m1 = SuccessRate()
@@ -142,7 +144,8 @@ def main():
         print(f"Epoch {epoch+1}/{num_epoch}")
         
         # Training phase.
-        env = create_env(scenario)
+        env = create_env(scenario, refresh_rate
+                         =refresh_rate)
         env = run_epoch(env, policy, train_data, refresh_rate=refresh_rate, train=True)
         print(f"Training - AvgLatency: {m2.eval(env.logger.task_info):.4f}, SuccessRate: {m1.eval(env.logger.task_info):.4f}")
         plotter.append(mode='Training', metric='SuccessRate', value=m1.eval(env.logger.task_info))
@@ -150,7 +153,8 @@ def main():
         env.close()
         
         # Testing phase.
-        env = create_env(scenario)
+        env = create_env(scenario, refresh_rate
+                         =refresh_rate)
         env = run_epoch(env, policy, test_data, refresh_rate=refresh_rate, train=False)
         print(f"Testing  - AvgLatency: {m2.eval(env.logger.task_info):.4f}, SuccessRate: {m1.eval(env.logger.task_info):.4f}")
         print("===============================================")

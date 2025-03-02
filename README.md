@@ -7,10 +7,11 @@
 ## Update Summary
 
 - **2025/02/04**
-  - [**New**] Adding support for the [Pakistan](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py) dataset
-  - [**Optimization**] Chosing the refresh rate + the log decimal format
-  - [**New**] Calculating the distance from hervetienne coordinate + adding the base latency due to the distance
-  - [**New**] Adding Round Robin, Greedy and DQRL Policy
+  - [**New**] Added support for the [Pakistan dataset](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py).
+  - [**New**] Calculated distance using “Hervetienne” coordinates, now factoring in a base latency that depends on this distance.  
+  - [**New**] Introduced new policies: Round Robin, Greedy, and DQRL.  
+  - [**New**] Provided visualizer for statistics on both nodes and links.
+  - [**Optimization**] Introduced options to customize the refresh rate and define the log decimal format.
 
 - **2024/07/02**
   - [**New**] Adding support for the [Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py) dataset

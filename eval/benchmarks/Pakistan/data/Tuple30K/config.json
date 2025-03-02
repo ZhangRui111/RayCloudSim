@@ -8,7 +8,7 @@
             "MaxCpuFreq": 10000,
             "MaxBufferSize": 4096,
             "IdleEnergyCoef": 0.01,
-            "ExeEnergyCoef": 0.4,
+            "ExeEnergyCoef": 0.04,
             "LocX": 33.68742,
             "LocY": 73.0078,
             "Location": "Islamabad, Pakistan"

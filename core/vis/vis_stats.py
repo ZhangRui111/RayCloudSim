@@ -27,7 +27,7 @@ class VisStats:
             src_name, dst_name = val[2]
             if val[0] == SUCCESS:
                 total_time = sum(val[1])  # Sum of task transmission, wait, and execution times.
-                status = 'SUCCESS'
+                status = 'Success'
             else:
                 total_time = 0
                 status = val[1][0]  # Error code.
@@ -49,7 +49,7 @@ class VisStats:
 
         # 1. Bar chart: Total tasks vs. successful tasks per link.
         task_counts = pd.DataFrame()
-        task_counts['Success'] = self.task_info[self.task_info['Status'] == 'SUCCESS'].groupby('Link').size()
+        task_counts['Success'] = self.task_info[self.task_info['Status'] == 'Success'].groupby('Link').size()
         task_counts['Total'] = self.task_info.groupby('Link').size()
         fig, ax = plt.subplots()
         p_total = ax.bar(task_counts.index, task_counts['Total'], width=0.6, label='Total')
@@ -61,13 +61,12 @@ class VisStats:
         fig.savefig(os.path.join(self.save_path, 'task_offloading_statistics.png'))
         plt.close(fig)
 
-        # 2. Pie chart: Distribution of error types.
-        errors = self.task_info[self.task_info['Status'] != 'SUCCESS']
-        error_counts = errors.groupby('Status').size()
+        # 2. Pie chart: Distribution of task statues.
+        statues_counts = self.task_info.groupby('Status').size()
         fig, ax = plt.subplots()
-        ax.pie(error_counts, labels=error_counts.index, autopct='%1.1f%%')
-        ax.set_title('Type of Errors')
-        fig.savefig(os.path.join(self.save_path, 'error_distribution.png'))
+        ax.pie(statues_counts, labels=statues_counts.index, autopct='%1.1f%%')
+        ax.set_title('Stutues distribution')
+        fig.savefig(os.path.join(self.save_path, 'task_statues_distribution.png'))
         plt.close(fig)
 
         # 3. Bar chart: Average latency per link (for successful tasks).

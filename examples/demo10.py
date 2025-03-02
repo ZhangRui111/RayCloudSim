@@ -14,7 +14,7 @@ import pandas as pd
 from core.env import Env
 from core.task import Task
 from core.vis import *
-from core.utils import create_log_dir
+from core.utils import create_log_dir, save_results
 from core.vis.vis_stats import VisStats
 
 from eval.benchmarks.Pakistan.scenario import Scenario
@@ -102,8 +102,10 @@ def main():
     m2 = AvgLatency()
     r2 = m2.eval(env.logger.task_info)
     print(f"The average latency per task: {r2:.4f}")
+    
+    e = env.avg_node_energy()
 
-    print(f"The average energy consumption per node: {env.avg_node_energy():.4f}")
+    print(f"The average energy consumption per node: {e:.4E}")
     print("-----------------------------------------------\n")
 
     env.close()
@@ -111,6 +113,9 @@ def main():
     # Stats Visualization
     vis = VisStats(path_dir)
     vis.vis(env)
+    
+    save_results(path_dir, results={"SuccessRate": r1, "AvgLatency": r2, "AvgEnergy": e}, flag=flag)
+    print(f"Results saved in {path_dir}")
 
 
 if __name__ == '__main__':
