@@ -6,7 +6,7 @@
 
 [<img src="https://img.shields.io/badge/License-MIT-blue.svg" height="20px" />](https://github.com/ZhangRui111/RayCloudSim/blob/main/LICENSE) [<img src="https://api.gitsponsors.com/api/badge/img?id=638982897" height="20">](https://api.gitsponsors.com/api/badge/link?p=JIrAC5FDNZDuOserq1+rtK+ePrdHC6pqFQMndZ+SGnLnSZE6kl4J4Dp3L4yJ1EunkradtRRZ0Nn4KY4O6aHr0kZk/a7DLTdz6bFIn667HJuIoij3RANSfBXi+eoJVy1zDTde6CE8enSRQddgwpgVPQ==)
 
-## Update Summary
+## I. Update Summary
 
 > Only the summaries of the **most recent three updates** will be recorded here. The complete history of all update summaries can be viewed [here](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).
 
@@ -24,15 +24,29 @@
   - [**Optimization**] The dataset has been optimized for saving in **CSV** format, offering better readability
   - [**New/Optimization**] More and better **visualization tools**, including simulation processes reproduced in video format, facilitate an intuitive understanding of the simulation process
 
+## II. Contributing
+
+Any contributions you make are greatly appreciated. Please note the following:
+
+1. Please note that the **main** branch is protected, and we recommend that you submit pull request to the **dev-open** branch. 
+2. All scripts under the `examples/` directory have corresponding outputs, and these records also serve as a proof of code execution. Please ensure that your pull request does not change the corresponding output records (or provide reasonable explanations).
+
+### Join and build RayCloudSim together
+
 <div style="text-align: center;">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="700" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="500" />
   </picture>
 </div>
 
-## I. Introduction
+---
+<a href="https://github.com/tutur90">
+  <img src="https://avatars.githubusercontent.com/u/124059682?v=4" alt="tutur90" width="80" />
+</a>
+
+## III. Introduction
 
 RayCloudSim is a lightweight simulator written in Python for analytical modeling and simulation of Cloud/Fog/Edge Computing infrastructures and services. The original intention for the development of RayCloudSim was for research related to task offloading, and it now supports a more diverse range of research topics.
 
@@ -49,7 +63,7 @@ RayCloudSim can be used for the following research topics:
 - Research on deployment strategies for specific devices, such as parameter servers in federated learning
 - ...
 
-## II. Requirements & Installation
+## IV. Requirements & Installation
 
 Main Dependent Modules:
 
@@ -73,8 +87,8 @@ conda activate raycloudsim
 pip install -r requirements.txt
 ```
 
-## III. Set Sail
-### 3.1 Hello World
+## V. Set Sail
+### 1. Hello World
 
 ```python
 # Create the Env
@@ -122,9 +136,9 @@ Averaged: 0.036
 [20.00]: Simulation completed!
 ```
 
-### 3.2 Tutorials
+### 2. Tutorials
 
-**3.2.1** The following figure presents the framework of RayCloudSim, which consists of two main components：`Env` and `Task`: 
+**(1).** The following figure presents the framework of RayCloudSim, which consists of two main components：`Env` and `Task`: 
 
 [comment]: <> (![The framework of RayCloudSim]&#40;docs/framework.jpg&#41;)
 
@@ -132,15 +146,15 @@ Averaged: 0.036
   <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/raycloudsim.png" alt="The framework of RayCloudSim" width="600"/>
 </div>
 
-**3.2.2** A Simple Introduction to System Modeling: [docs/RayCloudSim.md](docs/RayCloudSim.md)
+**(2).** A Simple Introduction to System Modeling: [docs/RayCloudSim.md](docs/RayCloudSim.md)
 
-**3.2.3** The following scripts can be used as progressive tutorials.
+**(3).** The following scripts can be used as progressive tutorials.
 
 - [examples/*](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples)
 
 Note that learning how to use [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) would be very helpful.
 
-**3.2.4** RayCloudSim supports multiple visualization features: static visualization of system topology, dynamic visualization of the simulation process, etc.
+**(4).** RayCloudSim supports multiple visualization features: static visualization of system topology, dynamic visualization of the simulation process, etc.
 
 - static visualization of system topology
 
@@ -164,20 +178,7 @@ The complete video:
 
  - [Baidu Netdisk (Access code: xa1r)](https://pan.baidu.com/s/16X1Mdn-wvMu_o4GpUFtRDw?pwd=xa1r)
 
-## IV. Contributing
-
-Any contributions you make are greatly appreciated. Please note the following:
-
-1. Please note that the **main** branch is protected, and we recommend that you submit pull request to the **dev-open** branch. 
-2. All scripts under the `examples/` directory have corresponding outputs, and these records also serve as a proof of code execution. Please ensure that your pull request does not change the corresponding output records (or provide reasonable explanations).
-
-### Join and build RayCloudSim together
-
-<a href="https://github.com/tutur90">
-  <img src="https://avatars.githubusercontent.com/u/124059682?v=4" alt="tutur90" width="80" />
-</a>
-
-## V. Citation
+## VI. Citation
 
 To cite this repository, you can use the following BibTeX entry:
 
