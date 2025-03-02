@@ -3,86 +3,89 @@ import networkx as nx
 import warnings
 
 from collections import deque, namedtuple
-from typing import Optional, Iterator, List
+from typing import Optional, Iterator, List, Dict
 
 __all__ = ["Location", "Data", "DataFlow", "Buffer", "Node", "Link", "Infrastructure"]
 
-
+# Named tuples for buffer and CPU status
 BufferStatus = namedtuple("BufferStatus", "free_size, max_size")
 CPUStatus = namedtuple("CPUStatus", "free_cpu_freq, max_cpu_freq")
 
 
 class Location:
-    """2d meta location information.
+    """2D location information for nodes.
 
     Attributes:
-        x: pos in the x axis.
-        y: pos in the y axis.
+        x (float): The x-coordinate.
+        y (float): The y-coordinate.
     """
 
     def __init__(self, x: float, y: float):
+        """Initialize Location object with x and y coordinates."""
         self.x = x
         self.y = y
 
     def __repr__(self):
+        """Return a string representation of the location."""
         return f"({self.x}, {self.y})"
 
     def __eq__(self, another):
+        """Check equality with another Location object."""
         return self.x == another.x and self.y == another.y
 
     def __hash__(self):
+        """Return the hash value for the location."""
         return hash((self.x, self.y))
 
     def loc(self):
+        """Return the (x, y) coordinates."""
         return self.x, self.y
 
 
 class Data(object):
-    """Data through network links.
+    """Represents data transferred through network links.
 
     Attributes:
-        data_size: size of the data in bits.
+        data_size (float): Size of the data in bits.
     """
 
     def __init__(self, data_size: float):
+        """Initialize Data object with a specified data size."""
         self.data_size = data_size
 
     def __repr__(self):
+        """Return a string representation of the data."""
         return f"[{self.__class__.__name__}] ({self.data_size})"
 
 
 class DataFlow(object):
-    """Data flow through network links.
+    """Represents a data flow through network links.
 
     Attributes:
-        bit_rate: bit rate of the data flow in bps.
-        links: all links involved in the path.
+        bit_rate (float): The bit rate of the data flow in bps.
+        links (Optional[List[Link]]): The list of links involved in the data flow path.
     """
 
     def __init__(self, bit_rate: float):
+        """Initialize DataFlow with a specified bit rate."""
         self.bit_rate = bit_rate
         self.links: Optional[List["Link"]] = None
 
     def __repr__(self):
+        """Return a string representation of the data flow."""
         return f"[{self.__class__.__name__}] ({self.bit_rate})"
 
     def allocate(self, links: List["Link"]):
-        """Allocate the dataflow.
-
-        Place the data flow on a path of links and allocate bandwidth.
-        """
+        """Allocate the data flow to a list of links."""
         if self.links is not None:
-            raise ValueError(f"Cannot place {self} on {links}: It was "
-                             f"already placed on path {self.links}.")
+            raise ValueError(f"Cannot place {self} on {links}: It is already placed on path {self.links}.")
+
         self.links = links
         for link in self.links:
             link.add_data_flow(self)
 
     def deallocate(self):
-        """Deallocate the dataflow.
-
-        Remove the data flow from the infrastructure and deallocate bandwidth.
-        """
+        """Deallocate the data flow from the infrastructure."""
         if self.links is None:
             raise ValueError(f"{self} is not placed on any links.")
         for link in self.links:
@@ -91,21 +94,22 @@ class DataFlow(object):
 
 
 class Buffer(object):
-    """FIFO buffer.
-    
+    """FIFO buffer for task management.
+
     Attributes:
-        max_size: maximum buffer size.
-        free_size: current available buffer size.
+        max_size (int): The maximum buffer size.
+        free_size (int): The current available buffer size.
     """
 
     def __init__(self, max_size):
-        self.buffer = deque()  # FIFO
-        self.task_ids = []  # buffered task ids
+        """Initialize a FIFO buffer with a specified maximum size."""
+        self.buffer = deque()  # FIFO queue
+        self.task_ids = []  # List of task IDs
         self.max_size = max_size
         self.free_size = max_size
 
     def append(self, task: "Task"):
-        """Append a task to the buffer."""
+        """Append a task to the buffer if enough space is available."""
         if task.task_size <= self.free_size:
             self.free_size -= task.task_size
             self.buffer.append(task)
@@ -116,123 +120,116 @@ class Buffer(object):
                  f"**InsufficientBufferError: Task {{{task.task_id}}}** "
                  f"insufficient buffer in Node {{{task.dst.name}}}", task.task_id))
 
-    def pop(self):
+    def pop(self) -> Optional["Task"]:
         """Pop the first task from the buffer."""
-        if len(self.buffer) > 0:
+        if self.buffer:
             task = self.buffer.popleft()
             self.task_ids.remove(task.task_id)
             self.free_size += task.task_size
             return task
-        else:
-            return None
+        return None
     
-    def utilization(self):
-        """The current status."""
+    def utilization(self) -> BufferStatus:
+        """Return the current buffer utilization."""
         return BufferStatus(self.free_size, self.max_size)
     
     def reset(self):
-        """Reset the buffer."""
+        """Reset the buffer to its initial state."""
         self.buffer.clear()
-        del self.task_ids[:]
+        self.task_ids.clear()
         self.free_size = self.max_size
 
 
 class Node(object):
-    """A computing node in the infrastructure graph.
+    """
+    A computing node in the infrastructure graph.
 
-    This can represent any kind of node, e.g.
-      - simple sensors without processing capabilities
-      - resource constrained nodes fog computing nodes
-      - mobile nodes like cars or smartphones
-      - entire data centers with virtually unlimited resources
+    This class can represent different types of nodes, such as:
+      - Simple sensors without processing capabilities
+      - Resource-constrained fog computing nodes
+      - Mobile nodes like cars or smartphones
+      - Entire data centers with virtually unlimited resources
 
     Attributes:
-        node_id: node id, unique.
-        name: node name.
-        max_cpu_freq: maximum cpu frequency.
-        free_cpu_freq: current available cpu frequency.
+        node_id: The unique node identifier.
+        name: The name of the node.
+        max_cpu_freq: The maximum CPU frequency of the node.
+        free_cpu_freq: The current available CPU frequency.
             Note: At present, free_cpu_freq can be '0' or 'max_cpu_freq', i.e., one task at a time.
         task_buffer: FIFO buffer for queued tasks.
             Note: The buffer is not used for executing tasks; 
             tasks can be executed even when the buffer is zero.
-        location: geographical location.
-        idle_energy_coef: energy consumption coefficient during idle state.
-        exe_energy_coef: energy consumption coefficient during working/computing state.
-        tasks: tasks placed in the node.
-        energy_consumption: energy consumption since the simulation begins;
-            wired nodes do not need to worry about the current device battery level.
-        flag_only_wireless: only wireless transmission is allowed.
+        location: The geographical location of the node.
+        idle_energy_coef: Energy consumption coefficient during idle state.
+        exe_energy_coef: Energy consumption coefficient during working/computing state.
+        active_tasks: List of active tasks on the node.
+        energy_consumption: The total energy consumption..
+        flag_only_wireless: Whether the node only supports wireless transmission.
     """
 
-    def __init__(self, node_id: int, name: str, 
-                 max_cpu_freq: float, max_buffer_size: Optional[int] = 0, 
-                 location: Optional[Location] = None,
+    def __init__(self, node_id: int, name: str, max_cpu_freq: float, 
+                 max_buffer_size: Optional[int] = 0, location: Optional[Location] = None,
                  idle_energy_coef: Optional[float] = 0, exe_energy_coef: Optional[float] = 0):
+        # Initialize node attributes
         self.node_id = node_id
         self.name = name
-
         self.max_cpu_freq = max_cpu_freq
         self.free_cpu_freq = max_cpu_freq
 
+        # Buffer for tasks
         self.task_buffer = Buffer(max_buffer_size)
 
+        # Location and energy coefficients
         self.location = location
-
         self.energy_consumption = 0
         self.idle_energy_coef = idle_energy_coef
         self.exe_energy_coef = exe_energy_coef
         
+        # Track active tasks and task IDs
         self.active_tasks: List["Task"] = []
         self.active_task_ids = []
 
+        # Wireless flag and other system variables
         self.flag_only_wireless = False
-        
         self.total_cpu_freq = 0
         self.clock = 0
 
     def __repr__(self):
+        """Returns a string representation of the node."""
         return f"{self.name} ({self.free_cpu_freq}/{self.max_cpu_freq})"
 
     def buffer_free_size(self, val=None):
-        """Obtain or modify buffer's free size.
-        
-        Args:
-            val: can be positive or negative, i.e., +/-.
-        """
+        """Obtain or modify the buffer's free size."""
         if val is None:
             return self.task_buffer.free_size
         else:
             self.task_buffer.free_size += val
     
     def append_task(self, task: "Task"):
+        """Append a task to the task buffer."""
         self.task_buffer.append(task)
 
     def pop_task(self):
+        """Pop a task from the task buffer."""
         return self.task_buffer.pop()
 
     def status(self):
-        """User-defined Node status."""
-        warnings.warn(
-            "deprecated, define it in :class: Scenario instead",
-            DeprecationWarning)
-        return
+        """Deprecated: Use the :class: Scenario for defining node status."""
+        warnings.warn("deprecated, define it in :class: Scenario instead", DeprecationWarning)
 
-    def distance(self, another, type='haversine') -> float:
-        """Calculate the distance to another node. type can be 'haversine' or 'euclidean'."""
+    def distance(self, another, type='euclidean') -> float:
+        """Calculate the distance between this node and another node."""
         if type == 'haversine':
             return self.haversine(self.location.x, self.location.y, 
                                   another.location.x, another.location.y)
         elif type == 'euclidean':
-            
-            return math.sqrt(
-            (self.location.x - another.location.x) ** 2 +
-            (self.location.y - another.location.y) ** 2)
+            return self.euclidean_distance(another)
         else:
             raise ValueError(f"Unsupported distance type: {type}")
         
-    def haversine(self, lat1, lon1, lat2, lon2):
+    def haversine(self, lat1, lon1, lat2, lon2) -> float:
         """
-        Calculate the great-circle distance between two points on Earth (specified in decimal degrees).
+        Calculate the Haversine distance (great-circle distance) between two points on Earth.
 
         Parameters:
             lat1, lon1: Latitude and longitude of point 1 (in decimal degrees)
@@ -257,20 +254,23 @@ class Node(object):
         distance = R * c
         return distance
 
-    def utilization(self) -> float:
-        """The current status.
-        
-        Returns:
-            CPUStatus, BufferStatus
-        """
+    def euclidean_distance(self, another) -> float:
+        """Calculate the Euclidean distance between this node and another node."""
+        return math.sqrt(
+            (self.location.x - another.location.x) ** 2 +
+            (self.location.y - another.location.y) ** 2
+        )
+
+    def utilization(self):
+        """Returns CPU and buffer utilization."""
         return CPUStatus(self.free_cpu_freq, self.max_cpu_freq), self.task_buffer.utilization()
     
     def quantify_cpu_freq(self):
-        """The ratio of the used cpu frequencies and the maximum cpu frequencies."""
+        """Returns the ratio of used CPU frequency to the maximum CPU frequency."""
         return (self.max_cpu_freq - self.free_cpu_freq) / self.max_cpu_freq
 
     def quantify_buffer_size(self):
-        """The ratio of the used buffer size and the maximum buffer size."""
+        """Returns the ratio of used buffer size to the maximum buffer size."""
         return (self.task_buffer.max_size - self.task_buffer.free_size) / self.task_buffer.max_size
 
     def add_task(self, task: "Task"):
@@ -286,77 +286,73 @@ class Node(object):
         self.active_task_ids.remove(task.task_id)
 
     def _reserve_resource(self, task: "Task"):
-        if self.free_cpu_freq > 0:  # trying to allocating CPU frequency
+        """Reserve CPU resources for the task."""
+        if self.free_cpu_freq > 0:
             task.cpu_freq = self.free_cpu_freq
             self.free_cpu_freq = 0
         else:
             raise ValueError(f"Cannot reserve enough resources on compute node {self}.")
 
     def _release_resource(self, task: "Task"):
-        if self.free_cpu_freq == 0:  # trying to releasing CPU frequency
+        """Release CPU resources from the task."""
+        if self.free_cpu_freq == 0:
             self.free_cpu_freq = self.max_cpu_freq
         else:
             raise ValueError(f"Cannot release enough resources on compute node {self}.")
     
     def reset(self):
+        """Reset the node to its initial state."""
         self.free_cpu_freq = self.max_cpu_freq
         self.task_buffer.reset()
         self.energy_consumption = 0
-        self.active_tasks = []
-        self.active_task_ids = []
+        self.active_tasks.clear()
+        self.active_task_ids.clear()
 
 
 class Link(object):
     """An unidirectional network link in the infrastructure graph.
 
     Attributes:
-        src: source node.
-        dst: destination node.
-        max_bandwidth: maximum bandwidth in bps.
-        free_bandwidth: current available bandwidth in bps.
-        dis: the distance between its source node and its destination node.
-        base_latency: base latency of the link which can be used to implement 
-            routing policies.
-        data_flows: data flows allocated in this link.
+        src: Source node of the link.
+        dst: Destination node of the link.
+        max_bandwidth: Maximum bandwidth in bps.
+        free_bandwidth: Current available bandwidth in bps.
+        dis: Distance between the source node and the destination node.
+        base_latency: Base latency of the link, useful for routing policies.
+        data_flows: List of data flows allocated on this link.
     """
 
-    def __init__(self, src: Node, dst: Node, max_bandwidth: float,
-                 base_latency: Optional[float] = 0):
-
+    def __init__(self, src: Node, dst: Node, max_bandwidth: float, base_latency: Optional[float] = 0):
+        """Initializes a network link with source and destination nodes."""
+        # Check if either node is wireless, which is not allowed for links.
         if src.flag_only_wireless or dst.flag_only_wireless:
-            raise UserWarning(
-                "Attempting to create link that links wireless node, which "
-                "is not permitted.")
+            raise UserWarning("Attempting to create a link between wireless nodes is not permitted.")
 
         self.src = src
         self.dst = dst
         self.max_bandwidth = max_bandwidth
         self.base_latency = base_latency
         try:
-            self.dis = self.distance()
+            self.dis = self._calculate_distance()
         except AttributeError:
             self.dis = 1
-
         self.free_bandwidth = max_bandwidth
         self.data_flows: List["DataFlow"] = []
 
     def __repr__(self):
-        return f"{self.src.name} --> {self.dst.name} " \
-               f"({self.free_bandwidth}/{self.max_bandwidth}) ({self.base_latency})"
+        """Returns a string representation of the link."""
+        return f"{self.src.name} --> {self.dst.name} ({self.free_bandwidth}/{self.max_bandwidth}) ({self.base_latency})"
 
     def status(self):
-        """User-defined Link status."""
-        warnings.warn(
-            "deprecated, define it in :class: Scenario instead",
-            DeprecationWarning)
-        return
+        """User-defined Link status (deprecated)."""
+        warnings.warn("Deprecated. Define it in :class: Scenario instead.", DeprecationWarning)
 
-    def distance(self) -> float:
-        """Calculate the Euclidean distance between two nodes
-        linked by this link."""
+    def _calculate_distance(self) -> float:
+        """Calculate and return the Euclidean distance between the source and destination nodes."""
         return math.sqrt(
             (self.src.location.x - self.dst.location.x) ** 2 +
-            (self.src.location.y - self.dst.location.y) ** 2)
+            (self.src.location.y - self.dst.location.y) ** 2
+        )
 
     def add_data_flow(self, data_flow: DataFlow):
         """Add a data flow to the link and reserve bandwidth."""
@@ -368,52 +364,59 @@ class Link(object):
         self._release_bandwidth(data_flow.bit_rate)
         self.data_flows.remove(data_flow)
 
-    def _reserve_bandwidth(self, bandwidth):
+    def _reserve_bandwidth(self, bandwidth: float):
+        """Reserves bandwidth for a data flow."""
         if self.free_bandwidth < bandwidth:
-            raise ValueError(f"Cannot reserve {bandwidth} bandwidth on "
-                             f"network link {self}.")
+            raise ValueError(f"Cannot reserve {bandwidth} bandwidth on link {self}. Not enough free bandwidth.")
         self.free_bandwidth -= bandwidth
-        
 
-    def _release_bandwidth(self, bandwidth):
+    def _release_bandwidth(self, bandwidth: float):
+        """Releases bandwidth after removing a data flow."""
         if self.free_bandwidth + bandwidth > self.max_bandwidth:
-            raise ValueError(f"Cannot release {bandwidth} bandwidth on "
-                             f"network link {self}.")
+            raise ValueError(f"Cannot release {bandwidth} bandwidth on link {self}. Exceeds max bandwidth.")
         self.free_bandwidth += bandwidth
     
-    def quantify_bandwidth(self):
-        """The ratio of the used bandwidth and the maximum bandwidth."""
+    def quantify_bandwidth(self) -> float:
+        """Returns the ratio of used bandwidth to the maximum bandwidth."""
         return (self.max_bandwidth - self.free_bandwidth) / self.max_bandwidth
 
     def reset(self):
+        """Resets the link's bandwidth to its maximum and clears the data flows."""
         self.free_bandwidth = self.max_bandwidth
-        self.data_flows = []
+        self.data_flows.clear()
 
 
 class Infrastructure(object):
+    """Class representing the infrastructure network with nodes and links.
+
+    This class allows you to manage the infrastructure graph by adding/removing
+    nodes and links, as well as retrieving paths, nodes, and links with various
+    attributes.
+    """
 
     def __init__(self):
+        """Initializes the infrastructure with an empty directed graph."""
         self.graph = nx.MultiDiGraph()
 
     def add_node(self, node: Node):
-        """Add a node to the infrastructure."""
+        """Add a node to the infrastructure.
+
+        If the node does not exist, it will be added to the graph with its position
+        if available.
+        """
         if node.name not in self.graph:
+            node_data = {'data': node}
             if node.location:
-                self.graph.add_node(node.name, data=node, pos=list(node.location.loc()))
-            else:
-                self.graph.add_node(node.name, data=node)
+                node_data['pos'] = list(node.location.loc())
+            self.graph.add_node(node.name, **node_data)
 
     def remove_node(self, name: str):
-        """Remove a node from the infrastructure by the node name.
-
-        Removes the node n and all adjacent edges. """
+        """Remove a node and all its adjacent edges from the infrastructure by node name."""
         if name in self.graph:
             self.graph.remove_node(name)
 
     def add_link(self, link: Link, key=None):
-        """Add a link to the infrastructure.
-
-        Missing nodes will be added automatically.
+        """Add a link between two nodes, automatically adding nodes if missing.
 
         Args:
             link:
@@ -428,8 +431,7 @@ class Infrastructure(object):
                             dis=link.dis, latency=link.base_latency)
 
     def remove_link(self, src_name: str, dst_name: str, key=None):
-        """Remove a link from the infrastructure by
-           src node name and dst node name.
+        """Remove a specific link between two nodes identified by their names.
 
         Users should ensure that the link exists,
         otherwise raise the networkx.exception.NetworkXError.
@@ -443,98 +445,88 @@ class Infrastructure(object):
         self.graph.remove_edge(src_name, dst_name, key=key)
 
     def get_node(self, name: str) -> Node:
-        """Return a specific node by node name."""
+        """Retrieve a specific node by its name."""
         return self.graph.nodes[name]["data"]
 
     def get_link(self, src_name: str, dst_name: str, key=0) -> Link:
-        """Return a specific link by src node name and dst node name."""
+        """Retrieve a specific link by the source and destination node names."""
         return self.graph.edges[src_name, dst_name, key]["data"]
 
-    def get_nodes(self):
-        """Return all nodes in the infrastructure."""
+    def get_nodes(self) -> Dict[str, Node]:
+        """Retrieve all nodes in the infrastructure as a dictionary of node names to nodes."""
         # # v1: return as a list
         # nodes: Iterator[Node] = (v for _, v in self.graph.nodes.data("data"))
         # return list(nodes)
         # --------------------
         # v2: return as a dict
-        node_data = dict(nx.get_node_attributes(self.graph, 'data'))
-        return node_data
+        return dict(nx.get_node_attributes(self.graph, 'data'))
 
-    def get_links(self):
-        """Return all links in the infrastructure."""
+    def get_links(self) -> Dict[str, Link]:
+        """Retrieve all links in the infrastructure as a dictionary of edge keys to links."""
         # # v1: return as a list
         # links: Iterator[Link] = (v for _, _, v in self.graph.edges.data("data"))
         # return list(links)
         # --------------------
         # v2: return as a dict
-        edge_data = nx.get_edge_attributes(self.graph, 'data')
-        return edge_data
+        return nx.get_edge_attributes(self.graph, 'data')
 
     def get_shortest_path(self, src_name: str, dst_name: str, weight=None):
-        """The shortest path between two nodes.
+        """Retrieve the shortest path between two nodes based on the provided weight."""
+        return nx.shortest_path(self.graph, src_name, dst_name, weight=weight)
 
-        Get the shortest path (with given weight) between two nodes.
-        """
-        shortest_path = nx.shortest_path(self.graph, src_name, dst_name,
-                                         weight=weight)
-        return shortest_path
-
-    def get_shortest_links(self, src_name: str, dst_name: str, weight=None):
-        """The shortest links between two nodes.
-
-        Collect the shortest links (with given weight) between two nodes.
-        """
+    def get_shortest_links(self, src_name: str, dst_name: str, weight: Optional[str] = None):
+        """Retrieve the shortest links between two nodes, considering specific routing rules."""
         src, dst = self.get_node(src_name), self.get_node(dst_name)
 
-        shortest_links = []
         if src.flag_only_wireless or dst.flag_only_wireless:
-            if src.flag_only_wireless and src.default_dst_node and \
-                    dst.flag_only_wireless and dst.default_dst_node:
-                shortest_path = nx.shortest_path(self.graph,
-                                                 src.default_dst_node.name,
-                                                 dst.default_dst_node.name,
-                                                 weight=weight)
-                shortest_links.append((src_name, src.default_dst_node.name))
-                shortest_links += [self.graph.edges[a, b, 0]["data"]
-                                   for a, b in nx.utils.pairwise(shortest_path)]
-                shortest_links.append((dst.default_dst_node.name, dst_name))
-            elif src.flag_only_wireless and src.default_dst_node and \
-                not dst.flag_only_wireless:
-                shortest_path = nx.shortest_path(self.graph,
-                                                 src.default_dst_node.name,
-                                                 dst_name,
-                                                 weight=weight)
-                shortest_links.append((src_name, src.default_dst_node.name))
-                shortest_links += [self.graph.edges[a, b, 0]["data"]
-                                   for a, b in nx.utils.pairwise(shortest_path)]
-            elif not src.flag_only_wireless and \
-                    dst.flag_only_wireless and dst.default_dst_node:
-                shortest_path = nx.shortest_path(self.graph,
-                                                 src_name,
-                                                 dst.default_dst_node.name,
-                                                 weight=weight)
-                shortest_links += [self.graph.edges[a, b, 0]["data"]
-                                   for a, b in nx.utils.pairwise(shortest_path)]
-                shortest_links.append((dst.default_dst_node.name, dst_name))
-            else:
-                raise EnvironmentError(
-                    ('IsolatedWirelessNode',
-                     f"{src_name} or {dst_name} has no accessible wired node.")
-                )
-
-            return shortest_links
+            return self._get_shortest_wireless_links(src, dst, weight)
         else:
-            shortest_path = nx.shortest_path(self.graph, src_name, dst_name,
-                                             weight=weight)
-            shortest_links = [self.graph.edges[a, b, 0]["data"]
-                              for a, b in nx.utils.pairwise(shortest_path)]
-            return shortest_links
+            return self._get_standard_shortest_links(src_name, dst_name, weight)
 
-    def get_longest_shortest_path(self):
-        """The longest shortest path among all nodes."""
+    def _get_shortest_wireless_links(self, src: Node, dst: Node, weight: Optional[str] = None):
+        """Handle the case where one or both nodes are wireless."""
+        shortest_links = []
+
+        if src.flag_only_wireless and src.default_dst_node and \
+           dst.flag_only_wireless and dst.default_dst_node:
+            shortest_path = nx.shortest_path(self.graph,
+                                             src.default_dst_node.name,
+                                             dst.default_dst_node.name,
+                                             weight=weight)
+            shortest_links.append((src.name, src.default_dst_node.name))
+            shortest_links += [self.graph.edges[a, b, 0]["data"]
+                               for a, b in nx.utils.pairwise(shortest_path)]
+            shortest_links.append((dst.default_dst_node.name, dst.name))
+        elif src.flag_only_wireless and src.default_dst_node:
+            shortest_path = nx.shortest_path(self.graph,
+                                             src.default_dst_node.name,
+                                             dst.name,
+                                             weight=weight)
+            shortest_links.append((src.name, src.default_dst_node.name))
+            shortest_links += [self.graph.edges[a, b, 0]["data"]
+                               for a, b in nx.utils.pairwise(shortest_path)]
+        elif dst.flag_only_wireless and dst.default_dst_node:
+            shortest_path = nx.shortest_path(self.graph,
+                                             src.name,
+                                             dst.default_dst_node.name,
+                                             weight=weight)
+            shortest_links += [self.graph.edges[a, b, 0]["data"]
+                               for a, b in nx.utils.pairwise(shortest_path)]
+            shortest_links.append((dst.default_dst_node.name, dst.name))
+        else:
+            raise EnvironmentError(
+                ('IsolatedWirelessNode', f"{src.name} or {dst.name} has no accessible wired node.")
+            )
+
+        return shortest_links
+
+    def _get_standard_shortest_links(self, src_name: str, dst_name: str, weight: Optional[str] = None):
+        """Retrieve the standard shortest links between two nodes."""
+        shortest_path = nx.shortest_path(self.graph, src_name, dst_name, weight=weight)
+        return [self.graph.edges[a, b, 0]["data"]
+                for a, b in nx.utils.pairwise(shortest_path)]
+
+    def get_longest_shortest_path(self) -> int:
+        """Return the longest shortest path length among all pairs of nodes in the infrastructure."""
         all_shortest_paths = dict(nx.all_pairs_shortest_path(self.graph))
-        res = 0
-        for src, val in all_shortest_paths.items():
-            for dst, p in val.items():
-                res = max(res, len(p) - 1)
-        return res
+        return max(len(p) - 1 for val in all_shortest_paths.values() for p in val.values())

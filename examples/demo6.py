@@ -1,7 +1,7 @@
-"""Evaluation
-
-An example of evaluating the performance of offloading strategies using unified benchmarks.
 """
+This script demonstrates evaluation of offloading strategies.
+"""
+
 import os
 import sys
 
@@ -13,7 +13,6 @@ sys.path.insert(0, parent_dir)
 from core.env import Env
 from core.task import Task
 from core.vis import *
-
 from eval.benchmarks.caseA.small.scenario import Scenario  # testbed
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
 from policies.demo.demo_random import DemoRandom  # policy
@@ -22,12 +21,13 @@ from policies.demo.demo_random import DemoRandom  # policy
 # Global statistics
 net_cong_error = []
 insufficient_buffer_error = []
-timeout_error = []
 
 
 def error_handler(error: Exception):
-    """Customized error handler."""
+    """Customized error handler for different types of errors."""
+
     message = error.args[0]
+
     if message[0] == 'NetCongestionError':
         # Error: network congestion
         # print(message[1])
@@ -38,33 +38,32 @@ def error_handler(error: Exception):
         # print(message[1])
         # ----- handle this error here -----
         insufficient_buffer_error.append(message[2])
-    elif message[0] == 'TimeoutError':
-        # Error: the task is not executed before the deadline (ddl).
-        # print(message[1])
-        # ----- handle this error here -----
-        timeout_error.append(message[2])
     else:
         raise NotImplementedError(error)
 
 
 def main():
-    # Init the Env
-    scenario=Scenario(config_file="eval/benchmarks/caseA/small/config.json")
-    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=False)
-    
-    # # Visualization: the topology
+    # Create the environment with the specified scenario and configuration files.
+    scenario = Scenario(config_file="eval/benchmarks/caseA/small/config.json")
+    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=True)
+
+
+    # Visualization: Display the topology of the environment.
     # vis_graph(env,
     #           config_file="core/vis/configs/vis_config_base.json", 
     #           save_as="examples/vis/caseA_small.png")
 
-    # Init the policy
+    # Init the policy.
     policy = DemoRandom()
 
-    # Begin Simulation
+    # Begin the simulation.
     until = 1
+    launched_task_cnt = 0
+    timeout_task_cnt = 0
     for task_info in env.scenario.simulated_tasks:
-        # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
-        #           'TransBitRate', 'DDL', 'SrcName']  # field names
+        # Task properties:
+        # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
+        #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
         generated_time = task_info[1]
         task = Task(task_id=task_info[2],
                     task_size=task_info[3],
@@ -75,18 +74,21 @@ def main():
                     task_name=task_info[0])
 
         while True:
-            # Catch the returned info of completed tasks
+            # Catch completed task information.
             while env.done_task_info:
                 item = env.done_task_info.pop(0)
-                # print(f"[{item[0]}]: {item[1:]}")
+                info = item[3]
+                if not info[1]['ddl_ok']:
+                    timeout_task_cnt += 1
 
             if env.now == generated_time:
                 dst_id = policy.act(env, task)  # offloading decision
                 dst_name = env.scenario.node_id2name[dst_id]
                 env.process(task=task, dst_name=dst_name)
+                launched_task_cnt += 1
                 break
 
-            # Execute the simulation with error handler
+            # Execute the simulation with error handler.
             try:
                 env.run(until=until)
             except Exception as e:
@@ -95,7 +97,7 @@ def main():
             until += 1
 
     # Continue the simulation until the last task successes/fails.
-    while env.process_task_cnt < len(env.scenario.simulated_tasks):
+    while env.task_count < launched_task_cnt:
         until += 1
         try:
             env.run(until=until)
@@ -110,8 +112,7 @@ def main():
     print("-----------------------------------------------")
     print(f"Analysis on failed tasks:\n\n"
           f"    NetCongestionError     : {len(net_cong_error)}\n"
-          f"    InsufficientBufferError: {len(insufficient_buffer_error)}\n"
-          f"    TimeoutError           : {len(timeout_error)}")
+          f"    InsufficientBufferError: {len(insufficient_buffer_error)}")
 
     m1 = SuccessRate()
     r1 = m1.eval(env.logger.task_info)
@@ -119,7 +120,9 @@ def main():
 
     print("-----------------------------------------------\n")
 
-    print("-----------------------------------------------")
+    print(f"There are {timeout_task_cnt} time-out tasks.")
+
+    print("\n-----------------------------------------------")
     m2 = AvgLatency()
     r2 = m2.eval(env.logger.task_info)
     print(f"The average latency per task: {r2:.4f}")
@@ -136,11 +139,11 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # ...
-# [1017.00]: Task {472} accomplished in Node {n12} with {36.00}s
-# [1065.00]: Task {492} accomplished in Node {n14} with {74.00}s
-# [1065.00]: **TimeoutError: Task {499}** timeout in Node {n14}
-# [1080.00]: Task {473} accomplished in Node {n10} with {125.00}s
-# [1151.00]: Task {484} accomplished in Node {n16} with {161.00}s
+# [1173.0]: Processing Task {475} in {n16}
+# [1235.0]: Task {475}: Accomplished in Node {n16} with execution time {62.0}s
+# [1235.0]: Task {485} re-actives in Node {n16}, waiting {269.4}s
+# [1235.0]: Processing Task {485} in {n16}
+# [1330.0]: Task {485}: Accomplished in Node {n16} with execution time {94.4}s
 
 # ===============================================
 # Evaluation:
@@ -149,16 +152,17 @@ if __name__ == '__main__':
 # -----------------------------------------------
 # Analysis on failed tasks:
 
-#     NetCongestionError     : 54
-#     InsufficientBufferError: 42
-#     TimeoutError           : 35
+#     NetCongestionError     : 51
+#     InsufficientBufferError: 50
 
-# The success rate of all tasks: 0.7380
+# The success rate of all tasks: 0.7980
 # -----------------------------------------------
 
+# There are 43 time-out tasks.
+
 # -----------------------------------------------
-# The average latency per task: 36.5274
-# The average energy consumption per node: 1.2607
+# The average latency per task: 54.8347
+# The average energy consumption per node: 1.2820
 # -----------------------------------------------
 
-# [1152.00]: Simulation completed!
+# [1331.0]: Simulation completed!

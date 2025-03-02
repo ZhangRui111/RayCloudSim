@@ -1,8 +1,7 @@
-"""Example
-
-Demo 4 is almost the same as Demo 3, except that it demonstrates how to
-simulate multiple epochs.
 """
+This script demonstrates how to simulate multiple epochs.
+"""
+
 import os
 import sys
 
@@ -16,21 +15,21 @@ import pandas as pd
 from core.env import Env
 from core.task import Task
 from core.vis import *
-
 from examples.scenarios.scenario_3 import Scenario
 
-# Global statistics
+# Global statistics for different error types
 dup_task_id_error = []
 net_no_path_error = []
 isolated_wireless_node_error = []
 net_cong_error = []
 insufficient_buffer_error = []
-timeout_error = []
 
 
 def error_handler(error: Exception):
-    """Customized error handler."""
+    """Customized error handler for different types of errors."""
+
     message = error.args[0]
+
     if message[0] == 'DuplicateTaskIdError':
         # Error: duplicate task id
         # print(message[1])
@@ -56,46 +55,39 @@ def error_handler(error: Exception):
         # print(message[1])
         # ----- handle this error here -----
         insufficient_buffer_error.append(message[2])
-    elif message[0] == 'TimeoutError':
-        # Error: the task is not executed before the deadline (ddl).
-        # print(message[1])
-        # ----- handle this error here -----
-        timeout_error.append(message[2])
     else:
         raise NotImplementedError(error)
 
 
 def main():
-    # Create the Env
-    scenario=Scenario(config_file="examples/scenarios/configs/config_3.json")
-    env = Env(scenario, config_file="core/configs/env_config_null.json")
+    # Create the environment with the specified scenario and configuration files.
+    scenario = Scenario(config_file="examples/scenarios/configs/config_3.json")
+    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=False  )
 
-    # # Visualization: the topology
-    # vis_graph(env,
-    #           config_file="core/vis/configs/vis_config_base.json", 
-    #           save_as="examples/vis/demo_3.png")
-
-    # Load simulated tasks
+    # Load simulated tasks from the CSV dataset.
     data = pd.read_csv("examples/dataset/demo3_dataset.csv")
     simulated_tasks = list(data.iloc[:].values)
     n_tasks = len(simulated_tasks)
 
-    # Begin Simulation
+    # Begin the simulation.
     until = 1
-    for _ in range(3):  # multiple epoch
+    for i_epoch in range(3):  # multiple epoch
 
         env.reset()
         base_until = until
+        launched_task_cnt = 0
+        timeout_task_cnt = 0
+
         del dup_task_id_error[:]
         del net_no_path_error[:]
         del isolated_wireless_node_error[:]
         del net_cong_error[:]
         del insufficient_buffer_error[:]
-        del timeout_error[:]
 
         for task_info in simulated_tasks:
-            # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
-            #           'TransBitRate', 'DDL', 'SrcName', 'DstName']
+            # Task properties:
+            # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
+            #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
             generated_time, dst_name = task_info[1], task_info[8]
             task = Task(task_id=task_info[2],
                         task_size=task_info[3],
@@ -106,16 +98,19 @@ def main():
                         task_name=task_info[0])
 
             while True:
-                # Catch the returned info of completed tasks
+                # Catch completed task information.
                 while env.done_task_info:
                     item = env.done_task_info.pop(0)
-                    # print(f"[{item[0]}]: {item[1:]}")
+                    info = item[3]
+                    if not info[1]['ddl_ok']:
+                        timeout_task_cnt += 1
 
                 if env.now - base_until == generated_time:
                     env.process(task=task, dst_name=dst_name)
+                    launched_task_cnt += 1
                     break
 
-                # Execute the simulation with error handler
+                # Execute the simulation with error handler.
                 try:
                     env.run(until=until)
                 except Exception as e:
@@ -124,28 +119,21 @@ def main():
                 until += 1
 
         # Continue the simulation until the last task successes/fails.
-        while env.process_task_cnt < len(simulated_tasks):
+        while env.task_count < launched_task_cnt:
             until += 1
             try:
                 env.run(until=until)
             except Exception as e:
                 error_handler(e)
 
-        print("\n-----------------------------------------------")
+        print(f"\nEpoch {i_epoch}:")
         print(f"Done simulation with {n_tasks} tasks!\n\n"
             f"DuplicateTaskIdError   : {len(dup_task_id_error)}\n"
             f"NetworkXNoPathError    : {len(net_no_path_error)}\n"
             f"IsolatedWirelessNode   : {len(isolated_wireless_node_error)}\n"
             f"NetCongestionError     : {len(net_cong_error)}\n"
-            f"InsufficientBufferError: {len(insufficient_buffer_error)}\n"
-            f"TimeoutError           : {len(timeout_error)}")
-        print("-----------------------------------------------\n")
-
-        print("\n-----------------------------------------------")
-        print("Energy consumption during simulation:\n")
-        for key in env.scenario.get_nodes().keys():
-            print(f"{key}: {env.node_energy(key):.3f}")
-        print(f"Averaged: {env.avg_node_energy():.3f}")
+            f"InsufficientBufferError: {len(insufficient_buffer_error)}")
+        print(f"There are {timeout_task_cnt} time-out tasks.")
         print("-----------------------------------------------\n")
 
     env.close()
@@ -156,39 +144,37 @@ if __name__ == '__main__':
 
 
 # # ==================== Simulation log ====================
-# ...
-# [3567.00]: Task {376} accomplished in Node {n8} with {110.00}s
-# [3567.00]: **TimeoutError: Task {392}** timeout in Node {n8}
-# [3567.00]: **TimeoutError: Task {397}** timeout in Node {n8}
-# [3567.00]: **TimeoutError: Task {398}** timeout in Node {n8}
-# [3576.00]: Task {396} accomplished in Node {n5} with {72.00}s
-
-# -----------------------------------------------
+# Epoch 0:
 # Done simulation with 400 tasks!
 
 # DuplicateTaskIdError   : 0
 # NetworkXNoPathError    : 0
 # IsolatedWirelessNode   : 0
 # NetCongestionError     : 6
-# InsufficientBufferError: 56
-# TimeoutError           : 26
+# InsufficientBufferError: 70
+# There are 56 time-out tasks.
 # -----------------------------------------------
 
 
-# -----------------------------------------------
-# Energy consumption during simulation:
+# Epoch 1:
+# Done simulation with 400 tasks!
 
-# n0: 4.315
-# n1: 0.463
-# n2: 1.596
-# n3: 0.383
-# n4: 3.059
-# n5: 0.539
-# n6: 4.146
-# n7: 1.945
-# n8: 0.031
-# n9: 1.302
-# Averaged: 1.778
+# DuplicateTaskIdError   : 0
+# NetworkXNoPathError    : 0
+# IsolatedWirelessNode   : 0
+# NetCongestionError     : 6
+# InsufficientBufferError: 70
+# There are 56 time-out tasks.
 # -----------------------------------------------
 
-# [3577.00]: Simulation completed!
+
+# Epoch 2:
+# Done simulation with 400 tasks!
+
+# DuplicateTaskIdError   : 0
+# NetworkXNoPathError    : 0
+# IsolatedWirelessNode   : 0
+# NetCongestionError     : 6
+# InsufficientBufferError: 70
+# There are 56 time-out tasks.
+# -----------------------------------------------

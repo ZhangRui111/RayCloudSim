@@ -1,6 +1,7 @@
-"""Example
+"""
+This script demonstrates visualization tools.
+"""
 
-Visualization tools."""
 import os
 import sys
 
@@ -14,7 +15,6 @@ import pandas as pd
 from core.env import Env
 from core.task import Task
 from core.vis import *
-
 from examples.scenarios.scenario_3 import Scenario
 
 
@@ -22,20 +22,19 @@ def error_handler(error: Exception):
     pass
 
 def main():
-    # Create the Env
-    scenario=Scenario(config_file="examples/scenarios/configs/config_3.json")
+    # Create the environment with the specified scenario and configuration files.
+    scenario = Scenario(config_file="examples/scenarios/configs/config_3.json")
     env = Env(scenario, config_file="core/configs/env_config.json")
 
-    # Load simulated tasks
+    # Load simulated tasks.
     data = pd.read_csv("examples/dataset/demo3_dataset.csv")
     simulated_tasks = list(data.iloc[:].values)
     n_tasks = len(simulated_tasks)
 
-    # Begin Simulation
+    # Begin the simulation.
     until = 1
+    launched_task_cnt = 0
     for task_info in simulated_tasks:
-        # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
-        #           'TransBitRate', 'DDL', 'SrcName', 'DstName']
         generated_time, dst_name = task_info[1], task_info[8]
         task = Task(task_id=task_info[2],
                     task_size=task_info[3],
@@ -46,16 +45,16 @@ def main():
                     task_name=task_info[0])
 
         while True:
-            # Catch the returned info of completed tasks
+            # Catch completed task information.
             while env.done_task_info:
                 item = env.done_task_info.pop(0)
-                # print(f"[{item[0]}]: {item[1:]}")
 
             if env.now == generated_time:
                 env.process(task=task, dst_name=dst_name)
+                launched_task_cnt += 1
                 break
 
-            # Execute the simulation with error handler
+            # Execute the simulation with error handler.
             try:
                 env.run(until=until)
             except Exception as e:
@@ -64,7 +63,7 @@ def main():
             until += 1
 
     # Continue the simulation until the last task successes/fails.
-    while env.process_task_cnt < len(simulated_tasks):
+    while env.task_count < launched_task_cnt:
         until += 1
         try:
             env.run(until=until)

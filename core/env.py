@@ -3,354 +3,366 @@ import os
 import simpy
 import networkx as nx
 
-from typing import Optional, Tuple
-
+from typing import Optional, Tuple, List
 from core.base_scenario import BaseScenario
 from core.infrastructure import Link, Node
 from core.task import Task
 
+# Public interfaces
 __all__ = ["EnvLogger", "Env"]
 
-
-# Flags
+# Task status flags
 FLAG_TASK_EXECUTION_DONE = 0
+ENERGY_UNIT_CONVERSION = 1000000
 
 
-def user_defined_info():
-    """This is where user can define more infos for completed tasks."""
-    return None
+def user_defined_info(task):
+    """ Define additional information for completed tasks, such as checking if the deadline is violated."""
+    total_time = task.wait_time + task.exe_time
+    return {'ddl_ok': total_time <= task.ddl}
 
 
 class EnvLogger:
-    def __init__(self, controller, is_open=True, dec_place=3):
+    """Logger for recording simulation events and key information."""
+
+    def __init__(self, controller, enable_logging: bool = True, decimal_places: int = 3):
         self.controller = controller
-        self.is_open = is_open  # is_open=False can speed up training
+        self.enable_logging = enable_logging  # Disable logging to speed up training
+        self.decimal_places = decimal_places
+        self.task_info: dict = {}  # Records task-related information
+        self.node_info: dict = {}  # Records node-related information
 
-        self.task_info = {}
-        self.node_info = {}
-        self.decimal_place = dec_place
+    def log(self, message):
+        """Log a message with a timestamp if logging is enabled."""
+        if self.enable_logging:
+            timestamp = f"{self.controller.now:.{self.decimal_places}f}"
+            print(f"[{timestamp}]: {message}")
 
-    def log(self, content):
-        if self.is_open:
-            print(f"[{self.controller.now:.{self.decimal_place}f}]: {content}")
-
-    def append(self, info_type, key, val):
-        """Record key information during the simulation.
+    def append(self, info_type: str, key: str, value: tuple) -> None:
+        """
+        Append key information to the logger.
 
         Args:
-            info_type: 'task' or 'node'
-            key: task id or node id
-            val: 
-                if info_type == 'task': (code: int, info: list)
-                    - 0 (success) || [*]
-                    - 1 (failure) || [detailed error info,]
-                if info_type == 'node':
-                    - energy consumption
+            info_type (str): Type of information ('task' or 'node').
+            key (str): Task ID or Node ID.
+            value (tuple): 
+                - For 'task': (status_code, info_list, (src_name, dst_name))
+                - For 'node': Energy consumption value.
         """
-        assert info_type in ['task', 'node']
-        if info_type == 'task':
-            self.task_info[key] = val
-        else:
-            self.node_info[key] = val
+        if info_type not in ['task', 'node']:
+            raise ValueError("info_type must be 'task' or 'node'")
+        target_dict = self.task_info if info_type == 'task' else self.node_info
+        target_dict[key] = value
 
-    def reset(self):
-        self.task_info = {}
-        self.node_info = {}
+    def reset(self) -> None:
+        """Reset the logger by clearing all recorded information."""
+        self.task_info.clear()
+        self.node_info.clear()
 
 
 class Env:
+    """Simulation environment."""
 
-    def __init__(self, scenario: BaseScenario, config_file, verbose=True, refresh_rate=1, dec_place=1):
-        # Load the config file
-        with open(config_file, 'r') as fr:
-            self.config = json.load(fr)
-        assert len(self.config['VisFrame']['TargetNodeList']) <= 10, \
-            "For visualization layout considerations, the default number of tracked nodes " \
-            "does not exceed ten, and users are permitted to modify the layout for extension."
+    def __init__(self, scenario: BaseScenario, config_file: str, verbose: bool = True, 
+                 decimal_places: int = 2):
+        # Load configuration file
+        with open(config_file, 'r') as file:
+            self.config = json.load(file)
+        self._validate_config()
             
-        self.refresh_rate = refresh_rate
-        self.decimal_place = dec_place
-        
+        # Initialize simulation parameters
+        self.refresh_rate = 1  # Typically, setting the refresh rate to 1 is OK.
+        self.decimal_places = decimal_places
         self.scenario = scenario
         self.controller = simpy.Environment()
-        self.logger = EnvLogger(self.controller, is_open=verbose, dec_place=self.decimal_place)
+        self.logger = EnvLogger(self.controller, enable_logging=verbose, decimal_places=decimal_places)
 
-        self.active_task_dict = {}  # store current active tasks
-        self.done_task_info = []  # catch infos of completed tasks
+        # Task and state management
+        self.active_tasks: dict = {}  # Current active tasks
+        self.done_task_info: list = []  # Information of completed tasks
         self.done_task_collector = simpy.Store(self.controller)
-        self.process_task_cnt = 0  # counter
+        self.task_count = 0  # Counter for processed tasks
 
         # self.processed_tasks = []  # for debug
 
+        # Reset environment state
         self.reset()
 
-        # Launch the monitor process
-        self.monitor_process = self.controller.process(
-            self.monitor_on_done_task_collector())
-        
-        # Launch all energy recorder processes
-        self.energy_recorders = {}
-        for _, node in self.scenario.get_nodes().items():
-            self.energy_recorders[node.node_id] = self.controller.process(self.node_clock(node))
+        # Start monitoring process
+        self.monitor_process = self.controller.process(self._monitor_done_task_collector())
+        self.energy_recorders = {
+            node.node_id: self.controller.process(self._track_node_energy(node))
+            for node in self.scenario.get_nodes().values()
+        }
 
-        # Launch the info recorder for frames
+        # Start visualization frame recorder if enabled
         if self.config['Basic']['VisFrame'] == "on":
-            os.makedirs(self.config['VisFrame']['LogInfoPath'], exist_ok=True)
-            os.makedirs(self.config['VisFrame']['LogFramesPath'], exist_ok=True)
-            self.info4frame = {}
-            self.info4frame_recorder = self.controller.process(self.info4frame_clock())
+            self._setup_visualization_directories()
+            self.frame_info: dict = {}
+            self.frame_recorder = self.controller.process(self._record_frame_info())
+
+    def _validate_config(self) -> None:
+        """Validate configuration to ensure the number of tracked nodes does not exceed the limit."""
+        max_nodes = 10
+        target_nodes = len(self.config['VisFrame']['TargetNodeList'])
+        assert target_nodes <= max_nodes, (
+            f"Visualization layout limits tracked nodes to {max_nodes}. Modify layout to extend."
+        )
+
+    def _setup_visualization_directories(self) -> None:
+        """Create directories for visualization logs and frames."""
+        os.makedirs(self.config['VisFrame']['LogInfoPath'], exist_ok=True)
+        os.makedirs(self.config['VisFrame']['LogFramesPath'], exist_ok=True)
 
     @property
-    def now(self):
-        """The current simulation time."""
+    def now(self) -> float:
+        """Get the current simulation time."""
         return self.controller.now
 
     def run(self, until):
-        """Run the simulation until the given criterion `until` is met."""
+        """Run the simulation until the specified time."""
         self.controller.run(until)
 
     def reset(self):
-        """Reset the Env."""
-        # Interrupt all activate tasks
-        for p in self.active_task_dict.values():
-            if p.is_alive:
-                p.interrupt()
-        self.active_task_dict.clear()
+        """Reset the simulation environment."""
+        # Interrupt all active tasks
+        for task_process in self.active_tasks.values():
+            if task_process.is_alive:
+                task_process.interrupt()
+        self.active_tasks.clear()
+        self.task_count = 0
 
-        self.process_task_cnt = 0
-
-        # Reset scenario state
+        # Reset scenario and logger
         self.scenario.reset()
-
-        # Reset the logger
         self.logger.reset()
-
-        # Clear task monitor info
         self.done_task_collector.items.clear()
-        del self.done_task_info[:]
+        self.done_task_info.clear()
 
     def process(self, **kwargs):
-        """Must be called with keyword args."""
-        task_generator = self.execute_task(**kwargs)
-        self.controller.process(task_generator)
+        """Process a task using keyword arguments."""
+        task_process = self._execute_task(**kwargs)
+        self.controller.process(task_process)
 
-    def execute_task(self, task: Task, dst_name=None):
-        """Transmission and Execution logics.
-
-        dst_name=None means the task is popped from the waiting deque.
+    def _check_duplicate_task_id(self, task: Task, dst_name: Optional[str]):
         """
-        # DuplicateTaskIdError check
-        if task.task_id in self.active_task_dict.keys():
-            self.process_task_cnt += 1
+        Check if the task ID is duplicated, log the error and raise an exception if it is.
+
+        Args:
+            task (Task): The task to check.
+            dst_name (Optional[str]): The destination node name.
+
+        Raises:
+            AssertionError: If the task ID is duplicated.
+        """
+        if task.task_id in self.active_tasks.keys():
+            self.task_count += 1
             self.logger.append(info_type='task', 
                                key=task.task_id, 
-                               val=(1, ['DuplicateTaskIdError',], (task.src_name, dst_name)))
-            # self.processed_tasks.append(task.task_id)
+                               value=(1, ['DuplicateTaskIdError'], (task.src_name, dst_name)))
             log_info = f"**DuplicateTaskIdError: Task {{{task.task_id}}}** " \
                        f"new task (name {{{task.task_name}}}) with a " \
                        f"duplicate task id {{{task.task_id}}}."
             self.logger.log(log_info)
-            raise AssertionError(
-                ('DuplicateTaskIdError', log_info, task.task_id)
-            )
+            raise AssertionError(('DuplicateTaskIdError', log_info, task.task_id))
 
-        # Check whether the task is re-activated from queuing
-        flag_reactive = True if dst_name is None else False
+    def _handle_task_transmission(self, task: Task, dst_name: str):
+        """
+        Handle the transmission logic of the task, including path calculation, error handling, and time simulation.
 
-        if flag_reactive:
-            dst = task.dst
-        else:
-            self.logger.log(f"Task {{{task.task_id}}} generated in "
-                            f"Node {{{task.src_name}}}")
-            dst = self.scenario.get_node(dst_name)
+        Args:
+            task (Task): The task to transmit.
+            dst_name (str): The destination node name.
 
-        if not flag_reactive:
-            # Do task transmission, if necessary
-            if dst_name != task.src_name:  # task transmission
-                try:
-                    links_in_path = self.scenario.infrastructure.\
-                        get_shortest_links(task.src_name, dst_name)
-                # NetworkXNoPathError check
-                except nx.exception.NetworkXNoPath:
-                    self.process_task_cnt += 1
-                    self.logger.append(info_type='task', 
-                                       key=task.task_id, 
-                                       val=(1, ['NetworkXNoPathError',], (task.src_name, dst_name)))
-                    # self.processed_tasks.append(task.task_id)
-                    log_info = f"**NetworkXNoPathError: Task " \
-                               f"{{{task.task_id}}}** Node {{{dst_name}}} " \
-                               f"is inaccessible"
-                    self.logger.log(log_info)
-                    raise EnvironmentError(
-                        ('NetworkXNoPathError', log_info, task.task_id)
-                    )
-                # IsolatedWirelessNode check
-                except EnvironmentError as e:
-                    message = e.args[0]
-                    if message[0] == 'IsolatedWirelessNode':
-                        self.process_task_cnt += 1
-                        self.logger.append(info_type='task', 
-                                           key=task.task_id, 
-                                           val=(1, ['IsolatedWirelessNode',], (task.src_name, dst_name)))
-                        # self.processed_tasks.append(task.task_id)
-                        log_info = f"**IsolatedWirelessNode"
-                        self.logger.log(log_info)
-                        raise e
+        Raises:
+            EnvironmentError: If transmission fails due to network issues.
+        """
+        try:
+            links_in_path = self.scenario.infrastructure.get_shortest_links(task.src_name, dst_name)
+        except nx.exception.NetworkXNoPath:
+            self.task_count += 1
+            self.logger.append(info_type='task', 
+                               key=task.task_id, 
+                               value=(1, ['NetworkXNoPathError'], (task.src_name, dst_name)))
+            log_info = f"**NetworkXNoPathError: Task {{{task.task_id}}}** Node {{{dst_name}}} is inaccessible"
+            self.logger.log(log_info)
+            raise EnvironmentError(('NetworkXNoPathError', log_info, task.task_id))
+        except EnvironmentError as e:
+            message = e.args[0]
+            if message[0] == 'IsolatedWirelessNode':
+                self.task_count += 1
+                self.logger.append(info_type='task', 
+                                   key=task.task_id, 
+                                   value=(1, ['IsolatedWirelessNode'], (task.src_name, dst_name)))
+                log_info = f"**IsolatedWirelessNode: Task {{{task.task_id}}}** Isolated wireless node detected"
+                self.logger.log(log_info)
+                raise e
 
-                for link in links_in_path:
-                    if isinstance(link, Link):
-                        # NetCongestionError check
-                        if link.free_bandwidth < task.trans_bit_rate:
-                            self.process_task_cnt += 1
-                            self.logger.append(info_type='task', 
-                                               key=task.task_id, 
-                                               val=(1, ['NetCongestionError',], (task.src_name, dst_name)))
-                            # self.processed_tasks.append(task.task_id)
-                            log_info = f"**NetCongestionError: Task " \
-                                       f"{{{task.task_id}}}** network " \
-                                       f"congestion Node {{{task.src_name}}} " \
-                                       f"--> {{{dst_name}}}"
-                            self.logger.log(log_info)
-                            raise EnvironmentError(
-                                ('NetCongestionError', log_info, task.task_id)
-                            )
+        for link in links_in_path:
+            if isinstance(link, Link) and link.free_bandwidth < task.trans_bit_rate:
+                self.task_count += 1
+                self.logger.append(info_type='task', 
+                                   key=task.task_id, 
+                                   value=(1, ['NetCongestionError'], (task.src_name, dst_name)))
+                log_info = f"**NetCongestionError: Task {{{task.task_id}}}** " \
+                           f"network congestion Node {{{task.src_name}}} --> {{{dst_name}}}"
+                self.logger.log(log_info)
+                raise EnvironmentError(('NetCongestionError', log_info, task.task_id))
 
-                task.trans_time = 0
+        task.trans_time = 0
 
-                # ---- Customize the wired/wireless transmission mode here ----
-                # wireless transmission:
-                if isinstance(links_in_path[0], Tuple):
-                    wireless_src_name, wired_dst_name = links_in_path[0]
-                    # task.trans_time += func(task, wireless_src_name,
-                    #                         wired_dst_name)  # TODO
-                    task.trans_time += 0  # (currently only a toy model)
-                    links_in_path = links_in_path[1:]
-                if isinstance(links_in_path[-1], Tuple):
-                    wired_src_name, wireless_dst_name = links_in_path[-1]
-                    # task.trans_time += func(task, wired_src_name,
-                    #                         wireless_dst_name)  # TODO
-                    task.trans_time += 0  # (currently only a toy model)
-                    links_in_path = links_in_path[:-1]
+        # Wireless transmission (first hop)
+        if isinstance(links_in_path[0], Tuple):
+            wireless_src_name, wired_dst_name = links_in_path[0]
+            task.trans_time += 0  # Placeholder, to be implemented with actual calculation
+            links_in_path = links_in_path[1:]
 
-                # wired transmission:
-                # 0. base latency
-                trans_base_latency = 0
-                for link in links_in_path:
-                    trans_base_latency += link.base_latency
-                task.trans_time += trans_base_latency
-                # Multi-hop
-                task.trans_time += (task.task_size / task.trans_bit_rate) * len(links_in_path)
-                # -------------------------------------------------------------
+        # Wireless transmission (last hop)
+        if isinstance(links_in_path[-1], Tuple):
+            wired_src_name, wireless_dst_name = links_in_path[-1]
+            task.trans_time += 0  # Placeholder, to be implemented with actual calculation
+            links_in_path = links_in_path[:-1]
 
-                self.scenario.send_data_flow(task.trans_flow, links_in_path)
+        # Wired transmission: base latency and multi-hop delay
+        trans_base_latency = 0
+        for link in links_in_path:
+            trans_base_latency += link.base_latency
+        task.trans_time += trans_base_latency
+        task.trans_time += (task.task_size / task.trans_bit_rate) * len(links_in_path)
 
-                try:
-                    self.logger.log(f"Task {{{task.task_id}}}: "
-                                    f"{{{task.src_name}}} --> {{{task.dst_name}}}")
-                    yield self.controller.timeout(task.trans_time)
-                    task.trans_flow.deallocate()
-                    self.logger.log(f"Task {{{task.task_id}}} arrived "
-                                    f"Node {{{dst_name}}} with "
-                                    f"{{{task.trans_time:.{self.decimal_place}f}}}s")
-                except simpy.Interrupt:
-                    pass
-            else:
-                task.trans_time = 0  # To avoid task.trans_time = -1
+        self.scenario.send_data_flow(task.trans_flow, links_in_path)
+        try:
+            self.logger.log(f"Task {{{task.task_id}}}: {{{task.src_name}}} --> {{{dst_name}}}")
+            yield self.controller.timeout(task.trans_time)
+            task.trans_flow.deallocate()
+            self.logger.log(f"Task {{{task.task_id}}} arrived Node {{{dst_name}}} with "
+                            f"{{{task.trans_time:.{self.decimal_places}f}}}s")
+        except simpy.Interrupt:
+            pass
 
-        # Task execution
+    def _execute_task_on_node(self, task: Task, dst, flag_reactive: bool):
+        """
+        Execute the task on the destination node, handling buffering and execution logic.
+
+        Args:
+            task (Task): The task to execute.
+            dst: The destination node.
+            flag_reactive (bool): Whether the task is from the waiting queue.
+
+        Raises:
+            EnvironmentError: If there is insufficient buffer space.
+        """
         if not dst.free_cpu_freq > 0:
-            # InsufficientBufferError check
             try:
                 task.allocate(self.now, dst, pre_allocate=True)
                 dst.append_task(task)
-                self.logger.log(f"Task {{{task.task_id}}} is buffered in "
-                                f"Node {{{task.dst_name}}}")
+                self.logger.log(f"Task {{{task.task_id}}} is buffered in Node {{{task.dst_name}}}")
                 return
             except EnvironmentError as e:
-                self.process_task_cnt += 1
+                self.task_count += 1
                 self.logger.append(info_type='task', 
                                    key=task.task_id, 
-                                   val=(1, ['InsufficientBufferError',], (task.src_name, task.dst_name)))
-                # self.processed_tasks.append(task.task_id)
+                                   value=(1, ['InsufficientBufferError'], (task.src_name, task.dst_name)))
                 self.logger.log(e.args[0][1])
                 raise e
 
-        # ------------ Customize the execution mode here ------------
         if flag_reactive:
-            # TimeoutError check
-            try:
-                task.allocate(self.now)
-            except EnvironmentError as e:  # TimeoutError
-                self.process_task_cnt += 1
-                self.logger.append(info_type='task', 
-                                   key=task.task_id, 
-                                   val=(1, ['TimeoutError',], (task.src_name, task.dst_name)))
-                # self.processed_tasks.append(task.task_id)
-                self.logger.log(e.args[0][1])
-
-                # Activate a queued task
-                waiting_task = task.dst.pop_task()
-                if waiting_task:
-                    self.process(task=waiting_task)
-                
-                raise e
-            
-            self.logger.log(f"Task {{{task.task_id}}} re-actives in "
-                            f"Node {{{task.dst_name}}}, "
-                            f"waiting {{{(task.wait_time - task.trans_time):.{self.decimal_place}f}}}s")
+            task.allocate(self.now)
+            self.logger.log(f"Task {{{task.task_id}}} re-actives in Node {{{task.dst_name}}}, "
+                            f"waiting {{{(task.wait_time - task.trans_time):.{self.decimal_places}f}}}s")
         else:
             task.allocate(self.now, dst)
-        # -----------------------------------------------------------
 
-        # Mark the task as active (i.e., execution status) task
-        self.active_task_dict[task.task_id] = task
+        self.active_tasks[task.task_id] = task
         try:
-            self.logger.log(f"Processing Task {{{task.task_id}}} in"
-                            f" {{{task.dst_name}}}")
+            self.logger.log(f"Processing Task {{{task.task_id}}} in {{{task.dst_name}}}")
             yield self.controller.timeout(task.exe_time)
             self.done_task_collector.put(
                 (task.task_id,
                  FLAG_TASK_EXECUTION_DONE,
-                 [dst_name, user_defined_info()]))
+                 [dst.name, user_defined_info(task)]))
         except simpy.Interrupt:
             pass
 
-    def monitor_on_done_task_collector(self):
-        """Keep watch on the done_task_collector."""
+    def _execute_task(self, task: Task, dst_name: Optional[str] = None):
+        """
+        Handle the transmission and execution logic of the task.
+
+        Args:
+            task (Task): The task to execute.
+            dst_name (Optional[str]): The destination node name. If None, the task is from the waiting queue.
+        """
+        # Check for duplicate task ID
+        self._check_duplicate_task_id(task, dst_name)
+
+        # Determine if the task is from the waiting queue
+        flag_reactive = dst_name is None
+
+        # Get the destination node
+        dst = task.dst if flag_reactive else self.scenario.get_node(dst_name)
+
+        if not flag_reactive:
+            self.logger.log(f"Task {{{task.task_id}}} generated in Node {{{task.src_name}}}")
+
+            if dst_name != task.src_name:
+                # Handle task transmission
+                yield from self._handle_task_transmission(task, dst_name)
+            else:
+                task.trans_time = 0  # No transmission needed
+
+        # Execute the task on the node
+        yield from self._execute_task_on_node(task, dst, flag_reactive)
+
+    def _monitor_done_task_collector(self):
+        """Monitor the done_task_collector queue to process completed tasks."""
         while True:
+            # --- Check for Completed Tasks ---
             if len(self.done_task_collector.items) > 0:
                 while len(self.done_task_collector.items) > 0:
                     task_id, flag, info = self.done_task_collector.get().value
                     self.done_task_info.append((self.now, task_id, flag, info))
 
                     if flag == FLAG_TASK_EXECUTION_DONE:
-                        task = self.active_task_dict[task_id]
+                        # Retrieve the task from active tasks
+                        task = self.active_tasks[task_id]
 
+                        # Pop the next task from the destination node's waiting queue
                         waiting_task = task.dst.pop_task()
 
-                        self.logger.log(f"Task {{{task_id}}} accomplished in "
+                        # Log task completion with execution time
+                        self.logger.log(f"Task {{{task_id}}}: Accomplished in "
                                         f"Node {{{task.dst_name}}} with "
-                                        f"{{{task.exe_time:.{self.decimal_place}f}}}s")
+                                        f"execution time {{{task.exe_time:.{self.decimal_places}f}}}s")
+
+                        # Record task statistics (success, times, node names)
                         self.logger.append(info_type='task', 
                                            key=task.task_id, 
-                                           val=(0, [task.trans_time, task.wait_time, task.exe_time], (task.src_name, task.dst_name)))
+                                           value=(0, 
+                                                  [task.trans_time, task.wait_time, task.exe_time], 
+                                                  (task.src_name, task.dst_name)))
+                        
+                        # Clean up: deallocate resources and remove from active tasks
                         task.deallocate()
-                        del self.active_task_dict[task_id]
-                        self.process_task_cnt += 1
+                        del self.active_tasks[task_id]
+                        self.task_count += 1
                         # self.processed_tasks.append(task.task_id)
 
+                        # Process the next waiting task if it exists
                         if waiting_task:
                             self.process(task=waiting_task)
 
                     else:
-                        raise ValueError("Invalid flag!")
+                        # Handle invalid task flag with detailed error
+                        raise ValueError(f"Invalid flag '{flag}' encountered for task {task_id}")
+            
+            # --- Reset for Next Cycle ---
             else:
                 self.done_task_info = []
                 # self.logger.log("")  # turn on: log on every time slot
 
+            # Pause execution until the next refresh interval
             yield self.controller.timeout(self.refresh_rate)
     
-    def node_clock(self, node: Node):
+    def _track_node_energy(self, node: Node):
         """Recorder of node's energy consumption."""
         while True:
             node.energy_consumption += node.idle_energy_coef
@@ -360,56 +372,76 @@ class Env:
             node.clock += 1
             yield self.controller.timeout(self.refresh_rate)
     
-    def info4frame_clock(self):
-        """Recorder the info required for simulation frames."""
+    def _record_frame_info(self):
+        """Record simulation frame information at regular intervals."""
         while True:
-            self.info4frame[self.now] = {
+            # Collect node and edge status at the current time
+            self.frame_info[self.now] = {
                 'node': {k: item.quantify_cpu_freq() 
                          for k, item in self.scenario.get_nodes().items()},
                 'edge': {str(k): item.quantify_bandwidth() 
                          for k, item in self.scenario.get_links().items()},
             }
+            # Include target node details if specified in config
             if len(self.config['VisFrame']['TargetNodeList']) > 0:
-                self.info4frame[self.now]['target'] = {
-                    item: [self.scenario.get_node(item).active_task_ids[:], 
-                           self.scenario.get_node(item).task_buffer.task_ids[:]]
+                self.frame_info[self.now]['target'] = {
+                    item: [
+                        self.scenario.get_node(item).active_task_ids[:], 
+                        self.scenario.get_node(item).task_buffer.task_ids[:]
+                    ]
                     for item in self.config['VisFrame']['TargetNodeList']
                 }
+            # Wait for the next refresh cycle
             yield self.controller.timeout(self.refresh_rate)
 
     @property
-    def n_active_tasks(self):
-        """The number of current active tasks."""
-        return len(self.active_task_dict)
+    def n_active_tasks(self) -> int:
+        """Get the number of currently active tasks."""
+        return len(self.active_tasks)
 
-    def status(self, node_name: Optional[str] = None,
-               link_args: Optional[Tuple] = None):
+    def status(self, node_name: Optional[str] = None, link_args: Optional[Tuple] = None) -> any:
+        """Retrieve the status of a node or link."""
         return self.scenario.status(node_name, link_args)
     
-    def avg_node_energy(self, node_name_list=None):
-        return self.scenario.avg_node_energy(node_name_list) / 1000000
+    def avg_node_energy(self, node_name_list: Optional[List[str]] = None) -> float:
+        """Calculate the average energy consumption across specified nodes."""
+        return self.scenario.avg_node_energy(node_name_list) / ENERGY_UNIT_CONVERSION
     
-    def node_energy(self, node_name):
-        return self.scenario.node_energy(node_name) / 1000000
+    def node_energy(self, node_name: str) -> float:
+        """Retrieve the energy consumption of a specific node."""
+        return self.scenario.node_energy(node_name) / ENERGY_UNIT_CONVERSION
 
     def close(self):
-        # Record nodes' energy consumption.
+        # Log energy consumption and CPU frequency per clock cycle for each node
         for _, node in self.scenario.get_nodes().items():
-            self.logger.append(info_type='node', key=node.node_id, val=[node.energy_consumption/node.clock, node.total_cpu_freq/node.clock])
+            self.logger.append(info_type='node', 
+                               key=node.node_id, 
+                               value=[
+                                   node.energy_consumption / node.clock,  # Average energy per cycle
+                                   node.total_cpu_freq / node.clock       # Average CPU frequency
+                               ])
         
-        # Save the info4frame
+        # --- Save Visualization Data ---
+        # Save frame info to JSON if visualization is enabled
         if self.config['Basic']['VisFrame'] == "on":
-            info4frame_json_object = json.dumps(self.info4frame, indent=4)
-            with open(f"{self.config['VisFrame']['LogInfoPath']}/info4frame.json", 'w+') as fw:
-                fw.write(info4frame_json_object)
+            frame_info_json_object = json.dumps(self.frame_info, indent=4)
+            with open(f"{self.config['VisFrame']['LogInfoPath']}/frame_info.json", 'w+') as fw:
+                fw.write(frame_info_json_object)
 
-        # Terminate activate processes
+        # --- Terminate Processes ---
+        # Interrupt the monitoring process
         self.monitor_process.interrupt()
+
+        # Interrupt all active energy recorders and clear the collection
         for p in self.energy_recorders.values():
             if p.is_alive:
                 p.interrupt()
         self.energy_recorders.clear()
-        if self.config['Basic']['VisFrame'] == "on":
-            self.info4frame_recorder.interrupt()
 
+        # Interrupt frame info recorder if visualization is enabled
+        if self.config['Basic']['VisFrame'] == "on":
+            self.frame_recorder.interrupt()
+
+        # --- Log Completion ---
+        # Record simulation completion
         self.logger.log("Simulation completed!")

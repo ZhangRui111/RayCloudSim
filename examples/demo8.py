@@ -1,5 +1,7 @@
-"""Example on how to use the Topo4MEC dataset.
 """
+This script demonstrates how to use the Topo4MEC dataset.
+"""
+
 import os
 import sys
 
@@ -13,10 +15,11 @@ import pandas as pd
 from core.env import Env
 from core.task import Task
 from core.vis import *
-
 from eval.benchmarks.Topo4MEC.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
 from policies.demo.demo_random import DemoRandom  # policy
+from policies.demo.demo_greedy import GreedyPolicy
+from policies.demo.demo_round_robin import RoundRobinPolicy
 
 
 def main():
@@ -25,22 +28,26 @@ def main():
     # flag = '100N150E'
     # flag = 'MilanCityCenter'
 
-    # Create the Env
-    scenario=Scenario(config_file=f"eval/benchmarks/Topo4MEC/data/{flag}/config.json", flag=flag)
+    # Create the environment with the specified scenario and configuration files.
+    scenario = Scenario(config_file=f"eval/benchmarks/Topo4MEC/data/{flag}/config.json", flag=flag)
     env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-    # Load the test dataset
+    # Load the test dataset.
     data = pd.read_csv(f"eval/benchmarks/Topo4MEC/data/{flag}/testset.csv")
     test_tasks = list(data.iloc[:].values)
 
-    # Init the policy
-    policy = DemoRandom()
+    # Init the policy.
+    # policy = DemoRandom()
+    # policy = RoundRobinPolicy()
+    policy = GreedyPolicy()
 
-    # Begin Simulation
+    # Begin the simulation.
     until = 1
+    launched_task_cnt = 0
     for task_info in test_tasks:
-        # header = ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
-        #           'TransBitRate', 'DDL', 'SrcName']  # field names
+        # Task properties:
+        # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
+        #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
         generated_time = task_info[1]
         task = Task(task_id=task_info[2],
                     task_size=task_info[3],
@@ -51,18 +58,18 @@ def main():
                     task_name=task_info[0])
 
         while True:
-            # Catch the returned info of completed tasks
+            # Catch completed task information.
             while env.done_task_info:
                 item = env.done_task_info.pop(0)
-                # print(f"[{item[0]}]: {item[1:]}")
 
             if env.now == generated_time:
                 dst_id = policy.act(env, task)  # offloading decision
                 dst_name = env.scenario.node_id2name[dst_id]
                 env.process(task=task, dst_name=dst_name)
+                launched_task_cnt += 1
                 break
 
-            # Execute the simulation with error handler
+            # Execute the simulation with error handler.
             try:
                 env.run(until=until)
             except Exception as e:
@@ -71,7 +78,7 @@ def main():
             until += 1
 
     # Continue the simulation until the last task successes/fails.
-    while env.process_task_cnt < len(test_tasks):
+    while env.task_count < launched_task_cnt:
         until += 1
         try:
             env.run(until=until)

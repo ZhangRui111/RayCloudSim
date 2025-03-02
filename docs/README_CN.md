@@ -2,33 +2,27 @@
   <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/logo_long.jpg" alt="" width="800"/>
 </div>
 
-# RayCloudSim: 一款用 Python 编写的用于云/雾/边缘计算的仿真平台
+# RayCloudSim: 基于 Python 的用于云/雾/边缘计算的仿真平台
+
+[<img src="https://img.shields.io/badge/License-MIT-blue.svg" height="20px" />](https://github.com/ZhangRui111/RayCloudSim/blob/main/LICENSE) [<img src="https://api.gitsponsors.com/api/badge/img?id=638982897" height="20">](https://api.gitsponsors.com/api/badge/link?p=JIrAC5FDNZDuOserq1+rtK+ePrdHC6pqFQMndZ+SGnLnSZE6kl4J4Dp3L4yJ1EunkradtRRZ0Nn4KY4O6aHr0kZk/a7DLTdz6bFIn667HJuIoij3RANSfBXi+eoJVy1zDTde6CE8enSRQddgwpgVPQ==)
 
 ## 更新摘要
+
+> 只有最近三次的更新摘要会显示在这里。完整的历史更新摘要可以查看[这里](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).
+
+- **2025/02/04**
+  - [**新增**] 新增数据集：[Pakistan](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py)
+  - [**新增**] 支持基于半正矢公式 (Haversine formula) 的距离计算
+  - [**新增**] 新增卸载策略：Round Robin, Greedy and DQRL
+
 - **2024/07/02**
-  - [**新增**] 支持数据集 [Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py)
+  - [**新增**] 新增数据集：[Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py)
 
 - **2024/04/26**
 
   - [**新增**] 用户现在可以使用 **json 格式**的配置文件轻松创建 Scenario
   - [**优化**] 数据集优化为使用 **csv 格式**保存，具备更好的可读性
   - [**新增/优化**] 更多、更好的**可视化工具**（包括视频复现的仿真过程），便于对仿真过程的直观认识
-
-- **2024/04/14**
-
-  在分支 main 发布第一个正式版 v1.0.0，主要更新如下：
-
-  - [**新增**] 移除计算单元 (Computational Unit, CU)；采用基于“**CPU频率、CPU周期数**”的计算资源建模方式
-  - [**新增**] 仿真过程支持**计算能耗**的建模
-  - [**新增**] 计算任务支持**等待超时**的特性
-  - [**优化**] **任务队列**优化
-  - [**优化**] **README** 文档更新
-  - [**优化**] **examples/*** 示例程序更新
-  - [**修复**] 修复部分 bug
-    - 文件路径导致的模块导入失败
-  
-> **老用户须知：**
-  v1.0.0 之前的版本在分支 pre-v0.6.6 得到了完整保留，但预计后续不再有更新，十分感谢各位用户对于早期版本的支持！
 
 <div style="text-align: center;">
   <picture>
@@ -142,21 +136,7 @@ Averaged: 0.036
 
 **3.2.3** 以下示例程序可以看做是渐进式的使用教程。
 
-- [examples/demo1.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo1.py)
-
-- [examples/demo2.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo2.py)
-
-- [examples/demo3.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo3.py)
-
-- [examples/demo4.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo4.py)
-
-- [examples/demo5.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo5.py)
-
-- [examples/demo6.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo6.py)
-
-- [examples/demo7.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.py)
-
-- [examples/demo8.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo8.py)
+- [examples/*](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples)
 
 需要注意的是学会使用 [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) 对于使用 RayCloudSim 会很有帮助.
 
@@ -184,32 +164,28 @@ Averaged: 0.036
 
  - [百度网盘 (提取码: xa1r)](https://pan.baidu.com/s/16X1Mdn-wvMu_o4GpUFtRDw?pwd=xa1r)
 
-## IV. 开发计划
-### 1. 未来更新计划
+## IV. 项目建设
 
-> 后续更新请参照[更新摘要](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/README_CN.md#%E6%9B%B4%E6%96%B0%E6%91%98%E8%A6%81)
+感谢任何对代码库的贡献。但是请注意：
 
-- [x] 基本版本。(2023/05/10)
-- [X] 增加模块 zoo, 如 WirelessNode 等。(2023/10/24)
-- [X] 计算节点支持队列空间, 以支持任务缓存。(2023/11/10)
-<!-- - [ ] ~~支持把无线节点作为中继通信节点?~~ -->
-- [X] 支持对于“计算能耗”、“任务超时”的建模等。(2024/04/14)
-<!-- - [ ] Modeling of divisible tasks (Application >>> Task) -->
-<!-- - [ ] Details such as the energy consumption and transmission of wireless nodes -->
-- [X] Metric/* (2024/04/16)
-- [X] Evaluation APIs (2024/04/16)
-- [ ] Anything reasonable
+1. 分支**main**是受保护的，建议您提交/推送代码到分支**dev-open**。
+2. `examples/`目录下的所有脚本都有相应的输出，这些输出记录也起到校对代码执行的作用。请确保你的 pull request 不会改变相应的输出记录（或者提供合理的说明）。
 
-### 2. 向 RayCloudSim 贡献代码
-欢迎任何对代码库的贡献。但是请注意, 分支**main**是受保护的，建议您提交/推送代码到分支**dev-open**。
+### Join and build RayCloudSim together
+
+<a href="https://github.com/tutur90">
+  <img src="https://avatars.githubusercontent.com/u/124059682?v=4" alt="tutur90" width="80" />
+</a>
+
+### QQ
 
 <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/timG.jpg" alt="RayCloudSim 交流QQ群" width="250"/>
 
 欢迎加入RayCloudSim 交流QQ群，推荐入群后备注研究方向
 
-<!-- ## Citation
+## V. Citation
 
-引用本代码项目 RayCloudSim 时，您可以使用以下 BibTeX 条目：
+To cite this repository, you can use the following BibTeX entry:
 
 ```text
 @article{zhang2022osttd,
@@ -221,7 +197,7 @@ Averaged: 0.036
 }
 ```
 
-此外, RayCloudSim 的开发受到了 [LEAF](https://github.com/dos-group/leaf) 的启发，因此，也建议引用以下文献。
+Besides, RayCloudSim is inspired by [LEAF](https://github.com/dos-group/leaf) and the following citation is also recommended.
 
 ```text
 @inproceedings{WiesnerThamsen_LEAF_2021,
@@ -232,4 +208,4 @@ Averaged: 0.036
   pages={29-36},
   doi={10.1109/ICFEC51620.2021.00012}
 }
-``` -->
+```

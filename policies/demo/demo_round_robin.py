@@ -1,7 +1,8 @@
 from policies.base_policy import BasePolicy
 
+
 class RoundRobinPolicy(BasePolicy):
-    def __init__(self, env):
+    def __init__(self):
         super().__init__()
         self.idx = 0
 

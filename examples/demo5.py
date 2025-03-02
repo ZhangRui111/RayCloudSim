@@ -1,7 +1,7 @@
-"""Example
-
-Example on simulation that considers the wireless transmission.
 """
+This script demonstrates an example that considers the wireless transmission.
+"""
+
 import os
 import sys
 
@@ -13,21 +13,19 @@ sys.path.insert(0, parent_dir)
 from core.env import Env
 from core.task import Task
 from core.vis import *
-
 from examples.scenarios.scenario_5 import Scenario
 
 
 def main():
-    # Create the Env
-    scenario=Scenario(config_file="examples/scenarios/configs/config_5.json")
+    # Create the environment with the specified scenario and configuration files.
+    scenario = Scenario(config_file="examples/scenarios/configs/config_5.json")
     env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-    # # Visualization: the topology
+    # Visualization: Display the topology of the environment.
     # vis_graph(env,
     #           config_file="core/vis/configs/vis_config_base.json", 
     #           save_as="examples/vis/demo_5.png")
 
-    # Begin Simulation
     task0 = Task(task_id=0,
                  task_size=20,
                  cycles_per_bit=1,
@@ -50,13 +48,6 @@ def main():
     env.run(until=20)  # execute the simulation from 10 to 20
     # routing path: [n1 --> n2, n2 --> n3, ('n3', 'n5')]
 
-    print("\n-----------------------------------------------")
-    print("Energy consumption during simulation:\n")
-    for key in env.scenario.get_nodes().keys():
-        print(f"{key}: {env.node_energy(key):.3f}")
-    print(f"Averaged: {env.avg_node_energy():.3f}")
-    print("-----------------------------------------------\n")
-
     env.close()
 
 
@@ -65,28 +56,14 @@ if __name__ == '__main__':
 
 
 # # ==================== Simulation log ====================
-# [0.00]: Task {0} generated in Node {n4}
-# [0.00]: Task {0}: {n4} --> {n5}
-# [3.00]: Task {0} arrived Node {n5} with {3.00}s
-# [3.00]: Processing Task {0} in {n5}
-# [4.00]: Task {0} accomplished in Node {n5} with {1.00}s
-# [10.00]: Task {1} generated in Node {n1}
-# [10.00]: Task {1}: {n1} --> {n5}
-# [12.00]: Task {1} arrived Node {n5} with {2.00}s
-# [12.00]: Processing Task {1} in {n5}
-# [13.00]: Task {1} accomplished in Node {n5} with {1.00}s
-
-# -----------------------------------------------
-# Energy consumption during simulation:
-
-# n0: 0.000
-# n1: 0.000
-# n2: 0.000
-# n3: 0.000
-# n4: 0.000
-# n5: 0.016
-# n6: 0.000
-# Averaged: 0.002
-# -----------------------------------------------
-
-# [20.00]: Simulation completed!
+# [0.0]: Task {0} generated in Node {n4}
+# [0.0]: Task {0}: {n4} --> {n5}
+# [3.0]: Task {0} arrived Node {n5} with {3.0}s
+# [3.0]: Processing Task {0} in {n5}
+# [4.0]: Task {0}: Accomplished in Node {n5} with execution time {1.0}s
+# [10.0]: Task {1} generated in Node {n1}
+# [10.0]: Task {1}: {n1} --> {n5}
+# [12.0]: Task {1} arrived Node {n5} with {2.0}s
+# [12.0]: Processing Task {1} in {n5}
+# [13.0]: Task {1}: Accomplished in Node {n5} with execution time {1.0}s
+# [20.0]: Simulation completed!

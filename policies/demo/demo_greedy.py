@@ -1,24 +1,7 @@
 
 class GreedyPolicy:
-    def __init__(self, env):
-        """
-        A simple greedy policy that selects the node with the minimal
-        predicted total time (transmission + computation).
-
-        Args:
-            env (Env): The custom environment containing the scenario
-        """
-        self.env = env
-
-    def _get_cpu_speed(self, node_name):
-        """
-        A placeholder for retrieving a node's CPU speed (cycles per second).
-        Replace this with your actual logic for accessing node specifications.
-        """
-        # For demonstration, we'll just pretend each node has the same CPU speed.
-        # You could do something like:
-        return self.env.scenario.get_node(node_name).free_cpu_freq
-        # return 1e9  # 1 GHz (example)
+    """A simple greedy policy that selects the node with the minimal 
+    predicted total time (transmission + computation)."""
 
     def act(self, env, task):
         """
@@ -38,7 +21,7 @@ class GreedyPolicy:
         for node_id in range(len(env.scenario.node_id2name)):
             node_name = env.scenario.node_id2name[node_id]
 
-            cpu_speed = self._get_cpu_speed(node_name)
+            cpu_speed = env.scenario.get_node(node_name).free_cpu_freq
             transmission_time = task.task_size / task.trans_bit_rate  # seconds
             computation_time = (task.task_size * task.cycles_per_bit) /( cpu_speed + 1)
             
