@@ -6,7 +6,7 @@
 
 [<img src="https://img.shields.io/badge/License-MIT-blue.svg" height="20px" />](https://github.com/ZhangRui111/RayCloudSim/blob/main/LICENSE) [<img src="https://api.gitsponsors.com/api/badge/img?id=638982897" height="20">](https://api.gitsponsors.com/api/badge/link?p=JIrAC5FDNZDuOserq1+rtK+ePrdHC6pqFQMndZ+SGnLnSZE6kl4J4Dp3L4yJ1EunkradtRRZ0Nn4KY4O6aHr0kZk/a7DLTdz6bFIn667HJuIoij3RANSfBXi+eoJVy1zDTde6CE8enSRQddgwpgVPQ==)
 
-## 更新摘要
+## I. Update Summary
 
 > 只有最近三次的更新摘要会显示在这里。完整的历史更新摘要可以查看[这里](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).
 
@@ -24,15 +24,29 @@
   - [**优化**] 数据集优化为使用 **csv 格式**保存，具备更好的可读性
   - [**新增/优化**] 更多、更好的**可视化工具**（包括视频复现的仿真过程），便于对仿真过程的直观认识
 
+## II. Contributing
+
+感谢任何对代码库的贡献。但是请注意：
+
+1. 分支**main**是受保护的，建议您提交/推送代码到分支**dev-open**。
+2. `examples/`目录下的所有脚本都有相应的输出，这些输出记录也起到校对代码执行的作用。请确保你的 pull request 不会改变相应的输出记录（或者提供合理的说明）。
+
+### Join and build RayCloudSim together
+
 <div style="text-align: center;">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date&theme=dark" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhangRui111/RayCloudSim&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="700" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="500" />
   </picture>
 </div>
 
-## I. 介绍
+---
+<a href="https://github.com/tutur90">
+  <img src="https://avatars.githubusercontent.com/u/124059682?v=4" alt="tutur90" width="80" />
+</a>
+
+## III. Introduction
 
 RayCloudSim 是一个用 Python 编写的轻量级模拟平台，可用于云/雾/边缘计算基础设施和服务的分析建模和仿真。RayCloudSim 的开发初衷是用于任务卸载的相关研究，目前可支持更加多样化的研究课题。
 
@@ -49,7 +63,7 @@ RayCloudSim 可以用于以下研究课题:
 - 特定设备的部署策略研究，如联邦学习中的参数服务器
 - ...
 
-## II. 安装和相关依赖
+## IV. Requirements & Installation
 
 主要依赖模块：
 
@@ -73,8 +87,8 @@ conda activate raycloudsim
 pip install -r requirements.txt
 ```
 
-## III. 起航
-### 3.1 Hello World
+## V. Set Sail
+### 1. Hello World
 
 ```python
 # Create the Env
@@ -122,9 +136,9 @@ Averaged: 0.036
 [20.00]: Simulation completed!
 ```
 
-### 3.2 Tutorials
+### 2. Tutorials
 
-**3.2.1** 下图展示了 RayCloudSim 的框架架构，主要包含两大部分：`Env` 和 `Task`：
+**(1).** 下图展示了 RayCloudSim 的框架架构，主要包含两大部分：`Env` 和 `Task`：
 
 [comment]: <> (![RayCloudSim 的框架架构]&#40;docs/framework.jpg&#41;)
 
@@ -132,15 +146,15 @@ Averaged: 0.036
   <img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/raycloudsim.png" alt="RayCloudSim 的框架架构" width="600"/>
 </div>
 
-**3.2.2** 一个简单的系统建模介绍：[docs/RayCloudSim.md](docs/RayCloudSim.md)
+**(2).** 一个简单的系统建模介绍：[docs/RayCloudSim.md](docs/RayCloudSim.md)
 
-**3.2.3** 以下示例程序可以看做是渐进式的使用教程。
+**(3).** 以下示例程序可以看做是渐进式的使用教程。
 
 - [examples/*](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples)
 
 需要注意的是学会使用 [Simpy](https://simpy.readthedocs.io/en/latest/contents.html) 对于使用 RayCloudSim 会很有帮助.
 
-**3.2.4** RayCloudSim 支持多个可视化功能：系统拓扑静态可视化、仿真过程动态可视化等
+**(4).** RayCloudSim 支持多个可视化功能：系统拓扑静态可视化、仿真过程动态可视化等
 
 - 系统拓扑静态可视化
 
@@ -164,26 +178,7 @@ Averaged: 0.036
 
  - [百度网盘 (提取码: xa1r)](https://pan.baidu.com/s/16X1Mdn-wvMu_o4GpUFtRDw?pwd=xa1r)
 
-## IV. 项目建设
-
-感谢任何对代码库的贡献。但是请注意：
-
-1. 分支**main**是受保护的，建议您提交/推送代码到分支**dev-open**。
-2. `examples/`目录下的所有脚本都有相应的输出，这些输出记录也起到校对代码执行的作用。请确保你的 pull request 不会改变相应的输出记录（或者提供合理的说明）。
-
-### Join and build RayCloudSim together
-
-<a href="https://github.com/tutur90">
-  <img src="https://avatars.githubusercontent.com/u/124059682?v=4" alt="tutur90" width="80" />
-</a>
-
-### QQ
-
-<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/timG.jpg" alt="RayCloudSim 交流QQ群" width="250"/>
-
-欢迎加入RayCloudSim 交流QQ群，推荐入群后备注研究方向
-
-## V. Citation
+## VI. Citation
 
 To cite this repository, you can use the following BibTeX entry:
 
@@ -209,3 +204,7 @@ Besides, RayCloudSim is inspired by [LEAF](https://github.com/dos-group/leaf) an
   doi={10.1109/ICFEC51620.2021.00012}
 }
 ```
+
+<img src="https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/imgs/timG.jpg" alt="RayCloudSim 交流QQ群" width="250"/>
+
+欢迎加入RayCloudSim 交流QQ群，推荐入群后备注研究方向
