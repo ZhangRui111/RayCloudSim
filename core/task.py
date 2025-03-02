@@ -99,8 +99,7 @@ class Task:
                 self._allocate_dst(node)
             
             # Estimated execution time
-            self.exe_time = math.ceil(
-                (self.task_size * self.cycles_per_bit) / self.cpu_freq)
+            self.exe_time = (self.task_size * self.cycles_per_bit) / self.cpu_freq
 
     def _allocate_dst(self, dst: Node):
         """Attach the task with the dst node and allocate resources."""
