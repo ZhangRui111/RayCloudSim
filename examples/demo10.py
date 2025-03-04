@@ -24,8 +24,6 @@ from core.vis.logger import Logger
 from eval.benchmarks.Pakistan.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency
 from policies.dqrl_policy import DQRLPolicy
-from core.vis.plot_score import PlotScore
-
 
 def run_epoch(config, policy, data: pd.DataFrame, train=True):
     """
