@@ -327,6 +327,7 @@ class Env:
 
                         # Pop the next task from the destination node's waiting queue
                         waiting_task = task.dst.pop_task()
+                        
 
                         # Log task completion with execution time
                         self.logger.log(f"Task {{{task_id}}}: Accomplished in "

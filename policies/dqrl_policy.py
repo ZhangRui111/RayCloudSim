@@ -95,7 +95,10 @@ class DQRLPolicy:
             with torch.no_grad():
                 next_q_values = self.model(next_state_tensor)
                 max_next_q = torch.max(next_q_values)
-                target_q = reward_tensor + (1 - done_tensor) * self.gamma * max_next_q
+                if self.gamma == 0:
+                    target_q = reward_tensor
+                else:
+                    target_q = reward_tensor + (1 - done_tensor) * self.gamma * max_next_q
             loss = self.criterion(predicted_q, target_q)
             loss_total += loss
         loss_total.backward()

@@ -84,11 +84,10 @@ def run_epoch(config, policy, data: pd.DataFrame, train=True):
 
             until += env.refresh_rate
 
-        done = True  # Each task is treated as an individual episode.
+        done = False  # Each task is treated as an individual episode.
         last_task_id = task.task_id
         stored_transitions[last_task_id] = (state, action, None)
         
-        # print(env.logger.task_info)
 
         # Process stored transitions if the task has been completed.
         for task_id, (state, action, next_state) in list(stored_transitions.items()):
@@ -146,7 +145,7 @@ def main():
         "num_epoch": 50,
         "batch_size": 256,
         "lr": 1e-4,
-        "gamma": 0.99,
+        "gamma": 0.1,
         "epsilon": 0.1,
         "epsilon_decay": 0.995
         },
@@ -199,8 +198,14 @@ def main():
         logger.update_metric('SuccessRate', m1.eval(env.logger.task_info))
         logger.update_metric('AvgLatency', m2.eval(env.logger.task_info))
 
+    logger.plot()
+    logger.save_csv()
+    
     vis_stats = VisStats(save_path=logger.log_dir)
     vis_stats.vis(env)
+    
+    logger.close()
+    env.close()
 
 
 if __name__ == '__main__':

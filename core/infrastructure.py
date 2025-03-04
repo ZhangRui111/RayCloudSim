@@ -250,7 +250,7 @@ class Node(object):
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
         # Radius of Earth in kilometers (6371000 for meters)
-        R = 6371000
+        R = 6371
         distance = R * c
         return distance
 

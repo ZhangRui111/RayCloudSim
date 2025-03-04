@@ -30,7 +30,7 @@ def create_env(config):
     flag = config["env"]["flag"]
     # Create scenario using the provided config file.
     scenario = Scenario(config_file=f"eval/benchmarks/Pakistan/data/{flag}/config.json", flag=flag)
-    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=True, decimal_places=3)
+    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=False, decimal_places=3)
     env.refresh_rate = config["env"]["refresh_rate"]
     return env
 

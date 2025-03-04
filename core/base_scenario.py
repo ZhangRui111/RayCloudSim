@@ -18,8 +18,7 @@ class BaseScenario(metaclass=ABCMeta):
         self.node_id2name = {}
 
         # Signal speed and hop delay constants
-        self.signal_speed = 2.0e8  # Signal speed in fiber (m/s)
-        self.hops_delay = 0.0002 / 30000  # 0.2 ms per 30 km hop delay
+        self.signal_speed = 2.0e5 - 1.5e5 # Signal speed in fiber (km/s) - Hop delay + Router delay
 
         # Initialize infrastructure with nodes and links
         self.init_infrastructure_nodes()
@@ -98,8 +97,8 @@ class BaseScenario(metaclass=ABCMeta):
         dst_node = nodes[self.node_id2name[dst_node_id]]
 
         if src_node.location and dst_node.location:
-            distance = src_node.distance(dst_node) * 2  # Round trip distance in meters
-            return round(distance * (1 / self.signal_speed + self.hops_delay), 3)
+            distance = src_node.distance(dst_node, type='haversine') * 2  # Round trip distance in meters
+            return round(distance / self.signal_speed, 3)
         return 0
 
     @abstractmethod

@@ -2,6 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import csv
 
 class Logger:
     """
@@ -16,6 +17,7 @@ class Logger:
         Args:
             config (dict): The configuration dictionary. Must contain:
                 - env: with keys "dataset" and "flag"
+                - policy: the policy name (string)
                 - training: training parameters (e.g., num_epoch, batch_size, lr, gamma, epsilon, etc.)
         """
         self.config = config
@@ -24,7 +26,7 @@ class Logger:
         self.policy = config["policy"]
         self.training_config = config.get("training", {})
         
-        # Create log directory in the form: logs/<dataset>/<flag>/training_<params>_<i>
+        # Create log directory in the form: logs/<dataset>/<flag>/<policy>/<params>_<i>
         self.log_dir = self.create_log_dir(self.dataset, self.flag, self.policy, **self.training_config)
         self.log_file_path = os.path.join(self.log_dir, "log.txt")
         self.csv_file_path = os.path.join(self.log_dir, "result.csv")
@@ -43,12 +45,12 @@ class Logger:
     def create_log_dir(dataset, flag, policy, **params):
         """
         Creates a unique log directory with the format:
-            logs/<dataset>/<flag>/<mode_str>_<params>_<i>
+            logs/<dataset>/<flag>/<policy>/<params>_<i>
 
         Args:
             dataset (str): Dataset name.
             flag (str): Flag name.
-            mode_str (str): A string such as "training" to denote the mode.
+            policy (str): The policy name.
             **params: Additional training parameters to include in the directory name.
 
         Returns:
@@ -77,14 +79,13 @@ class Logger:
         """
         Writes header information (configuration details) to the log file.
         """
-
         header = "====================\n"
         header += f"Policy: {self.policy}\n\n"
         header += f"Dataset: {self.dataset}\nFlag: {self.flag}\n\n"
         
         for key, value in self.config.items():
             if key not in ["env", "policy"]:
-                if type(value) == dict:
+                if isinstance(value, dict):
                     header += f"{key}:\n"
                     for k, v in value.items():
                         header += f"    {k}: {v}\n"
@@ -107,7 +108,7 @@ class Logger:
             epoch (int): The current epoch (0-indexed; will be logged as 1-indexed).
         """
         self.current_epoch = epoch + 1
-        line = f"\n====================\nEpoch {self.current_epoch}\n"
+        line = f"\n====================\nEpoch {self.current_epoch}/{self.training_config['num_epoch']}\n"
         print(line, end="")
         self.log_file.write(line)
         self.log_file.flush()
@@ -129,7 +130,7 @@ class Logger:
         """
         Logs a metric value under the current epoch and mode. If current_epoch or current_mode
         is None, an empty string is stored instead. The logged value is stored internally,
-        written to the log file, printed, and appended as a row for CSV export.
+        written to the log file, printed, and appended as a row for CSV export (immediately).
 
         Args:
             metric (str): The metric name.
@@ -150,6 +151,20 @@ class Logger:
         print(line, end="")
         self.log_file.write(line) 
         self.log_file.flush()
+        # Write this row immediately to CSV.
+        self._append_to_csv(row)
+
+    def _append_to_csv(self, row):
+        """
+        Appends a single row to the CSV file. If the CSV file is empty, writes the header first.
+        """
+        file_exists = os.path.exists(self.csv_file_path) and os.path.getsize(self.csv_file_path) > 0
+        with open(self.csv_file_path, "a", newline="") as csvfile:
+            fieldnames = ["Epoch", "Mode", "Metric", "Value"]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow(row)
 
     def plot(self):
         """
