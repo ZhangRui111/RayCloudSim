@@ -16,61 +16,58 @@ from core.env import Env
 from core.task import Task
 from core.vis import *
 from core.vis.vis_stats import VisStats
+from core.vis.logger import Logger
 from eval.benchmarks.Pakistan.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
 from policies.demo.demo_greedy import GreedyPolicy
+from policies.demo.demo_random import DemoRandom
+from policies.demo.demo_round_robin import RoundRobinPolicy
 
-
-def create_log_dir(algo_name, **params):
-    """Creates a directory for storing the training/testing metrics logs.
-
-    Args:
-        algo_name (str): The name of the algorithm.
-        **params: Additional parameters to be included in the directory name.
-
-    Returns:
-        str: The path to the created log directory.
+def create_env(config):
     """
-    # Create the algorithm-specific directory if it doesn't exist
-    algo_dir = f"logs/{algo_name}"
-    if not os.path.exists(algo_dir):
-        os.makedirs(algo_dir)
-
-    # Build the parameterized part of the directory name
-    params_str = ""
-    for key, value in params.items():
-        params_str += f"{key}_{value}_"
-    index = 0  # Find an available directory index
-    log_dir = f"{algo_dir}/{params_str}{index}"
-    while os.path.exists(log_dir):
-        index += 1
-        log_dir = f"{algo_dir}/{params_str}{index}"
-    
-    # Create the final log directory
-    os.makedirs(log_dir, exist_ok=True)
-    
-    return log_dir
-
+    Creates the environment using configuration parameters.
+    """
+    flag = config["env"]["flag"]
+    # Create scenario using the provided config file.
+    scenario = Scenario(config_file=f"eval/benchmarks/Pakistan/data/{flag}/config.json", flag=flag)
+    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=True, decimal_places=3)
+    env.refresh_rate = config["env"]["refresh_rate"]
+    return env
 
 def main():
-    flag = 'Tuple30K'
-    # flag = 'Tuple50K'
-    # flag = 'Tuple100K'
+    # Define configuration dictionary (acting as a config file).
+    config = {
+        "env": {
+            "dataset": "Pakistan",
+            "flag": "Tuple30K",  # Can change to Tuple50K or Tuple100K if desired.
+            "refresh_rate": 0.001
+        },
+        "policy": "DemoGreedy",
+    }
     
-    # Create the environment with the specified scenario and configuration files.
-    scenario=Scenario(config_file=f"eval/benchmarks/Pakistan/data/{flag}/config.json", flag=flag)
-    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=True, decimal_places=3)
-
+    # Initialize the logger.
+    logger = Logger(config)
+    
+    # Create the environment.
+    env = create_env(config)
+    
     # Load the test dataset.
+    flag = config["env"]["flag"]
     data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{flag}/testset.csv")
 
     # Init the policy.
-    policy = GreedyPolicy()
+    if config["policy"] == "DemoGreedy":
+        policy = GreedyPolicy()
+    elif config["policy"] == "DemoRandom":
+        policy = DemoRandom()
+    elif config["policy"] == "DemoRoundRobin":
+        policy = RoundRobinPolicy()
+    else:
+        raise ValueError("Invalid policy name.")
 
     # Begin the simulation.
     until = 0
     launched_task_cnt = 0
-    path_dir = create_log_dir("vis/DemoGreedy", flag=flag)
     for i, task_info in data.iterrows():
         generated_time = task_info['GenerationTime']
         task = Task(task_id=task_info['TaskID'],
@@ -99,11 +96,11 @@ def main():
             except Exception as e:
                 pass
 
-            until += 1
+            until += env.refresh_rate
 
     # Continue the simulation until the last task successes/fails.
     while env.task_count < launched_task_cnt:
-        until += 1
+        until += env.refresh_rate
         try:
             env.run(until=until)
         except Exception as e:
@@ -114,25 +111,24 @@ def main():
     print("Evaluation:")
     print("===============================================\n")
 
-    print("-----------------------------------------------")
+
     m1 = SuccessRate()
     r1 = m1.eval(env.logger.task_info)
-    print(f"The success rate of all tasks: {r1:.4f}")
-    print("-----------------------------------------------\n")
+    logger.update_metric("SuccessRate", r1)
 
-    print("-----------------------------------------------")
     m2 = AvgLatency()
     r2 = m2.eval(env.logger.task_info)
-    print(f"The average latency per task: {r2:.4f}")
-
-    print(f"The average energy consumption per node: {env.avg_node_energy():.4f}")
-    print("-----------------------------------------------\n")
-
+    logger.update_metric("AvgLatency", r2)
+    
+    # avg energy per
+    logger.update_metric("AvgEnergy", env.avg_node_energy())
     env.close()
     
     # Stats Visualization
-    vis = VisStats(path_dir)
+    vis = VisStats(logger.log_dir)
     vis.vis(env)
+    
+    env.close()
 
 
 if __name__ == '__main__':

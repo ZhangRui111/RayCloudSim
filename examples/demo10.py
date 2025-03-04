@@ -20,49 +20,14 @@ from core.env import Env
 from core.task import Task
 from core.vis import *
 from core.vis.vis_stats import VisStats
+from core.vis.logger import Logger
 from eval.benchmarks.Pakistan.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency
 from policies.dqrl_policy import DQRLPolicy
 from core.vis.plot_score import PlotScore
 
 
-def create_log_dir(algo_name, **params):
-    """Creates a directory for storing the training/testing metrics logs.
-
-    Args:
-        algo_name (str): The name of the algorithm.
-        **params: Additional parameters to be included in the directory name.
-
-    Returns:
-        str: The path to the created log directory.
-    """
-    # Create the algorithm-specific directory if it doesn't exist
-    algo_dir = f"logs/{algo_name}"
-    if not os.path.exists(algo_dir):
-        os.makedirs(algo_dir)
-
-    # Build the parameterized part of the directory name
-    params_str = ""
-    for key, value in params.items():
-        params_str += f"{key}_{value}_"
-    index = 0  # Find an available directory index
-    log_dir = f"{algo_dir}/{params_str}{index}"
-    while os.path.exists(log_dir):
-        index += 1
-        log_dir = f"{algo_dir}/{params_str}{index}"
-    
-    # Create the final log directory
-    os.makedirs(log_dir, exist_ok=True)
-
-    return log_dir
-
-
-# Global parameters
-num_epoch = 50
-batch_size = 256
-
-
-def run_epoch(env: Env, policy, data: pd.DataFrame, train=True):
+def run_epoch(config, policy, data: pd.DataFrame, train=True):
     """
     Run one simulation epoch over the provided task data.
 
@@ -77,6 +42,8 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, train=True):
     """
     m1 = SuccessRate()
     m2 = AvgLatency()
+    
+    env = create_env(config)
     
     until = 0
     launched_task_cnt = 0
@@ -117,7 +84,7 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, train=True):
             except Exception:
                 pass
 
-            until += 1
+            until += env.refresh_rate
 
         done = True  # Each task is treated as an individual episode.
         last_task_id = task.task_id
@@ -139,7 +106,7 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, train=True):
                 del stored_transitions[task_id]
 
         # Update the policy every batch_size tasks during training.
-        if (i + 1) % batch_size == 0 and train:
+        if (i + 1) % config["training"]["batch_size"] == 0 and train:
             r1 = m1.eval(env.logger.task_info)
             r2 = m2.eval(env.logger.task_info)
             pbar.set_postfix({"AvgLatency": f"{r2:.3f}", "SuccessRate": f"{r1:.3f}"})
@@ -147,7 +114,7 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, train=True):
 
     # Continue simulation until all tasks are processed.
     while env.task_count < launched_task_cnt:
-        until += 1
+        until += env.refresh_rate
         try:
             env.run(until=until)
         except Exception:
@@ -156,67 +123,87 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, train=True):
     return env
 
 
-def create_env(scenario):
+def create_env(config):
     """Create and return an environment instance."""
-    return Env(scenario, config_file="core/configs/env_config_null.json", verbose=False)
+    dataset = config["env"]["dataset"]
+    flag = config["env"]["flag"]
+    scenario = Scenario(config_file=f"eval/benchmarks/{dataset}/data/{flag}/config.json", flag=flag)
+    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=False)
+    env.refresh_rate = config['env']['refresh_rate']
+    return env
+
 
 
 def main():
-    flag = 'Tuple30K'
+    config = {
+        "policy": "DQRL",
+        
+        "env": {
+        "dataset": "Pakistan",
+        "flag": "Tuple30K",
+        "refresh_rate": 0.001,
+        },
 
-    scenario = Scenario(config_file=f"eval/benchmarks/Pakistan/data/{flag}/config.json", flag=flag)
-    env = create_env(scenario)
+        "training": {
+        "num_epoch": 50,
+        "batch_size": 256,
+        "lr": 1e-4,
+        "gamma": 0.99,
+        "epsilon": 0.1,
+        "epsilon_decay": 0.995
+        },
+        
+        "model": {
+            "d_model": 128,
+        }
+    }
+    
+    
+    logger = Logger(config)
+    
+
+    env = create_env(config)
     
     # Load train and test datasets.
-    train_data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{flag}/trainset.csv")
-    test_data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{flag}/testset.csv")
-    
-    log_dir = create_log_dir("vis/DQRL", flag=flag, num_epoch=num_epoch, batch_size=batch_size)
-    
+    train_data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{config['env']['flag']}/trainset.csv")
+    test_data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{config['env']['flag']}/testset.csv")
+
     # Initialize the policy.
-    policy = DQRLPolicy(env=env, lr=1e-4)
+    policy = DQRLPolicy(env=env, config=config)
     
     m1 = SuccessRate()
     m2 = AvgLatency()
     
-    plotter = PlotScore(metrics=['SuccessRate', 'AvgLatency'], 
-                        modes=['Training', 'Testing'], save_dir=log_dir)
     
-    for epoch in range(num_epoch):
-        print(f"Epoch {epoch+1}/{num_epoch}")
+    for epoch in range(config["training"]["num_epoch"]):
         
+        logger.update_epoch(epoch)
+
+        env.close()
         # Training phase.
-        env = create_env(scenario)
-        env = run_epoch(env, policy, train_data, train=True)
-        print(f"Training - AvgLatency: {m2.eval(env.logger.task_info):.4f}, " 
-              f"SuccessRate: {m1.eval(env.logger.task_info):.4f}")
-        plotter.append(mode='Training', metric='SuccessRate', value=m1.eval(env.logger.task_info))
-        plotter.append(mode='Training', metric='AvgLatency', value=m2.eval(env.logger.task_info))
+        
+        logger.update_mode('Training')
+        
+        env = run_epoch(config, policy, train_data, train=True)
+
+        
+        logger.update_metric('SuccessRate', m1.eval(env.logger.task_info))
+        logger.update_metric('AvgLatency', m2.eval(env.logger.task_info))
+        
         env.close()
         
         # Testing phase.
-        env = create_env(scenario)
-        env = run_epoch(env, policy, test_data, train=False)
-        print(f"Testing  - AvgLatency: {m2.eval(env.logger.task_info):.4f}, " 
-              f"SuccessRate: {m1.eval(env.logger.task_info):.4f}")
-        print("===============================================")
-        plotter.append(mode='Testing', metric='SuccessRate', value=m1.eval(env.logger.task_info))
-        plotter.append(mode='Testing', metric='AvgLatency', value=m2.eval(env.logger.task_info))
-        env.close()
         
-    
-    # Final testing phase.
-    print("Final Testing Phase")
-    env = create_env(scenario)
-    env = run_epoch(env, policy, test_data, train=False)
-    print(f"Testing  - AvgLatency: {m2.eval(env.logger.task_info):.4f}, " 
-          f"SuccessRate: {m1.eval(env.logger.task_info):.4f}")
-    env.close()
-    
-    vis_stats = VisStats(save_path=log_dir)
+        logger.update_mode('Testing')
+        
+        env = run_epoch(config, policy, test_data, train=False)
+        
+        logger.update_metric('SuccessRate', m1.eval(env.logger.task_info))
+        logger.update_metric('AvgLatency', m2.eval(env.logger.task_info))
+
+    vis_stats = VisStats(save_path=logger.log_dir)
     vis_stats.vis(env)
 
-    plotter.plot(num_epoch)
 
 if __name__ == '__main__':
     main()

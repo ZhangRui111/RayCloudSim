@@ -119,9 +119,9 @@ class Env:
         """Get the current simulation time."""
         return self.controller.now
 
-    def run(self, until):
+    def run(self, until: float, refresh_rate_scaling: bool = False):
         """Run the simulation until the specified time."""
-        self.controller.run(until)
+        self.controller.run(until if not refresh_rate_scaling else until * self.refresh_rate)
 
     def reset(self):
         """Reset the simulation environment."""
@@ -417,8 +417,8 @@ class Env:
             self.logger.append(info_type='node', 
                                key=node.node_id, 
                                value=[
-                                   node.energy_consumption / node.clock,  # Average energy per cycle
-                                   node.total_cpu_freq / node.clock       # Average CPU frequency
+                                   node.energy_consumption / (node.clock + 1e-6),  # Average energy per cycle
+                                   node.total_cpu_freq / (node.clock + 1e-6)       # Average CPU frequency
                                ])
         
         # --- Save Visualization Data ---
