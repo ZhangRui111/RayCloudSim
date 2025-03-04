@@ -243,5 +243,6 @@
             "DstNodeID": 10,
             "Bandwidth": 50000
         }
-    ]
+    ],
+    "BaseLatencyType": "haversine"
 }

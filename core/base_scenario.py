@@ -13,6 +13,8 @@ class BaseScenario(metaclass=ABCMeta):
         self.json_object = self.load_config(config_file)
         self.json_nodes, self.json_edges = self.json_object['Nodes'], self.json_object['Edges']
         
+        self.base_latency_type = self.json_object.get('BaseLatencyType', 'None')
+        
         # Initialize infrastructure and node mapping
         self.infrastructure = Infrastructure()
         self.node_id2name = {}
@@ -95,10 +97,14 @@ class BaseScenario(metaclass=ABCMeta):
         
         src_node = nodes[self.node_id2name[src_node_id]]
         dst_node = nodes[self.node_id2name[dst_node_id]]
+        
+        if self.base_latency_type == 'None':
+            return 0
 
         if src_node.location and dst_node.location:
-            distance = src_node.distance(dst_node, type='haversine') * 2  # Round trip distance in meters
+            distance = src_node.distance(dst_node, type=self.base_latency_type) * 2  # Round trip distance in meters
             return round(distance / self.signal_speed, 3)
+        
         return 0
 
     @abstractmethod
