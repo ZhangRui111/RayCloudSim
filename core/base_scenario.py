@@ -21,6 +21,7 @@ class BaseScenario(metaclass=ABCMeta):
 
         # Signal speed and hop delay constants
         self.signal_speed = 2.0e5 - 1.5e5 # Signal speed in fiber (km/s) - Hop delay + Router delay
+        self.base_energy_coef = 0.8/10000 # Energy coefficient for the link (J/mb/km)
 
         # Initialize infrastructure with nodes and links
         self.init_infrastructure_nodes()
@@ -72,20 +73,23 @@ class BaseScenario(metaclass=ABCMeta):
             src_node_id, dst_node_id = edge_info['SrcNodeID'], edge_info['DstNodeID']
             base_latency = self.calculate_base_latency(edge_info, src_node_id, 
                                                        dst_node_id, nodes)
+            energy_coef = edge_info.get('EnergyCoef', 0.0)
 
             if edge_info['EdgeType'] == 'SingleLink':
                 self.add_unilateral_link(
                     self.node_id2name[src_node_id], 
                     self.node_id2name[dst_node_id], 
                     edge_info['Bandwidth'], 
-                    base_latency
+                    base_latency,
+                    energy_coef
                 )
             else:
                 self.add_bilateral_links(
                     self.node_id2name[src_node_id], 
                     self.node_id2name[dst_node_id], 
                     edge_info['Bandwidth'], 
-                    base_latency
+                    base_latency,
+                    energy_coef
                 )
 
     def calculate_base_latency(
@@ -103,7 +107,26 @@ class BaseScenario(metaclass=ABCMeta):
 
         if src_node.location and dst_node.location:
             distance = src_node.distance(dst_node, type=self.base_latency_type) * 2  # Round trip distance in meters
+
             return round(distance / self.signal_speed, 3)
+        
+        return 0
+    def calculate_energy_coef(
+        self, edge_info: dict, src_node_id: int, dst_node_id: int, nodes: dict
+    ) -> float:
+        """Calculate the base latency for the link, either from config or based on node distances."""
+        if 'BaseLatency' in edge_info:
+            return edge_info['EnergyCoef']
+        
+        src_node = nodes[self.node_id2name[src_node_id]]
+        dst_node = nodes[self.node_id2name[dst_node_id]]
+        
+        if self.base_latency_type == 'None':
+            return 0
+
+        if src_node.location and dst_node.location:
+            distance = src_node.distance(dst_node, type=self.base_latency_type) * 2  # Round trip distance in meters
+            return round(distance * self.base_energy_coef, 3)
         
         return 0
 
@@ -144,26 +167,28 @@ class BaseScenario(metaclass=ABCMeta):
         """Return all links in the infrastructure."""
         return self.infrastructure.get_links()
 
-    def add_unilateral_link(self, src_name: str, dst_name: str, bandwidth: float, base_latency: float = 0):
+    def add_unilateral_link(self, src_name: str, dst_name: str, bandwidth: float, base_latency: float = 0, energy_coef: float = 0.0):
         """Add a unilateral link between two nodes."""
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(src_name), self.infrastructure.get_node(dst_name),
-                 max_bandwidth=bandwidth, base_latency=base_latency)
+                 max_bandwidth=bandwidth, base_latency=base_latency, energy_coef=energy_coef)
         )
 
     def add_bilateral_links(
-        self, src_name: str, dst_name: str, bandwidth: Union[float, List], base_latency: float = 0
+        self, src_name: str, dst_name: str, bandwidth: Union[float, List], base_latency: float = 0, energy_coef: float = 0.0
     ):
         """Add bilateral links between two nodes."""
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(src_name), self.infrastructure.get_node(dst_name),
                  max_bandwidth=bandwidth[0] if isinstance(bandwidth, List) else bandwidth, 
-                 base_latency=base_latency)
+                 base_latency=base_latency, energy_coef=
+                    energy_coef)
         )
         self.infrastructure.add_link(
             Link(self.infrastructure.get_node(dst_name), self.infrastructure.get_node(src_name),
                  max_bandwidth=bandwidth[1] if isinstance(bandwidth, List) else bandwidth, 
-                 base_latency=base_latency)
+                 base_latency=base_latency, energy_coef=energy_coef)
+                 
         )
 
     def reset(self):

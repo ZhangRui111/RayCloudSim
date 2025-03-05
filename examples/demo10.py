@@ -52,7 +52,7 @@ def run_epoch(config, policy, data: pd.DataFrame, train=True):
         generated_time = task_info['GenerationTime']
         task = Task(task_id=task_info['TaskID'],
                     task_size=task_info['TaskSize'],
-                    cycles_per_bit=task_info['CyclesPerBit'],
+                    cycles_per_bit=task_info['CyclesPerBit']*5,
                     trans_bit_rate=task_info['TransBitRate'],
                     ddl=task_info['DDL'],
                     src_name='e0',

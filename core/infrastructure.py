@@ -322,7 +322,7 @@ class Link(object):
         data_flows: List of data flows allocated on this link.
     """
 
-    def __init__(self, src: Node, dst: Node, max_bandwidth: float, base_latency: Optional[float] = 0):
+    def __init__(self, src: Node, dst: Node, max_bandwidth: float, base_latency: Optional[float] = 0, energy_coef: Optional[float] = 0):
         """Initializes a network link with source and destination nodes."""
         # Check if either node is wireless, which is not allowed for links.
         if src.flag_only_wireless or dst.flag_only_wireless:
@@ -338,6 +338,7 @@ class Link(object):
             self.dis = 1
         self.free_bandwidth = max_bandwidth
         self.data_flows: List["DataFlow"] = []
+        self.energy_coef = energy_coef
 
     def __repr__(self):
         """Returns a string representation of the link."""

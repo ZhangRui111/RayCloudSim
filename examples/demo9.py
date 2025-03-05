@@ -73,7 +73,7 @@ def main():
         task = Task(task_id=task_info['TaskID'],
                     task_size=task_info['TaskSize'],
                     cycles_per_bit=task_info['CyclesPerBit'],
-                    trans_bit_rate=task_info['TransBitRate'],
+                    trans_bit_rate=task_info['TransBitRate']*5,
                     ddl=task_info['DDL'],
                     src_name='e0',
                     task_name=task_info['TaskName'])

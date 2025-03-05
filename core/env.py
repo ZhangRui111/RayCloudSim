@@ -251,9 +251,13 @@ class Env:
         Raises:
             EnvironmentError: If there is insufficient buffer space.
         """
+        
+        link = self.scenario.get_link(task.src_name, dst.name)
+
+
         if not dst.free_cpu_freq > 0:
             try:
-                task.allocate(self.now, dst, pre_allocate=True)
+                task.allocate(self.now, dst, pre_allocate=True, link=link)
                 dst.append_task(task)
                 self.logger.log(f"Task {{{task.task_id}}} is buffered in Node {{{task.dst_name}}}")
                 return
@@ -266,11 +270,11 @@ class Env:
                 raise e
 
         if flag_reactive:
-            task.allocate(self.now)
+            task.allocate(self.now, link=link)
             self.logger.log(f"Task {{{task.task_id}}} re-actives in Node {{{task.dst_name}}}, "
                             f"waiting {{{(task.wait_time - task.trans_time):.{self.decimal_places}f}}}s")
         else:
-            task.allocate(self.now, dst)
+            task.allocate(self.now, dst, link=link)
 
         self.active_tasks[task.task_id] = task
         try:
@@ -328,6 +332,8 @@ class Env:
                         # Pop the next task from the destination node's waiting queue
                         waiting_task = task.dst.pop_task()
                         
+                        self.scenario.get_node(task.dst_name).energy_consumption += task.exe_energy + task.trans_energy
+                        
 
                         # Log task completion with execution time
                         self.logger.log(f"Task {{{task_id}}}: Accomplished in "
@@ -339,7 +345,10 @@ class Env:
                                            key=task.task_id, 
                                            value=(0, 
                                                   [task.trans_time, task.wait_time, task.exe_time], 
-                                                  (task.src_name, task.dst_name)))
+                                                  (task.src_name, task.dst_name),
+                                            [task.exe_energy, task.trans_energy])
+                                            )
+                                           
                         
                         # Clean up: deallocate resources and remove from active tasks
                         task.deallocate()
@@ -366,11 +375,11 @@ class Env:
     def _track_node_energy(self, node: Node):
         """Recorder of node's energy consumption."""
         while True:
-            node.energy_consumption += node.idle_energy_coef
-            node.energy_consumption += node.exe_energy_coef * (
-                node.max_cpu_freq - node.free_cpu_freq) ** 3
-            node.total_cpu_freq += node.max_cpu_freq - node.free_cpu_freq
-            node.clock += 1
+            node.energy_consumption += node.idle_energy_coef * self.refresh_rate
+            # node.energy_consumption += node.exe_energy_coef * (
+            #     node.max_cpu_freq - node.free_cpu_freq) * self.refresh_rate
+            node.total_cpu_freq += (node.max_cpu_freq - node.free_cpu_freq) * self.refresh_rate
+            node.clock += self.refresh_rate
             yield self.controller.timeout(self.refresh_rate)
     
     def _record_frame_info(self):
