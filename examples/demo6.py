@@ -115,7 +115,7 @@ def main():
           f"    InsufficientBufferError: {len(insufficient_buffer_error)}")
 
     m1 = SuccessRate()
-    r1 = m1.eval(env.logger.task_info)
+    r1 = m1.eval(env.logger)
     print(f"\nThe success rate of all tasks: {r1:.4f}")
 
     print("-----------------------------------------------\n")
@@ -124,7 +124,7 @@ def main():
 
     print("\n-----------------------------------------------")
     m2 = AvgLatency()
-    r2 = m2.eval(env.logger.task_info)
+    r2 = m2.eval(env.logger)
     print(f"The average latency per task: {r2:.4f}")
 
     print(f"The average energy consumption per node: {env.avg_node_energy():.4f}")

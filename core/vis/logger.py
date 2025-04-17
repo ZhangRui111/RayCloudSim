@@ -108,7 +108,7 @@ class Logger:
             epoch (int): The current epoch (0-indexed; will be logged as 1-indexed).
         """
         self.current_epoch = epoch + 1
-        line = f"\n====================\nEpoch {self.current_epoch}/{self.training_config['num_epoch']}\n"
+        line = f"\n====================\nEpoch {self.current_epoch}/{self.training_config['num_epochs']}\n"
         print(line, end="")
         self.log_file.write(line)
         self.log_file.flush()

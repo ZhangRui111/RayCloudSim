@@ -13,7 +13,7 @@ __all__ = ["EnvLogger", "Env"]
 
 # Task status flags
 FLAG_TASK_EXECUTION_DONE = 0
-ENERGY_UNIT_CONVERSION = 1000000
+ENERGY_UNIT_CONVERSION = 1000
 
 
 def user_defined_info(task):
@@ -31,6 +31,7 @@ class EnvLogger:
         self.decimal_places = decimal_places
         self.task_info: dict = {}  # Records task-related information
         self.node_info: dict = {}  # Records node-related information
+
 
     def log(self, message):
         """Log a message with a timestamp if logging is enabled."""
@@ -53,6 +54,15 @@ class EnvLogger:
             raise ValueError("info_type must be 'task' or 'node'")
         target_dict = self.task_info if info_type == 'task' else self.node_info
         target_dict[key] = value
+        
+    def get_value_idx(self, key: str) -> int:
+        
+        infos = ['status_code', 'node_names', 'time_list', 'energy_list']
+        
+        if key in infos:
+            return infos.index(key)
+        else:
+            raise ValueError(f"Invalid key value: {key}")
 
     def reset(self) -> None:
         """Reset the logger by clearing all recorded information."""
@@ -94,6 +104,7 @@ class Env:
             node.node_id: self.controller.process(self._track_node_energy(node))
             for node in self.scenario.get_nodes().values()
         }
+        self.start_time = None
 
         # Start visualization frame recorder if enabled
         if self.config['Basic']['VisFrame'] == "on":
@@ -118,10 +129,18 @@ class Env:
     def now(self) -> float:
         """Get the current simulation time."""
         return self.controller.now
+    
+    @property
+    def execution_time(self) -> float:
+        """Get the current simulation time."""
+        if self.start_time is None:
+            return 0
+        else:
+            return self.controller.now - self.start_time
 
-    def run(self, until: float, refresh_rate_scaling: bool = False):
+    def run(self, until: float) -> None:
         """Run the simulation until the specified time."""
-        self.controller.run(until if not refresh_rate_scaling else until * self.refresh_rate)
+        self.controller.run(until)
 
     def reset(self):
         """Reset the simulation environment."""
@@ -140,6 +159,8 @@ class Env:
 
     def process(self, **kwargs):
         """Process a task using keyword arguments."""
+        if self.start_time is None:
+            self.start_time = self.now
         task_process = self._execute_task(**kwargs)
         self.controller.process(task_process)
 
@@ -158,7 +179,7 @@ class Env:
             self.task_count += 1
             self.logger.append(info_type='task', 
                                key=task.task_id, 
-                               value=(1, ['DuplicateTaskIdError'], (task.src_name, dst_name)))
+                               value=(1, (task.src_name, dst_name), ['DuplicateTaskIdError'], [0,0]))
             log_info = f"**DuplicateTaskIdError: Task {{{task.task_id}}}** " \
                        f"new task (name {{{task.task_name}}}) with a " \
                        f"duplicate task id {{{task.task_id}}}."
@@ -178,11 +199,12 @@ class Env:
         """
         try:
             links_in_path = self.scenario.infrastructure.get_shortest_links(task.src_name, dst_name)
+            task.links_in_path = links_in_path
         except nx.exception.NetworkXNoPath:
             self.task_count += 1
             self.logger.append(info_type='task', 
                                key=task.task_id, 
-                               value=(1, ['NetworkXNoPathError'], (task.src_name, dst_name)))
+                               value=(1, (task.src_name, dst_name), ['NetworkXNoPathError'], [0,0]))
             log_info = f"**NetworkXNoPathError: Task {{{task.task_id}}}** Node {{{dst_name}}} is inaccessible"
             self.logger.log(log_info)
             raise EnvironmentError(('NetworkXNoPathError', log_info, task.task_id))
@@ -192,7 +214,7 @@ class Env:
                 self.task_count += 1
                 self.logger.append(info_type='task', 
                                    key=task.task_id, 
-                                   value=(1, ['IsolatedWirelessNode'], (task.src_name, dst_name)))
+                                   value=(1, (task.src_name, dst_name), ['IsolatedWirelessNode'], [0,0]))   
                 log_info = f"**IsolatedWirelessNode: Task {{{task.task_id}}}** Isolated wireless node detected"
                 self.logger.log(log_info)
                 raise e
@@ -202,7 +224,7 @@ class Env:
                 self.task_count += 1
                 self.logger.append(info_type='task', 
                                    key=task.task_id, 
-                                   value=(1, ['NetCongestionError'], (task.src_name, dst_name)))
+                                   value=(1, (task.src_name, dst_name), ['NetCongestionError'], [0,0]))
                 log_info = f"**NetCongestionError: Task {{{task.task_id}}}** " \
                            f"network congestion Node {{{task.src_name}}} --> {{{dst_name}}}"
                 self.logger.log(log_info)
@@ -251,13 +273,9 @@ class Env:
         Raises:
             EnvironmentError: If there is insufficient buffer space.
         """
-        
-        link = self.scenario.get_link(task.src_name, dst.name)
-
-
         if not dst.free_cpu_freq > 0:
             try:
-                task.allocate(self.now, dst, pre_allocate=True, link=link)
+                task.allocate(self.now, dst, pre_allocate=True)
                 dst.append_task(task)
                 self.logger.log(f"Task {{{task.task_id}}} is buffered in Node {{{task.dst_name}}}")
                 return
@@ -265,16 +283,17 @@ class Env:
                 self.task_count += 1
                 self.logger.append(info_type='task', 
                                    key=task.task_id, 
-                                   value=(1, ['InsufficientBufferError'], (task.src_name, task.dst_name)))
+                                   value=(1, (task.src_name, task.dst_name), ['InsufficientBufferError'], [task.trans_energy, 0] ))
+                self.scenario.get_node(task.dst_name).energy_consumption += task.exe_energy
                 self.logger.log(e.args[0][1])
                 raise e
 
         if flag_reactive:
-            task.allocate(self.now, link=link)
+            task.allocate(self.now)
             self.logger.log(f"Task {{{task.task_id}}} re-actives in Node {{{task.dst_name}}}, "
                             f"waiting {{{(task.wait_time - task.trans_time):.{self.decimal_places}f}}}s")
         else:
-            task.allocate(self.now, dst, link=link)
+            task.allocate(self.now, dst)
 
         self.active_tasks[task.task_id] = task
         try:
@@ -343,10 +362,10 @@ class Env:
                         # Record task statistics (success, times, node names)
                         self.logger.append(info_type='task', 
                                            key=task.task_id, 
-                                           value=(0, 
-                                                  [task.trans_time, task.wait_time, task.exe_time], 
-                                                  (task.src_name, task.dst_name),
-                                            [task.exe_energy, task.trans_energy])
+                                           value=(0,                                                  
+                                            (task.src_name, task.dst_name),
+                                            [task.trans_time, task.wait_time, task.exe_time], 
+                                            [task.trans_energy, task.exe_energy])
                                             )
                                            
                         
@@ -375,11 +394,10 @@ class Env:
     def _track_node_energy(self, node: Node):
         """Recorder of node's energy consumption."""
         while True:
-            node.energy_consumption += node.idle_energy_coef * self.refresh_rate
+            node.energy_consumption += node.idle_energy_coef * self.refresh_rate * node.max_cpu_freq
             # node.energy_consumption += node.exe_energy_coef * (
             #     node.max_cpu_freq - node.free_cpu_freq) * self.refresh_rate
             node.total_cpu_freq += (node.max_cpu_freq - node.free_cpu_freq) * self.refresh_rate
-            node.clock += self.refresh_rate
             yield self.controller.timeout(self.refresh_rate)
     
     def _record_frame_info(self):
@@ -413,13 +431,19 @@ class Env:
         """Retrieve the status of a node or link."""
         return self.scenario.status(node_name, link_args)
     
-    def avg_node_energy(self, node_name_list: Optional[List[str]] = None) -> float:
+    def avg_node_energy(self, node_name_list: Optional[List[str]] = None, power=False) -> float:
         """Calculate the average energy consumption across specified nodes."""
-        return self.scenario.avg_node_energy(node_name_list) / ENERGY_UNIT_CONVERSION
+        if power:
+            return self.scenario.avg_node_energy(node_name_list) / (self.execution_time + 1e-6)
+        else:
+            return self.scenario.avg_node_energy(node_name_list) / ENERGY_UNIT_CONVERSION
     
-    def node_energy(self, node_name: str) -> float:
+    def node_energy(self, node_name: str, power=False) -> float:
         """Retrieve the energy consumption of a specific node."""
-        return self.scenario.node_energy(node_name) / ENERGY_UNIT_CONVERSION
+        if power:
+            return self.scenario.node_energy(node_name) / (self.execution_time + 1e-6) 
+        else:
+            return self.scenario.node_energy(node_name) / ENERGY_UNIT_CONVERSION
 
     def close(self):
         # Log energy consumption and CPU frequency per clock cycle for each node
@@ -427,8 +451,8 @@ class Env:
             self.logger.append(info_type='node', 
                                key=node.node_id, 
                                value=[
-                                   node.energy_consumption / (node.clock + 1e-6),  # Average energy per cycle
-                                   node.total_cpu_freq / (node.clock + 1e-6)       # Average CPU frequency
+                                   node.energy_consumption,  # Average energy per cycle
+                                   node.total_cpu_freq       # Average CPU frequency
                                ])
         
         # --- Save Visualization Data ---

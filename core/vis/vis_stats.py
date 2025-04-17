@@ -23,25 +23,40 @@ class VisStats:
 
     def get_stats(self, env: Env):
         """Extract task and node statistics from the environment."""
-        # Process task information.
         task_list = []
+        
+        # Get index values for various logged attributes.
+        statue_code_idx = env.logger.get_value_idx("status_code")
+        node_names_idx = env.logger.get_value_idx("node_names")
+        time_list_idx = env.logger.get_value_idx("time_list")
+        energy_list_idx = env.logger.get_value_idx("energy_list")
+        
         for task_id, val in env.logger.task_info.items():
-            src_name, dst_name = val[2]
-            if val[0] == SUCCESS:
-                transmission_time = val[1][0]  # Task transmission time.
-                wait_time = val[1][1]          # Task wait time.
-                execution_time = val[1][2]
-                total_time = sum(val[1])       # Sum of transmission, wait, and execution times.
+            src_name, dst_name = val[node_names_idx]
+            if val[statue_code_idx] == SUCCESS:
+                transmission_time = val[time_list_idx][0]  # Task transmission time.
+                wait_time = val[time_list_idx][1]          # Task wait time.
+                execution_time = val[time_list_idx][2]
+                total_time = sum(val[time_list_idx])       # Sum of transmission, wait, and execution times.
                 status = 'SUCCESS'
             else:
                 transmission_time = 0
                 wait_time = 0
                 execution_time = 0
                 total_time = 0
-                status = val[1][0]  # Error code.
-            task_list.append([task_id, f'{src_name}-->{dst_name}', transmission_time, wait_time, execution_time, total_time, status])
+                status = val[time_list_idx][0]  # Error code.
+
+            transmission_energy = val[energy_list_idx][0]
+            execution_energy = val[energy_list_idx][1]
+            total_energy = sum(val[energy_list_idx])
+            
+            task_list.append([task_id, src_name, dst_name, f'{src_name}-->{dst_name}', status,
+                              transmission_time, wait_time, execution_time, total_time,
+                              transmission_energy, execution_energy, total_energy])
         self.task_info = pd.DataFrame(task_list, 
-                                      columns=['Task ID', 'Link', 'Trans Time', 'Wait Time', 'Exec Time', 'Time', 'Status'])
+                                      columns=['Task ID', 'Source', 'Destination', 'Link', 'Status',
+                                               'Trans Time', 'Wait Time', 'Exe Time', 'Time',
+                                               'Trans Energy', 'Exe Energy', 'Energy'])
 
         # Process node information.
         node_list = []
@@ -57,7 +72,7 @@ class VisStats:
         """Generate and save several visualizations based on the current environment stats."""
         self.get_stats(env)
 
-        # Helper function to annotate all bars in an axis.
+        # Helper function to annotate bars in an axis.
         def annotate_bars(ax, fmt="{:.0f}", fontsize=10):
             for p in ax.patches:
                 height = p.get_height()
@@ -72,9 +87,7 @@ class VisStats:
         ).reset_index()
         f, ax = plt.subplots(figsize=(10, 6))
         plt.xticks(rotation=45, fontsize=10)
-        # Plot total tasks as lightgray bars.
         sns.barplot(x="Link", y="Total", data=task_counts, label="Total", color="lightgray", ax=ax)
-        # Overlay successful tasks as red bars.
         sns.barplot(x="Link", y="Success", data=task_counts, label="Success", color="red", ax=ax)
         if self.display_numbers:
             annotate_bars(ax, fmt="{:.0f}")
@@ -87,17 +100,18 @@ class VisStats:
 
         # 2. Pie chart: Distribution of error types.
         errors = self.task_info[self.task_info['Status'] != 'SUCCESS']
-        error_counts = errors.groupby('Status').size()
-        f, ax = plt.subplots(figsize=(8, 8))
-        ax.pie(error_counts, labels=error_counts.index, autopct='%1.1f%%')
-        ax.set_title('Type of Errors')
-        plt.tight_layout()
-        f.savefig(os.path.join(self.save_path, 'error_distribution.png'))
-        plt.close(f)
+        if not errors.empty:
+            error_counts = errors.groupby('Status').size()
+            f, ax = plt.subplots(figsize=(8, 8))
+            ax.pie(error_counts, labels=error_counts.index, autopct='%1.1f%%')
+            ax.set_title('Type of Errors')
+            plt.tight_layout()
+            f.savefig(os.path.join(self.save_path, 'error_distribution.png'))
+            plt.close(f)
 
         # 3. Bar chart: Average latency per link (for successful tasks).
         latency = self.task_info[self.task_info['Status'] == 'SUCCESS']\
-                      .groupby('Link')[['Trans Time', 'Wait Time', 'Exec Time', 'Time']].mean().reset_index()
+                      .groupby('Link')[['Trans Time', 'Wait Time', 'Exe Time', 'Time']].mean().reset_index()
         latency_melt = latency.melt(id_vars='Link', var_name='Latency Type', value_name='Average')
         f, ax = plt.subplots(figsize=(10, 6))
         sns.barplot(data=latency_melt, x='Link', y='Average', hue='Latency Type', ax=ax)
@@ -110,22 +124,42 @@ class VisStats:
         plt.close(f)
 
         # 4. Bar chart: Energy consumption per node.
+        energy = self.task_info.groupby('Destination')[['Trans Energy', 'Exe Energy']].sum().reset_index()
+
+        energy = energy.merge(self.node_info, left_on='Destination', right_on='Node Name', suffixes=('_task', '_node'))
+        energy['Idle Energy'] = energy['Energy'] - energy["Trans Energy"] - energy["Exe Energy"]
+        energy_melt = energy[['Node Name', 'Trans Energy', 'Exe Energy', 'Idle Energy', 'Energy']].melt(
+            id_vars='Node Name', var_name='Energy Type', value_name='Total')
+
         f, ax = plt.subplots(figsize=(10, 6))
-        sns.barplot(data=self.node_info, x='Node Name', y='Energy', ax=ax)
+        sns.barplot(data=energy_melt, x='Node Name', y='Total', hue='Energy Type', ax=ax)
         ax.set_title('Energy Consumption per Node')
         plt.xticks(rotation=45, fontsize=10)
         plt.tight_layout()
-        if self.display_numbers:
-            annotate_bars(ax, fmt="{:.4E}")
         f.savefig(os.path.join(self.save_path, 'energy_consumption_per_node.png'))
         plt.close(f)
 
-        # 5. Bar chart: CPU frequency per node (overlay style).
+        # 5. Bar chart: Power consumption per node (Power = Energy/Clock).
+        # First, include the clock in the melt so we can compute power per energy type.
+        
+        energy_melt['Power'] = energy_melt['Total'] / env.execution_time
+        f, ax = plt.subplots(figsize=(10, 6))
+        sns.barplot(data=energy_melt, x='Node Name', y='Power', hue='Energy Type', ax=ax)
+        ax.set_title('Power Consumption per Node')
+        ax.set_ylabel('Power (Energy / Clock)')
+        plt.xticks(rotation=45, fontsize=10)
+        plt.tight_layout()
+        if self.display_numbers:
+            annotate_bars(ax, fmt="{:.1f}")
+        f.savefig(os.path.join(self.save_path, 'power_consumption_per_node.png'))
+        plt.close(f)
+        
+        # 6. Bar chart: CPU frequency per node (overlay style).
         f, ax = plt.subplots(figsize=(10, 6))
         plt.xticks(rotation=45, fontsize=10)
-        # Plot max CPU frequency as lightgray bars.
+        # Normalize CPU frequency by clock.
+        self.node_info['CPU Freq'] = self.node_info['CPU Freq'] / env.execution_time
         sns.barplot(x="Node Name", y="Max CPU Freq", data=self.node_info, label="Max CPU Freq", color="lightgray", ax=ax)
-        # Overlay actual CPU frequency as red bars.
         sns.barplot(x="Node Name", y="CPU Freq", data=self.node_info, label="CPU Freq", color="red", ax=ax)
         if self.display_numbers:
             annotate_bars(ax, fmt="{:.0f}")
@@ -136,7 +170,7 @@ class VisStats:
         f.savefig(os.path.join(self.save_path, 'cpu_frequency_per_node.png'))
         plt.close(f)
 
-        # 6. Bar chart: Percent CPU frequency per node.
+        # 7. Bar chart: Percent CPU frequency per node.
         self.node_info['Percent CPU Freq'] = (self.node_info['CPU Freq'] / self.node_info['Max CPU Freq']) * 100
         f, ax = plt.subplots(figsize=(10, 6))
         sns.barplot(data=self.node_info, x='Node Name', y='Percent CPU Freq', ax=ax)

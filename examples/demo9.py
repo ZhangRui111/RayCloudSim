@@ -30,7 +30,7 @@ def create_env(config):
     flag = config["env"]["flag"]
     # Create scenario using the provided config file.
     scenario = Scenario(config_file=f"eval/benchmarks/Pakistan/data/{flag}/config.json", flag=flag)
-    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=False, decimal_places=3)
+    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=True, decimal_places=3)
     env.refresh_rate = config["env"]["refresh_rate"]
     return env
 
@@ -39,7 +39,7 @@ def main():
     config = {
         "env": {
             "dataset": "Pakistan",
-            "flag": "Tuple30K",  # Can change to Tuple50K or Tuple100K if desired.
+            "flag": "Tuple50K",  # Can change to Tuple50K or Tuple100K if desired.
             "refresh_rate": 0.001
         },
         "policy": "DemoGreedy",
@@ -73,7 +73,7 @@ def main():
         task = Task(task_id=task_info['TaskID'],
                     task_size=task_info['TaskSize'],
                     cycles_per_bit=task_info['CyclesPerBit'],
-                    trans_bit_rate=task_info['TransBitRate']*5,
+                    trans_bit_rate=task_info['TransBitRate'],
                     ddl=task_info['DDL'],
                     src_name='e0',
                     task_name=task_info['TaskName'])
@@ -113,15 +113,15 @@ def main():
 
 
     m1 = SuccessRate()
-    r1 = m1.eval(env.logger.task_info)
+    r1 = m1.eval(env.logger)
     logger.update_metric("SuccessRate", r1)
 
     m2 = AvgLatency()
-    r2 = m2.eval(env.logger.task_info)
+    r2 = m2.eval(env.logger)
     logger.update_metric("AvgLatency", r2)
     
     # avg energy per
-    logger.update_metric("AvgEnergy", env.avg_node_energy())
+    logger.update_metric("AvgPower", env.avg_node_energy(power=True))
     env.close()
     
     # Stats Visualization

@@ -163,7 +163,7 @@ def vis_frame2video(env):
     """Build the simulation video, based on the simulation logs."""
     frame_save_path = f"{env.config['VisFrame']['LogFramesPath']}"
     if len(os.listdir(frame_save_path)) == 0:
-        with open(f"{env.config['VisFrame']['LogInfoPath']}/info4frame.json", 'r') as fr:
+        with open(f"{env.config['VisFrame']['LogInfoPath']}/frame_info.json", 'r') as fr:
             info4frame = json.load(fr)
         for k, v in tqdm(info4frame.items()):
             v['now'] = k
