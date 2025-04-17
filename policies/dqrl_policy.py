@@ -95,14 +95,13 @@ class DQRLPolicy:
                       for link_name in env.scenario.get_links()]
             obs += bw_obs
 
-        obs = cpu_obs + buffer_obs + bw_obs
         return obs
 
     def act(self, env, task, train=True):
         """
         Chooses an action using an ε-greedy strategy and records the current state.
         """
-        state = self._make_observation(env, task)
+        state = self._make_observation(env, task, self.obs_type)
         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0).to(device)
         
         if random.random() < self.epsilon and train:

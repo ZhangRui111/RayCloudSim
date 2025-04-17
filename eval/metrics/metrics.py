@@ -17,6 +17,10 @@ class SuccessRate(object):
         
         n = 0
         m = len(info)
+        
+        if m == 0:
+            return 0.0
+        
         for _, val in info.items():
             if val[0] == 0:
                 n += 1
@@ -47,7 +51,7 @@ class AvgLatency(object):
                 latencies.append(task_wait_time + task_exe_time + task_trans_time)
   
         if len(latencies) == 0:
-            return eps
+            return 0
 
         return sum(latencies) / len(latencies)
 
@@ -74,6 +78,6 @@ class AvgEnergy(object):
             energy.append(task_trans_energy + task_exe_energy)
   
         if len(energy) == 0:
-            return eps
+            return 0
 
         return sum(energy) / len(energy)

@@ -7,7 +7,7 @@ import seaborn as sns
 SUCCESS = 0
 
 class VisStats:
-    def __init__(self, save_path: str, display_numbers: bool = True):
+    def __init__(self, save_path: str, display_numbers: bool = False):
         """
         Initialize with a path where figures will be saved.
         

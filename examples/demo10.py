@@ -24,9 +24,19 @@ from core.task import Task
 from core.vis import *
 from core.vis.vis_stats import VisStats
 from core.vis.logger import Logger
-from eval.benchmarks.Pakistan.scenario import Scenario
+from eval.benchmarks.Pakistan.scenario import Scenario as PakistanScenario
+from eval.benchmarks.Topo4MEC.scenario import Scenario as Topo4MECScenario
 from eval.metrics.metrics import SuccessRate, AvgLatency
 from policies.dqrl_policy import DQRLPolicy
+
+def error_handler(error: Exception):
+    """Customized error handler for different types of errors."""
+    errors = ['DuplicateTaskIdError', 'NetworkXNoPathError', 'IsolatedWirelessNode', 'NetCongestionError', 'InsufficientBufferError']
+    message = error.args[0][0]
+    if message in errors:
+        pass
+    else:
+        raise
 
 def run_epoch(config, policy, data: pd.DataFrame, train=True, lambda_=(1, 1, 1
                                                                        )):
@@ -66,7 +76,7 @@ def run_epoch(config, policy, data: pd.DataFrame, train=True, lambda_=(1, 1, 1
                     cycles_per_bit=task_info['CyclesPerBit'],
                     trans_bit_rate=task_info['TransBitRate'],
                     ddl=task_info['DDL'] ,
-                    src_name='e0',
+                    src_name=task_info['SrcName'],
                     task_name=task_info['TaskName'])
 
         # Wait until the simulation reaches the task's generation time.
@@ -94,7 +104,7 @@ def run_epoch(config, policy, data: pd.DataFrame, train=True, lambda_=(1, 1, 1
             try:
                 env.run(until=until)
             except Exception as e:
-                pass
+                error_handler(e)
             
         if train:
             done = False  # Each task is treated as an individual episode.
@@ -143,6 +153,10 @@ def create_env(config):
     """Create and return an environment instance."""
     dataset = config["env"]["dataset"]
     flag = config["env"]["flag"]
+    if config["env"]["dataset"] == "Pakistan":
+        Scenario = PakistanScenario
+    elif config["env"]["dataset"] == "Topo4MEC":
+        Scenario = Topo4MECScenario
     scenario = Scenario(config_file=f"eval/benchmarks/{dataset}/data/{flag}/config.json", flag=flag)
     env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=False)
     env.refresh_rate = config['env']['refresh_rate']
@@ -151,6 +165,7 @@ def create_env(config):
 
 
 def main():
+    
     config = {
         "policy": "DQRL",
         "env": {
@@ -181,8 +196,39 @@ def main():
             "buffer"
             ]
         }
-        }
-    
+    }
+    # config = {
+    #     "policy": "DQRL",
+    #     "env": {
+    #         "dataset": "Topo4MEC",
+    #         "flag": "25N50E",
+    #         "refresh_rate": 0.1
+    #     },
+    #     "training": {
+    #         "num_epochs": 10,
+    #         "batch_size": 256,
+    #         "lr": 0.0001,
+    #         "lr_decay": 0.9,
+    #         "gamma": 0.2,
+    #         "epsilon": 0.2,
+    #         "epsilon_decay": 0.8,
+    #         "lambda": [
+    #         1e4,
+    #         1,
+    #         0
+    #         ]
+    #     },
+    #     "model": {
+    #         "d_model": 128,
+    #         "n_layers": 3,
+    #         "obs_type": [
+    #         "cpu",
+    #         # "bw",
+    #         "buffer"
+    #         ]
+    #     }
+    # }
+
     
     logger = Logger(config)
     
@@ -190,8 +236,8 @@ def main():
     env = create_env(config)
     
     # Load train and test datasets.
-    train_data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{config['env']['flag']}/trainset.csv")
-    test_data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{config['env']['flag']}/testset.csv")
+    train_data = pd.read_csv(f"eval/benchmarks/{config['env']['dataset']}/data/{config['env']['flag']}/trainset.csv")
+    test_data = pd.read_csv(f"eval/benchmarks/{config['env']['dataset']}/data/{config['env']['flag']}/testset.csv")
 
     # Initialize the policy.
     policy = DQRLPolicy(env=env, config=config)
