@@ -11,7 +11,7 @@
 > 只有最近三次的更新摘要会显示在这里。完整的历史更新摘要可以查看[这里](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).
 
 - **2025/05/07**
-  - [**Optimization**] Main 分支: 只保留最必要、最核心的代码和功能，具备最大的可读性和最小的代码量。codebase.
+  - [**Optimization**] Main 分支: 只保留最必要、最核心的代码和功能，具备最大的可读性和最小的代码量。
 
 - **2025/02/04**
   - [**新增**] 新增数据集：[Pakistan](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py)
