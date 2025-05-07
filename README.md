@@ -26,12 +26,13 @@
 
 ## II. Contributing
 
-Any contributions you make are greatly appreciated. Please note the following:
-
-1. Please note that the **main** branch is protected, and we recommend that you submit pull request to the **dev-open** branch. 
-2. All scripts under the `examples/` directory have corresponding outputs, and these records also serve as a proof of code execution. Please ensure that your pull request does not change the corresponding output records (or provide reasonable explanations).
+Any contributions you make are greatly appreciated. Please make sure to read the [Code of Contribution](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/code_of_contribution.md) before submitting a PR.
 
 ### Join and build RayCloudSim together
+
+<a href="https://github.com/tutur90">
+  <img src="https://avatars.githubusercontent.com/u/124059682?v=4" alt="tutur90" width="60" />
+</a>
 
 <div style="text-align: center;">
   <picture>
@@ -40,11 +41,6 @@ Any contributions you make are greatly appreciated. Please note the following:
     <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="500" />
   </picture>
 </div>
-
----
-<a href="https://github.com/tutur90">
-  <img src="https://avatars.githubusercontent.com/u/124059682?v=4" alt="tutur90" width="80" />
-</a>
 
 ## III. Introduction
 
