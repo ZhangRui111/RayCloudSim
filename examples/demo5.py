@@ -1,5 +1,6 @@
 """
-This script demonstrates an example that considers the wireless transmission.
+This script demonstrates the evaluation of offloading strategy and 
+how to use the Topo4MEC dataset.
 """
 
 import os
@@ -10,43 +11,96 @@ current_dir = os.path.dirname(current_file_path)
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
+import pandas as pd
+
 from core.env import Env
 from core.task import Task
-from core.vis import *
-from examples.scenarios.scenario_5 import Scenario
+from eval.benchmarks.Topo4MEC.scenario import Scenario
+from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
+from policies.demo.demo_round_robin import DemoRoundRobin
 
 
 def main():
+    flag = '25N50E'
+    # flag = '50N50E'
+    # flag = '100N150E'
+    # flag = 'MilanCityCenter'
+
     # Create the environment with the specified scenario and configuration files.
-    scenario = Scenario(config_file="examples/scenarios/configs/config_5.json")
+    scenario = Scenario(config_file=f"eval/benchmarks/Topo4MEC/data/{flag}/config.json", flag=flag)
     env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-    # Visualization: Display the topology of the environment.
-    # vis_graph(env,
-    #           config_file="core/vis/configs/vis_config_base.json", 
-    #           save_as="examples/vis/demo_5.png")
+    # Load the test dataset.
+    data = pd.read_csv(f"eval/benchmarks/Topo4MEC/data/{flag}/testset.csv")
+    test_tasks = list(data.iloc[:].values)
 
-    task0 = Task(task_id=0,
-                 task_size=20,
-                 cycles_per_bit=1,
-                 trans_bit_rate=20,
-                 src_name='n4')
+    # Init the policy.
+    policy = DemoRoundRobin()
 
-    env.process(task=task0, dst_name='n5')
-    # routing path: [('n4', 'n0'), n0 --> n1, n1 --> n2, n2 --> n3, ('n3', 'n5')]
+    # Begin the simulation.
+    until = 1
+    launched_task_cnt = 0
+    for task_info in test_tasks:
+        # Task properties:
+        # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
+        #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
+        generated_time = task_info[1]
+        task = Task(
+            id=task_info[2],
+            task_size=task_info[3],
+            cycles_per_bit=task_info[4],
+            trans_bit_rate=task_info[5],
+            ddl=task_info[6],
+            src_name=task_info[7],
+            task_name=task_info[0],
+        )
 
-    env.run(until=10)  # execute the simulation until 10
+        while True:
+            # Catch completed task information.
+            while env.done_task_info:
+                item = env.done_task_info.pop(0)
 
-    task1 = Task(task_id=1,
-                 task_size=20,
-                 cycles_per_bit=1,
-                 trans_bit_rate=20,
-                 src_name='n1')
+            if env.now == generated_time:
+                dst_id = policy.act(env, task)  # offloading decision
+                dst_name = env.scenario.node_id2name[dst_id]
+                env.process(task=task, dst_name=dst_name)
+                launched_task_cnt += 1
+                break
 
-    env.process(task=task1, dst_name='n5')
+            # Execute the simulation with error handler.
+            try:
+                env.run(until=until)
+            except Exception as e:
+                pass
 
-    env.run(until=20)  # execute the simulation from 10 to 20
-    # routing path: [n1 --> n2, n2 --> n3, ('n3', 'n5')]
+            until += 1
+
+    # Continue the simulation until the last task successes/fails.
+    while env.task_count < launched_task_cnt:
+        until += 1
+        try:
+            env.run(until=until)
+        except Exception as e:
+            pass
+
+    # Evaluation
+    print("\n===============================================")
+    print("Evaluation:")
+    print("===============================================\n")
+
+    print("-----------------------------------------------")
+    m1 = SuccessRate()
+    r1 = m1.eval(env.logger.task_info)
+    print(f"The success rate of all tasks: {r1:.4f}")
+    print("-----------------------------------------------\n")
+
+    print("-----------------------------------------------")
+    m2 = AvgLatency()
+    r2 = m2.eval(env.logger.task_info)
+    print(f"The average latency per task: {r2:.4f}")
+
+    print(f"The average energy consumption per node: {env.avg_node_energy():.4f}")
+    print("-----------------------------------------------\n")
 
     env.close()
 
@@ -56,14 +110,23 @@ if __name__ == '__main__':
 
 
 # # ==================== Simulation log ====================
-# [0.0]: Task {0} generated in Node {n4}
-# [0.0]: Task {0}: {n4} --> {n5}
-# [3.0]: Task {0} arrived Node {n5} with {3.0}s
-# [3.0]: Processing Task {0} in {n5}
-# [4.0]: Task {0}: Accomplished in Node {n5} with execution time {1.0}s
-# [10.0]: Task {1} generated in Node {n1}
-# [10.0]: Task {1}: {n1} --> {n5}
-# [12.0]: Task {1} arrived Node {n5} with {2.0}s
-# [12.0]: Processing Task {1} in {n5}
-# [13.0]: Task {1}: Accomplished in Node {n5} with execution time {1.0}s
-# [20.0]: Simulation completed!
+# [883.00]: Task {793}: Accomplished in Node {n19} with execution time {18.62}s
+# [884.00]: Task {783}: Accomplished in Node {n9} with execution time {34.00}s
+# [890.00]: Task {775}: Accomplished in Node {n1} with execution time {11.56}s
+# [891.00]: Task {799}: Accomplished in Node {n0} with execution time {19.37}s
+# [928.00]: Task {782}: Accomplished in Node {n8} with execution time {61.19}s
+
+# ===============================================
+# Evaluation:
+# ===============================================
+
+# -----------------------------------------------
+# The success rate of all tasks: 0.9762
+# -----------------------------------------------
+
+# -----------------------------------------------
+# The average latency per task: 26.7000
+# The average energy consumption per node: 598949.0588
+# -----------------------------------------------
+
+# [929.00]: Simulation completed!

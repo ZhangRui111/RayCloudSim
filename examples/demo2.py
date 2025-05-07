@@ -12,7 +12,6 @@ sys.path.insert(0, parent_dir)
 
 from core.env import Env
 from core.task import Task
-from core.vis import *
 from examples.scenarios.scenario_2 import Scenario
 
 
@@ -28,11 +27,6 @@ def error_handler(error: Exception):
         pass
     elif message[0] == 'NetworkXNoPathError':
         # Error: nx.exception.NetworkXNoPath
-        # print(message[1])
-        # ----- handle this error here -----
-        pass
-    elif message[0] == 'IsolatedWirelessNode':
-        # Error: isolated wireless src/dst node
         # print(message[1])
         # ----- handle this error here -----
         pass
@@ -54,11 +48,6 @@ def main():
     # Create the environment with the scenario and configuration files.
     scenario = Scenario(config_file="examples/scenarios/configs/config_2.json")
     env = Env(scenario, config_file="core/configs/env_config_null.json")
-
-    # Visualization: Display the topology of the environment.
-    # vis_graph(env,
-    #           config_file="core/vis/configs/vis_config_base.json", 
-    #           save_as="examples/vis/demo_2.png")
     
     # Define simulated tasks. Task properties:
     # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
@@ -106,13 +95,15 @@ def main():
     for task_info in simulated_tasks:
 
         generated_time, dst_name = task_info[1], task_info[8]
-        task = Task(task_id=task_info[2],
-                    task_size=task_info[3],
-                    cycles_per_bit=task_info[4],
-                    trans_bit_rate=task_info[5],
-                    ddl=task_info[6],
-                    src_name=task_info[7],
-                    task_name=task_info[0])
+        task = Task(
+            id=task_info[2],
+            task_size=task_info[3],
+            cycles_per_bit=task_info[4],
+            trans_bit_rate=task_info[5],
+            ddl=task_info[6],
+            src_name=task_info[7],
+            task_name=task_info[0],
+        )
 
         while True:
             # Catch completed task information.
@@ -158,39 +149,39 @@ if __name__ == '__main__':
 
 
 # # ==================== Simulation log ====================
-# [0.0]: Task {0} generated in Node {n0}
-# [0.0]: Processing Task {0} in {n0}
-# [0.0]: Task {1} generated in Node {n0}
-# [0.0]: Task {1}: {n0} --> {n2}
-# [1.0]: **DuplicateTaskIdError: Task {0}** new task (name {t0-duplicate}) with a duplicate task id {0}.
-# [2.0]: Task {2} generated in Node {n0}
-# [2.0]: **NetCongestionError: Task {2}** network congestion Node {n0} --> {n2}
-# [3.0]: Task {3} generated in Node {n0}
-# [3.0]: **NetworkXNoPathError: Task {3}** Node {n3} is inaccessible
-# [4.0]: Task {4} generated in Node {n0}
-# [4.0]: Task {4} is buffered in Node {n0}
-# [4.0]: Task {1} arrived Node {n2} with {4.0}s
-# [4.0]: Processing Task {1} in {n2}
-# [5.0]: Task {5} generated in Node {n0}
-# [5.0]: **InsufficientBufferError: Task {5}** insufficient buffer in Node {n0}
-# [8.0]: Task {0}: Accomplished in Node {n0} with execution time {8.0}s
-# [8.0]: Task {1}: Accomplished in Node {n2} with execution time {4.0}s
-# [8.0]: Task {4} re-actives in Node {n0}, waiting {4.0}s
-# [8.0]: Processing Task {4} in {n0}
-# [10.0]: Task {6} generated in Node {n0}
-# [10.0]: Task {6}: {n0} --> {n2}
-# [12.0]: Task {4}: Accomplished in Node {n0} with execution time {4.0}s
-# [14.0]: Task {6} arrived Node {n2} with {4.0}s
-# [14.0]: Processing Task {6} in {n2}
-# [18.0]: Task {6}: Accomplished in Node {n2} with execution time {4.0}s
-# [20.0]: Task {7} generated in Node {n1}
-# [20.0]: Processing Task {7} in {n1}
-# [20.0]: Task {8} generated in Node {n1}
-# [20.0]: Task {8} is buffered in Node {n1}
-# [60.0]: Task {7}: Accomplished in Node {n1} with execution time {40.0}s
-# [60.0]: Task {8} re-actives in Node {n1}, waiting {40.0}s
-# [60.0]: Processing Task {8} in {n1}
-# [100.0]: Task {8}: Accomplished in Node {n1} with execution time {40.0}s
+# [0.00]: Task {0} generated in Node {n0}
+# [0.00]: Processing Task {0} in {n0}
+# [0.00]: Task {1} generated in Node {n0}
+# [0.00]: Task {1}: {n0} --> {n2}
+# [1.00]: **DuplicateTaskIdError: Task {0}** new task (name {t0-duplicate}) with a duplicate task id {0}.
+# [2.00]: Task {2} generated in Node {n0}
+# [2.00]: **NetCongestionError: Task {2}** network congestion Node {n0} --> {n2}
+# [3.00]: Task {3} generated in Node {n0}
+# [3.00]: **NetworkXNoPathError: Task {3}** Node {n3} is inaccessible
+# [4.00]: Task {4} generated in Node {n0}
+# [4.00]: Task {4} is buffered in Node {n0}
+# [4.00]: Task {1} arrived Node {n2} with {4.00}s
+# [4.00]: Processing Task {1} in {n2}
+# [5.00]: Task {5} generated in Node {n0}
+# [5.00]: **InsufficientBufferError: Task {5}** insufficient buffer in Node {n0}
+# [8.00]: Task {0}: Accomplished in Node {n0} with execution time {8.00}s
+# [8.00]: Task {1}: Accomplished in Node {n2} with execution time {4.00}s
+# [8.00]: Task {4} re-actives in Node {n0}, waiting {4.00}s
+# [8.00]: Processing Task {4} in {n0}
+# [10.00]: Task {6} generated in Node {n0}
+# [10.00]: Task {6}: {n0} --> {n2}
+# [12.00]: Task {4}: Accomplished in Node {n0} with execution time {4.00}s
+# [14.00]: Task {6} arrived Node {n2} with {4.00}s
+# [14.00]: Processing Task {6} in {n2}
+# [18.00]: Task {6}: Accomplished in Node {n2} with execution time {4.00}s
+# [20.00]: Task {7} generated in Node {n1}
+# [20.00]: Processing Task {7} in {n1}
+# [20.00]: Task {8} generated in Node {n1}
+# [20.00]: Task {8} is buffered in Node {n1}
+# [60.00]: Task {7}: Accomplished in Node {n1} with execution time {40.00}s
+# [60.00]: Task {8} re-actives in Node {n1}, waiting {40.00}s
+# [60.00]: Processing Task {8} in {n1}
+# [100.00]: Task {8}: Accomplished in Node {n1} with execution time {40.00}s
 
 # -----------------------------------------------
 # Energy consumption during simulation:
@@ -203,4 +194,4 @@ if __name__ == '__main__':
 # Averaged ('n0', 'n1'): 0.006
 # -----------------------------------------------
 
-# [101.0]: Simulation completed!
+# [101.00]: Simulation completed!

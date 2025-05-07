@@ -10,6 +10,9 @@
 
 > Only the summaries of the **most recent three updates** will be recorded here. The complete history of all update summaries can be viewed [here](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).
 
+- **2025/05/07**
+  - [**Optimization**] Main branch: Retains only the most necessary and core code and functionality, with the highest readability and the smallest codebase.
+
 - **2025/02/04**
   - [**New**] New dataset: [Pakistan](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py)
   - [**New**] Adding support for distance calculation based on the Haversine formula
@@ -17,12 +20,6 @@
 
 - **2024/07/02**
   - [**New**] New dataset: [Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py)
-
-- **2024/04/26**
-
-  - [**New**] Users can now easily create the Scenario using configuration files in **JSON** format
-  - [**Optimization**] The dataset has been optimized for saving in **CSV** format, offering better readability
-  - [**New/Optimization**] More and better **visualization tools**, including simulation processes reproduced in video format, facilitate an intuitive understanding of the simulation process
 
 ## II. Contributing
 
@@ -58,6 +55,20 @@ RayCloudSim can be used for the following research topics:
 - Research on resource management and scheduling strategies for large-scale distributed systems
 - Research on deployment strategies for specific devices, such as parameter servers in federated learning
 - ...
+
+**The project has three branches:**
+
+- **main**:
+    - Retains only the most necessary and core code and functionality, with the highest readability and the smallest codebase.
+    - **PR policy**: Almost no PRs will be accepted, except for those that fix bugs.
+
+- **dev-open**:
+    - Based on the main branch, it is open to any functional additions and code optimizations.
+    - **PR policy**: Open to any PRs, but the code that overlaps with the main branch must remain consistent.
+
+- **pre-v0.6.6**:
+    - An early version of the project, used only for backup and has been abandoned.
+    - **PR policy**: No PRs will be accepted.
 
 ## IV. Requirements & Installation
 

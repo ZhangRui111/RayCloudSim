@@ -1,6 +1,9 @@
+- **2025/05/07**
+  - [**Optimization**] Main branch: Retains only the most necessary and core code and functionality, with the highest readability and the smallest codebase.
+
 - **2025/02/04**
   - [**New**] Adding support for the [Pakistan](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py) dataset
-  - [**Optimization**] Chosing the refresh rate + the log decimal format
+  - [**Optimization**] Choosing the refresh rate + the log decimal format
   - [**New**] Calculating the distance from hervetienne coordinate + adding the base latency due to the distance
   - [**New**] Adding Round Robin, Greedy and DQRL Policy
 

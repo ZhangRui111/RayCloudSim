@@ -14,13 +14,11 @@ import pandas as pd
 
 from core.env import Env
 from core.task import Task
-from core.vis import *
 from examples.scenarios.scenario_3 import Scenario
 
 # Global statistics for different error types
 dup_task_id_error = []
 net_no_path_error = []
-isolated_wireless_node_error = []
 net_cong_error = []
 insufficient_buffer_error = []
 
@@ -40,11 +38,6 @@ def error_handler(error: Exception):
         # print(message[1])
         # ----- handle this error here -----
         net_no_path_error.append(message[2])
-    elif message[0] == 'IsolatedWirelessNode':
-        # Error: isolated wireless src/dst node
-        # print(message[1])
-        # ----- handle this error here -----
-        isolated_wireless_node_error.append(message[2])
     elif message[0] == 'NetCongestionError':
         # Error: network congestion
         # print(message[1])
@@ -64,11 +57,6 @@ def main():
     scenario = Scenario(config_file="examples/scenarios/configs/config_3.json")
     env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-    # Visualization: Display the topology of the environment.
-    # vis_graph(env,
-    #           config_file="core/vis/configs/vis_config_base.json", 
-    #           save_as="examples/vis/demo_3.png")
-
     # Load simulated tasks from the CSV dataset.
     data = pd.read_csv("examples/dataset/demo3_dataset.csv")
     simulated_tasks = list(data.iloc[:].values)
@@ -83,13 +71,15 @@ def main():
         # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
         #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
         generated_time, dst_name = task_info[1], task_info[8]
-        task = Task(task_id=task_info[2],
-                    task_size=task_info[3],
-                    cycles_per_bit=task_info[4],
-                    trans_bit_rate=task_info[5],
-                    ddl=task_info[6],
-                    src_name=task_info[7],
-                    task_name=task_info[0])
+        task = Task(
+            id=task_info[2],
+            task_size=task_info[3],
+            cycles_per_bit=task_info[4],
+            trans_bit_rate=task_info[5],
+            ddl=task_info[6],
+            src_name=task_info[7],
+            task_name=task_info[0],
+        )
 
         while True:
             # Catch completed task information.
@@ -124,7 +114,6 @@ def main():
     print(f"Done simulation with {n_tasks} tasks!\n\n"
           f"DuplicateTaskIdError   : {len(dup_task_id_error)}\n"
           f"NetworkXNoPathError    : {len(net_no_path_error)}\n"
-          f"IsolatedWirelessNode   : {len(isolated_wireless_node_error)}\n"
           f"NetCongestionError     : {len(net_cong_error)}\n"
           f"InsufficientBufferError: {len(insufficient_buffer_error)}")
     print("-----------------------------------------------\n")
@@ -147,18 +136,17 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # ...
-# [1178.0]: Processing Task {369} in {n8}
-# [1208.0]: Task {369}: Accomplished in Node {n8} with execution time {30.0}s
-# [1208.0]: Task {376} re-actives in Node {n8}, waiting {269.7}s
-# [1208.0]: Processing Task {376} in {n8}
-# [1318.0]: Task {376}: Accomplished in Node {n8} with execution time {109.8}s
+# [1178.00]: Processing Task {369} in {n8}
+# [1208.00]: Task {369}: Accomplished in Node {n8} with execution time {30.00}s
+# [1208.00]: Task {376} re-actives in Node {n8}, waiting {269.65}s
+# [1208.00]: Processing Task {376} in {n8}
+# [1318.00]: Task {376}: Accomplished in Node {n8} with execution time {109.80}s
 
 # -----------------------------------------------
 # Done simulation with 400 tasks!
 
 # DuplicateTaskIdError   : 0
 # NetworkXNoPathError    : 0
-# IsolatedWirelessNode   : 0
 # NetCongestionError     : 6
 # InsufficientBufferError: 70
 # -----------------------------------------------
@@ -181,4 +169,4 @@ if __name__ == '__main__':
 # Averaged: 1.769
 # -----------------------------------------------
 
-# [1319.0]: Simulation completed!
+# [1319.00]: Simulation completed!

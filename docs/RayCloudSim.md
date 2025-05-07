@@ -9,38 +9,37 @@ Note: This README file is recommended to be viewed with a reader that supports L
 ## 1. Attribute Modeling
 
 1. **Node**:
-    - node_id: node id, unique
-    - name: node name.
-    - max_cpu_freq: maximum cpu frequency.
-    - free_cpu_freq: current available cpu frequency.
-    - task_buffer: FIFO buffer for queued tasks.
-    - location: geographical location.
+    - id: The unique identifier for the node.
+    - name: The human-readable name of the node.
+    - max_cpu_freq: The maximum CPU frequency of the node.
+    - free_cpu_freq (float): The current available CPU frequency.
+    - task_buffer: A FIFO buffer for tasks that are waiting to be processed.
+    - location: The geographical location of the node.
     - idle_energy_coef: energy consumption coefficient during idle state.
-    - exe_energy_coef: energy consumption coefficient during working state.
-    - energy_consumption: energy consumption since the simulation begins.
-    - energy budget (for those energy-sensitive devices)
+    - energy_coefficients: A dictionary containing energy consumption coefficients for different states.
+    - energy_consumption: The total energy consumed by the node.
 
 2. **Link**:
-    - src: source node.
-    - dst: destination node.
-    - max_bandwidth: maximum bandwidth in bps.
-    - free_bandwidth: current available bandwidth in bps.
-    - dis: the distance between its source node and its destination node.
-    - base_latency: base latency of the link.
-    - data_flows: data flows allocated in this link.
+    - src: The source node of the link.
+    - dst: The destination node of the link.
+    - max_bandwidth: The maximum bandwidth of the link.
+    - free_bandwidth: The current available bandwidth of the link.
+    - dis: The distance between the source and destination nodes.
+    - base_latency: The base latency of the link, useful for routing policies.
+    - data_flows: A list of DataFlow objects currently allocated on this link.
 
 3. **Task**:
-    - task_id: task id, unique.
-    - task_size: task size in bits.
-    - cycles_per_bit: amount of CPU cycles per bit of task data.
-    - trans_bit_rate: bit rate of data flow.
-    - ddl: maximum tolerable time limit before executing since the task is generated, i.e., wait_time <= ddl.
+    - id: The unique identifier for the task.
+    - task_size: Size of the task.
+    - cycles_per_bit: Number of CPU cycles per bit of task data.
+    - trans_bit_rate: Transmission bit rate for the task.
+    - ddl: Maximum tolerable time (deadline).
 
-    - cpu_freq: obtained cpu frequency during real execution.
+    - cpu_freq: CPU frequency during execution.
 
-    - wait_time: waiting time from task generation to execution, including the transmission time and the queuing time in the dst node.
-        - trans_time: time being transmitted from the src node to the dst node, which is part of the waiting time.
-    - exe_time: time being processed in the dst node.
+    - trans_time: Time taken for the task to be transmitted.
+    - wait_time: Time spent waiting for processing on the destination node.
+    - exe_time: Time spent processing the task on the destination node.
 
 ## 2. Dynamic Modeling
 
@@ -52,49 +51,36 @@ Here, [ ] indicates that the value depends on what it is related to.
 
     $$t^{wait} = \frac{q \cdot c}{f}$$
 
-    - $q$: total size of all queued tasks preceding the current task [Task]
-    - $c$: amount of CPU cycles per bit [Task]
-    - $f$: CPU frequency [Node]
+    - $q$: total size of all queued tasks preceding the current task **[Task]**
+    - $c$: amount of CPU cycles per bit **[Task]**
+    - $f$: CPU frequency **[Node]**
 
-    - **Note that**, for simplicity, the transmission time term in the expression is omitted. 
-    The transmission time is denoted as:
+2. **Transmission Time**
 
-        $$t^{trans} = \frac{d}{B} \cdot n$$
+    $$t^{trans} = \frac{d}{B} \cdot n$$
 
-        - $d$: task size in bits [Task]
-        - $B$: bandwidth [Link]
-        - $n$: multi-hop routing [Link/System]
+    - $d$: task size in bits **[Task]**
+    - $B$: bandwidth **[Link]**
+    - $n$: multi-hop routing **[Link/System]**
 
-2. **Execution Time**
+3. **Execution Time**
 
     $$t^{exe} = \frac{d \cdot c}{f}$$
 
 ### 2.2 Energy Consumption
 
-1. **Idle Energy Consumption**
+1. **Idling**
 
     $$e^{idle} = \alpha \cdot t^{idle}$$
 
-    - $\alpha$: idle_energy_coef, energy consumption coefficient during idle state [Node]
+    - $\alpha$: idle_energy_coef, energy consumption coefficient during idle state **[Node]**
     - $t^{idle}$: idle time
 
-2. **Working Energy Consumption**
+2. **Working**
 
     $$e^{exe} = \beta \cdot f^3 \cdot t^{exe}$$
 
-    - $\beta$: exe_energy_coef, energy consumption coefficient during working/computing state [Node]
+    - $\beta$: exe_energy_coef, energy consumption coefficient during working/computing state **[Node]**
         - $\alpha << \beta$
     - $t^{exe}$: task execution time
-    - $f$: CPU frequency [Node]
-
-### 2.3 More
-
-<!-- Taking into account only waiting and execution, the delay and energy consumption of a task are calculated as follows:
-
-- $$t = \frac{(q + d) \cdot c}{f}$$
-
-- $$e = \beta \cdot f^3 \cdot t^{exe} = \beta \cdot f^3 \cdot \frac{d \cdot c}{f} = \beta \cdot f^2 \cdot d \cdot c$$ -->
-
-- **From the perspective of tasks**, we usually focus on the response time, which is the waiting time plus the execution time, i.e., $t^{wait} + t^{exe}$.
-
-- **From the perspective of nodes**, we emphasize working energy consumption $e^{exe}$ rather than idle energy consumption $e^{idle}$ (the latter is usually negligible by comparison). 
+    - $f$: CPU frequency **[Node]**

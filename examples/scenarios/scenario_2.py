@@ -30,11 +30,11 @@ class Scenario(BaseScenario):
         link_free_bandwidth = np.zeros((n, n))
 
         for _, node in self.get_nodes().items():
-            node_max_cpu_freq[node.node_id] = node.max_cpu_freq
-            node_free_cpu_freq[node.node_id] = node.free_cpu_freq
+            node_max_cpu_freq[node.id] = node.max_cpu_freq
+            node_free_cpu_freq[node.id] = node.free_cpu_freq
 
         for _, link in self.get_links().items():
-            link_max_bandwidth[link.src.node_id][link.dst.node_id] = link.max_bandwidth
-            link_free_bandwidth[link.src.node_id][link.dst.node_id] = link.free_bandwidth
+            link_max_bandwidth[link.src.id][link.dst.id] = link.max_bandwidth
+            link_free_bandwidth[link.src.id][link.dst.id] = link.free_bandwidth
 
         return node_max_cpu_freq, node_free_cpu_freq, link_max_bandwidth, link_free_bandwidth
