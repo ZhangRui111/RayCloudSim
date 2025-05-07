@@ -26,12 +26,13 @@
 
 ## II. Contributing
 
-感谢任何对代码库的贡献。但是请注意：
-
-1. 分支**main**是受保护的，建议您提交/推送代码到分支**dev-open**。
-2. `examples/`目录下的所有脚本都有相应的输出，这些输出记录也起到校对代码执行的作用。请确保你的 pull request 不会改变相应的输出记录（或者提供合理的说明）。
+感谢任何对代码库的贡献。在提交 PR 之前，请务必阅读如下[文件](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/code_of_contribution.md)。
 
 ### Join and build RayCloudSim together
+
+<a href="https://github.com/tutur90">
+  <img src="https://avatars.githubusercontent.com/u/124059682?v=4" alt="tutur90" width="60" />
+</a>
 
 <div style="text-align: center;">
   <picture>
@@ -40,11 +41,6 @@
     <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=star-history/star-history&type=Date" width="500" />
   </picture>
 </div>
-
----
-<a href="https://github.com/tutur90">
-  <img src="https://avatars.githubusercontent.com/u/124059682?v=4" alt="tutur90" width="80" />
-</a>
 
 ## III. Introduction
 
