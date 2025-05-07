@@ -4,11 +4,14 @@
 
 # RayCloudSim: 基于 Python 的用于云/雾/边缘计算的仿真平台
 
-[<img src="https://img.shields.io/badge/License-MIT-blue.svg" height="20px" />](https://github.com/ZhangRui111/RayCloudSim/blob/main/LICENSE) [<img src="https://api.gitsponsors.com/api/badge/img?id=638982897" height="20">](https://api.gitsponsors.com/api/badge/link?p=JIrAC5FDNZDuOserq1+rtK+ePrdHC6pqFQMndZ+SGnLnSZE6kl4J4Dp3L4yJ1EunkradtRRZ0Nn4KY4O6aHr0kZk/a7DLTdz6bFIn667HJuIoij3RANSfBXi+eoJVy1zDTde6CE8enSRQddgwpgVPQ==)
+[<img src="https://img.shields.io/badge/License-MIT-blue.svg" height="20px" />](https://github.com/ZhangRui111/RayCloudSim/blob/main/LICENSE)
 
 ## I. Update Summary
 
 > 只有最近三次的更新摘要会显示在这里。完整的历史更新摘要可以查看[这里](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).
+
+- **2025/05/07**
+  - [**Optimization**] Main 分支: 只保留最必要、最核心的代码和功能，具备最大的可读性和最小的代码量。
 
 - **2025/02/04**
   - [**新增**] 新增数据集：[Pakistan](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py)
@@ -17,12 +20,6 @@
 
 - **2024/07/02**
   - [**新增**] 新增数据集：[Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py)
-
-- **2024/04/26**
-
-  - [**新增**] 用户现在可以使用 **json 格式**的配置文件轻松创建 Scenario
-  - [**优化**] 数据集优化为使用 **csv 格式**保存，具备更好的可读性
-  - [**新增/优化**] 更多、更好的**可视化工具**（包括视频复现的仿真过程），便于对仿真过程的直观认识
 
 ## II. Contributing
 
@@ -58,6 +55,20 @@ RayCloudSim 可以用于以下研究课题:
 - 大规模分布式系统的资源管理和调度策略研究
 - 特定设备的部署策略研究，如联邦学习中的参数服务器
 - ...
+
+**本项目有三个分支：**
+
+- **main**：
+    - 只保留最必要、最核心的代码和功能，具备最大的可读性和最小的代码量。
+    - **PR政策**：几乎不接收任何PR，修复bug的PR除外。
+
+- **dev-open**：
+    - 基于main分支，对任何功能增加和代码优化持开放态度。
+    - **PR政策**：对任何PR持开放态度，但与main分支重合的代码需要保持一致。
+
+- **pre-v0.6.6**：
+    - 项目早期版本，仅用作备份，已被遗弃。
+    - **PR政策**：不接收任何PR。
 
 ## IV. Requirements & Installation
 
