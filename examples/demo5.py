@@ -26,22 +26,26 @@ def main():
     #           config_file="core/vis/configs/vis_config_base.json", 
     #           save_as="examples/vis/demo_5.png")
 
-    task0 = Task(task_id=0,
-                 task_size=20,
-                 cycles_per_bit=1,
-                 trans_bit_rate=20,
-                 src_name='n4')
+    task0 = Task(
+        id=0,
+        task_size=20,
+        cycles_per_bit=1,
+        trans_bit_rate=20,
+        src_name='n4',
+    )
 
     env.process(task=task0, dst_name='n5')
     # routing path: [('n4', 'n0'), n0 --> n1, n1 --> n2, n2 --> n3, ('n3', 'n5')]
 
     env.run(until=10)  # execute the simulation until 10
 
-    task1 = Task(task_id=1,
-                 task_size=20,
-                 cycles_per_bit=1,
-                 trans_bit_rate=20,
-                 src_name='n1')
+    task1 = Task(
+        id=1,
+        task_size=20,
+        cycles_per_bit=1,
+        trans_bit_rate=20,
+        src_name='n1',
+    )
 
     env.process(task=task1, dst_name='n5')
 
@@ -56,14 +60,14 @@ if __name__ == '__main__':
 
 
 # # ==================== Simulation log ====================
-# [0.0]: Task {0} generated in Node {n4}
-# [0.0]: Task {0}: {n4} --> {n5}
-# [3.0]: Task {0} arrived Node {n5} with {3.0}s
-# [3.0]: Processing Task {0} in {n5}
-# [4.0]: Task {0}: Accomplished in Node {n5} with execution time {1.0}s
-# [10.0]: Task {1} generated in Node {n1}
-# [10.0]: Task {1}: {n1} --> {n5}
-# [12.0]: Task {1} arrived Node {n5} with {2.0}s
-# [12.0]: Processing Task {1} in {n5}
-# [13.0]: Task {1}: Accomplished in Node {n5} with execution time {1.0}s
-# [20.0]: Simulation completed!
+# [0.00]: Task {0} generated in Node {n4}
+# [0.00]: Task {0}: {n4} --> {n5}
+# [3.00]: Task {0} arrived Node {n5} with {3.00}s
+# [3.00]: Processing Task {0} in {n5}
+# [4.00]: Task {0}: Accomplished in Node {n5} with execution time {1.00}s
+# [10.00]: Task {1} generated in Node {n1}
+# [10.00]: Task {1}: {n1} --> {n5}
+# [12.00]: Task {1} arrived Node {n5} with {2.00}s
+# [12.00]: Processing Task {1} in {n5}
+# [13.00]: Task {1}: Accomplished in Node {n5} with execution time {1.00}s
+# [20.00]: Simulation completed!

@@ -7,16 +7,17 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
 import math
-from typing import Optional, List
+from typing import Optional, List, Dict
 
-from core.infrastructure import Node, Location
+from core.node import Node
+from core.utils import Location
 
 
 class WirelessNode(Node):
     """Wireless Node where data can only be transmitted wirelessly.
 
     Attributes:
-        node_id: node id, unique.
+        id: node id, unique.
         name: node name.
         max_cpu_freq: maximum cpu frequency.
         free_cpu_freq: current available cpu frequency.
@@ -40,18 +41,17 @@ class WirelessNode(Node):
         default_dst_node: default (usually the closest) wired node for
             multi-hop communication.
     """
-    def __init__(self, node_id: int, name: str,
+    def __init__(self, id: int, name: str,
                  max_cpu_freq: float,
                  max_buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
-                 idle_energy_coef: Optional[float] = 0, 
-                 exe_energy_coef: Optional[float] = 0,
+                 energy_coefficients: Optional[Dict[str, float]] = None,
                  max_transmit_power: int = 0,
                  radius: float = 100):
-        super().__init__(node_id, name, 
+        super().__init__(id, name, 
                          max_cpu_freq, max_buffer_size, 
                          location, 
-                         idle_energy_coef, exe_energy_coef)
+                         energy_coefficients)
 
         self.flag_only_wireless = True
 
@@ -75,8 +75,8 @@ class WirelessNode(Node):
 
         wired_dis = math.inf
         for _, item in nodes.items():
-            if item.node_id != self.node_id:
-                dis = self.distance(item)
+            if item.id != self.id:
+                dis = self._calculate_distance(item)
                 if dis < self.radius:
                     self.access_dst_nodes.append(item)
                     if not item.flag_only_wireless and dis < wired_dis:
@@ -91,7 +91,7 @@ class MobileNode(WirelessNode):
     (2) dynamic location instead of static location.
 
     Attributes:
-        node_id: node id, unique.
+        id: node id, unique.
         name: node name.
         max_cpu_freq: maximum cpu frequency.
         free_cpu_freq: current available cpu frequency.
@@ -111,19 +111,18 @@ class MobileNode(WirelessNode):
         power: current device battery level.
     """
 
-    def __init__(self, node_id: int, name: str,
+    def __init__(self, id: int, name: str,
                  max_cpu_freq: float, 
                  max_buffer_size: Optional[int] = 0,
                  location: Optional[Location] = None,
-                 idle_energy_coef: Optional[float] = 0, 
-                 exe_energy_coef: Optional[float] = 0,
+                 energy_coefficients: Optional[Dict[str, float]] = None,
                  max_transmit_power: int = 0,
                  radius: float = 100,
                  power: float = 100):
-        super().__init__(node_id, name, 
+        super().__init__(id, name, 
                          max_cpu_freq, max_buffer_size, 
                          location,
-                         idle_energy_coef, exe_energy_coef,
+                         energy_coefficients,
                          max_transmit_power, radius)
 
         # dynamic attributes

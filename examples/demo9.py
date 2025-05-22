@@ -59,7 +59,7 @@ def main():
     
     # Create the environment with the specified scenario and configuration files.
     scenario=Scenario(config_file=f"eval/benchmarks/Pakistan/data/{flag}/config.json", flag=flag)
-    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=True, decimal_places=3)
+    env = Env(scenario, config_file="core/configs/env_config_null.json", enable_logging=True)
 
     # Load the test dataset.
     data = pd.read_csv(f"eval/benchmarks/Pakistan/data/{flag}/testset.csv")
@@ -73,13 +73,15 @@ def main():
     path_dir = create_log_dir("vis/DemoGreedy", flag=flag)
     for i, task_info in data.iterrows():
         generated_time = task_info['GenerationTime']
-        task = Task(task_id=task_info['TaskID'],
-                    task_size=task_info['TaskSize'],
-                    cycles_per_bit=task_info['CyclesPerBit'],
-                    trans_bit_rate=task_info['TransBitRate'],
-                    ddl=task_info['DDL'],
-                    src_name='e0',
-                    task_name=task_info['TaskName'])
+        task = Task(
+            id=task_info['TaskID'],
+            task_size=task_info['TaskSize'],
+            cycles_per_bit=task_info['CyclesPerBit'],
+            trans_bit_rate=task_info['TransBitRate'],
+            ddl=task_info['DDL'],
+            src_name='e0',
+            task_name=task_info['TaskName'],
+        )
 
         while True:
             # Catch completed task information.

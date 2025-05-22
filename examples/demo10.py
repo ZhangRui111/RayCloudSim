@@ -85,13 +85,15 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, train=True):
     stored_transitions = {}
     for i, task_info in pbar:
         generated_time = task_info['GenerationTime']
-        task = Task(task_id=task_info['TaskID'],
-                    task_size=task_info['TaskSize'],
-                    cycles_per_bit=task_info['CyclesPerBit'],
-                    trans_bit_rate=task_info['TransBitRate'],
-                    ddl=task_info['DDL'],
-                    src_name='e0',
-                    task_name=task_info['TaskName'])
+        task = Task(
+            id=task_info['TaskID'],
+            task_size=task_info['TaskSize'],
+            cycles_per_bit=task_info['CyclesPerBit'],
+            trans_bit_rate=task_info['TransBitRate'],
+            ddl=task_info['DDL'],
+            src_name='e0',
+            task_name=task_info['TaskName'],
+        )
 
         # Wait until the simulation reaches the task's generation time.
         while True:
@@ -120,7 +122,7 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, train=True):
             until += 1
 
         done = True  # Each task is treated as an individual episode.
-        last_task_id = task.task_id
+        last_task_id = task.id
         stored_transitions[last_task_id] = (state, action, None)
         
         # print(env.logger.task_info)
@@ -158,7 +160,7 @@ def run_epoch(env: Env, policy, data: pd.DataFrame, train=True):
 
 def create_env(scenario):
     """Create and return an environment instance."""
-    return Env(scenario, config_file="core/configs/env_config_null.json", verbose=False)
+    return Env(scenario, config_file="core/configs/env_config_null.json", enable_logging=False)
 
 
 def main():

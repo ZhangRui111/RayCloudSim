@@ -45,7 +45,7 @@ def error_handler(error: Exception):
 def main():
     # Create the environment with the specified scenario and configuration files.
     scenario = Scenario(config_file="eval/benchmarks/caseA/small/config.json")
-    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=True)
+    env = Env(scenario, config_file="core/configs/env_config_null.json", enable_logging=True)
 
 
     # Visualization: Display the topology of the environment.
@@ -65,13 +65,15 @@ def main():
         # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
         #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
         generated_time = task_info[1]
-        task = Task(task_id=task_info[2],
-                    task_size=task_info[3],
-                    cycles_per_bit=task_info[4],
-                    trans_bit_rate=task_info[5],
-                    ddl=task_info[6],
-                    src_name=task_info[7],
-                    task_name=task_info[0])
+        task = Task(
+            id=task_info[2],
+            task_size=task_info[3],
+            cycles_per_bit=task_info[4],
+            trans_bit_rate=task_info[5],
+            ddl=task_info[6],
+            src_name=task_info[7],
+            task_name=task_info[0],
+        )
 
         while True:
             # Catch completed task information.
@@ -139,11 +141,11 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # ...
-# [1173.0]: Processing Task {475} in {n16}
-# [1235.0]: Task {475}: Accomplished in Node {n16} with execution time {62.0}s
-# [1235.0]: Task {485} re-actives in Node {n16}, waiting {269.4}s
-# [1235.0]: Processing Task {485} in {n16}
-# [1330.0]: Task {485}: Accomplished in Node {n16} with execution time {94.4}s
+# [1154.00]: Processing Task {482} in {n16}
+# [1181.00]: Task {482}: Accomplished in Node {n16} with execution time {27.00}s
+# [1181.00]: Task {479} re-actives in Node {n16}, waiting {221.67}s
+# [1181.00]: Processing Task {479} in {n16}
+# [1316.00]: Task {479}: Accomplished in Node {n16} with execution time {134.40}s
 
 # ===============================================
 # Evaluation:
@@ -152,17 +154,17 @@ if __name__ == '__main__':
 # -----------------------------------------------
 # Analysis on failed tasks:
 
-#     NetCongestionError     : 51
-#     InsufficientBufferError: 50
+#     NetCongestionError     : 54
+#     InsufficientBufferError: 54
 
-# The success rate of all tasks: 0.7980
+# The success rate of all tasks: 0.7840
 # -----------------------------------------------
 
-# There are 43 time-out tasks.
+# There are 71 time-out tasks.
 
 # -----------------------------------------------
-# The average latency per task: 54.8347
-# The average energy consumption per node: 1.2820
+# The average latency per task: 57.1329
+# The average energy consumption per node: 1.1775
 # -----------------------------------------------
 
-# [1331.0]: Simulation completed!
+# [1317.00]: Simulation completed!

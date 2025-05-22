@@ -62,7 +62,7 @@ def error_handler(error: Exception):
 def main():
     # Create the environment with the specified scenario and configuration files.
     scenario = Scenario(config_file="examples/scenarios/configs/config_3.json")
-    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=False  )
+    env = Env(scenario, config_file="core/configs/env_config_null.json", enable_logging=False)
 
     # Load simulated tasks from the CSV dataset.
     data = pd.read_csv("examples/dataset/demo3_dataset.csv")
@@ -89,13 +89,15 @@ def main():
             # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
             #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
             generated_time, dst_name = task_info[1], task_info[8]
-            task = Task(task_id=task_info[2],
-                        task_size=task_info[3],
-                        cycles_per_bit=task_info[4],
-                        trans_bit_rate=task_info[5],
-                        ddl=task_info[6],
-                        src_name=task_info[7],
-                        task_name=task_info[0])
+            task = Task(
+                id=task_info[2],
+                task_size=task_info[3],
+                cycles_per_bit=task_info[4],
+                trans_bit_rate=task_info[5],
+                ddl=task_info[6],
+                src_name=task_info[7],
+                task_name=task_info[0],
+            )
 
             while True:
                 # Catch completed task information.

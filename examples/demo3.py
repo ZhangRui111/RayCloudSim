@@ -83,13 +83,15 @@ def main():
         # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
         #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
         generated_time, dst_name = task_info[1], task_info[8]
-        task = Task(task_id=task_info[2],
-                    task_size=task_info[3],
-                    cycles_per_bit=task_info[4],
-                    trans_bit_rate=task_info[5],
-                    ddl=task_info[6],
-                    src_name=task_info[7],
-                    task_name=task_info[0])
+        task = Task(
+            id=task_info[2],
+            task_size=task_info[3],
+            cycles_per_bit=task_info[4],
+            trans_bit_rate=task_info[5],
+            ddl=task_info[6],
+            src_name=task_info[7],
+            task_name=task_info[0],
+        )
 
         while True:
             # Catch completed task information.
@@ -147,11 +149,11 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # ...
-# [1178.0]: Processing Task {369} in {n8}
-# [1208.0]: Task {369}: Accomplished in Node {n8} with execution time {30.0}s
-# [1208.0]: Task {376} re-actives in Node {n8}, waiting {269.7}s
-# [1208.0]: Processing Task {376} in {n8}
-# [1318.0]: Task {376}: Accomplished in Node {n8} with execution time {109.8}s
+# [1178.00]: Processing Task {369} in {n8}
+# [1208.00]: Task {369}: Accomplished in Node {n8} with execution time {30.00}s
+# [1208.00]: Task {376} re-actives in Node {n8}, waiting {269.65}s
+# [1208.00]: Processing Task {376} in {n8}
+# [1318.00]: Task {376}: Accomplished in Node {n8} with execution time {109.80}s
 
 # -----------------------------------------------
 # Done simulation with 400 tasks!
@@ -181,4 +183,4 @@ if __name__ == '__main__':
 # Averaged: 1.769
 # -----------------------------------------------
 
-# [1319.0]: Simulation completed!
+# [1319.00]: Simulation completed!

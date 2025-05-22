@@ -49,13 +49,15 @@ def main():
         # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
         #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
         generated_time = task_info[1]
-        task = Task(task_id=task_info[2],
-                    task_size=task_info[3],
-                    cycles_per_bit=task_info[4],
-                    trans_bit_rate=task_info[5],
-                    ddl=task_info[6],
-                    src_name=task_info[7],
-                    task_name=task_info[0])
+        task = Task(
+            id=task_info[2],
+            task_size=task_info[3],
+            cycles_per_bit=task_info[4],
+            trans_bit_rate=task_info[5],
+            ddl=task_info[6],
+            src_name=task_info[7],
+            task_name=task_info[0],
+        )
 
         while True:
             # Catch completed task information.
