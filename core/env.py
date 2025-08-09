@@ -17,7 +17,7 @@ ENERGY_UNIT_CONVERSION = 1e6
 def user_defined_info(task: Task) -> dict:
     """Define additional information for completed tasks.
 
-    This function can be customized to include specific metrics or checks relevant to 
+    This function can be customized to include specific metrics or checks relevant to
     the simulation scenario, such as checking if the task met its deadline.
     """
     # Calculate the total time taken for the task (wait time + execution time)
@@ -44,7 +44,7 @@ class EnvLogger:
         """
         self.controller = controller
         self.enable_logging = enable_logging  # Disable logging can speed up simulation
-        
+
         self.task_info: dict = {}  # Records task-related information
         self.node_info: dict = {}  # Records node-related information
 
@@ -81,7 +81,7 @@ class EnvLogger:
 class Env:
     """Simulation environment for RayCloudSim.
 
-    This class manages the simulation flow, including task processing, resource allocation, 
+    This class manages the simulation flow, including task processing, resource allocation,
     and event logging, based on a given scenario and configuration.
     """
 
@@ -100,12 +100,13 @@ class Env:
         # Initialize simulation parameters
         self.scenario = scenario
         self.controller = simpy.Environment()  # SimPy environment controller
-        self.logger = EnvLogger(self.controller, enable_logging=enable_logging) # Logger
+        self.logger = EnvLogger(self.controller, enable_logging=enable_logging)  # Logger
 
         # Task and state management
         self.active_tasks: dict = {}  # Dictionary to store currently active tasks (id: Task)
         self.done_task_info: list = []  # List to store information of completed tasks
-
+        self.down_node_collector: list = []  # 下线节点容器
+        self.up_node_collector: list = []  # 上线节点容器
         # SimPy Store to collect information about completed tasks
         self.done_task_collector = simpy.Store(self.controller)
         self.task_count = 0  # Counter for the total number of processed tasks
@@ -138,6 +139,47 @@ class Env:
         """Retrieve the status of a specific node or link from the scenario."""
         return self.scenario.status(node_name, link_args)
 
+    def down_Node(self, node_name: str):
+        del self.down_node_collector[0]  # 删除待下线列表
+        node = self.scenario.get_node(node_name)
+        # 处理节点上正在运行的任务
+        for task in node.active_tasks:
+            node._remove_task(task)
+            del self.active_tasks[task.id]  # 删除env上的信息
+            self.logger.log(
+                f"Task {{{task.id}}}: 任务所在节点已离线，正在运行的任务失败")
+        # 节点下线
+        node.reset()
+        node.online = False
+        BaseScenario.remove_node(self.scenario, node_name)
+        self.logger.log(
+            f"Node {{{node.id}}}: 节点已离线，从图中删除该节点")
+        all_links = BaseScenario.get_links(self.scenario)
+        print("所有链路：")
+        print(all_links)
+
+    def up_Node(self, node_name: str, up_node_collector: list):
+        node = Node(
+            id=up_node_collector[0][2],
+            name=up_node_collector[0][0],
+            max_cpu_freq=up_node_collector[0][3],
+            max_buffer_size=up_node_collector[0][4],
+            location=self.scenario.get_location01(self.up_node_collector),
+            energy_coefficients={
+                'idle': up_node_collector[0][7],
+                'exe': up_node_collector[0][8],
+            }
+        )
+        # Add the created node to the infrastructure
+        self.scenario.infrastructure.add_node(node)
+        self.logger.log(
+            f"Node {{{node.id}}}: 新节点上线")
+        print("所有节点如下：")
+        print(self.scenario.get_nodes())
+        # Map the node ID to its name for easy lookup
+        self.scenario.node_id2name[up_node_collector[0][2]] = up_node_collector[0][0]
+        del self.up_node_collector[0]  # 删除待下线列表
+
     def run(self, until: float):
         """Run the simulation until the specified time.
 
@@ -169,13 +211,13 @@ class Env:
 
         Args:
             task (Task): The task to execute.
-            dst_name (Optional[str]): The destination node name. If None, the task is from 
+            dst_name (Optional[str]): The destination node name. If None, the task is from
                                       the waiting queue.
         """
         # Check for duplicate task ID to prevent errors
         if task.id in self.active_tasks.keys():
             # If task ID is already in active tasks, it's a duplicate
-            self.task_count += 1 # Increment task count for the failed task
+            self.task_count += 1  # Increment task count for the failed task
             self.logger.append(
                 info_type='task',
                 key=task.id,
@@ -184,8 +226,8 @@ class Env:
             log_info = f"**DuplicateTaskIdError: Task {{{task.id}}}** " \
                        f"new task (name {{{task.task_name}}}) with a " \
                        f"duplicate task id {{{task.id}}}."
-            self.logger.log(log_info) # Log the error message
-            raise AssertionError(('DuplicateTaskIdError', log_info, task.id)) # Raise assertion error
+            self.logger.log(log_info)  # Log the error message
+            raise AssertionError(('DuplicateTaskIdError', log_info, task.id))  # Raise assertion error
 
         # Determine if the task is being reactivated from a waiting queue (dst_name is None)
         flag_reactive = dst_name is None
@@ -205,7 +247,11 @@ class Env:
                 task.trans_time = 0
 
         # Execute the task on the destination node
-        yield from self._handle_task_execution(task, dst, flag_reactive)
+        node01 = BaseScenario.get_node01(self.scenario, dst_name)
+        if node01 is not None:
+            yield from self._handle_task_execution(task, dst, flag_reactive)
+        else:
+            self.task_count += 1
 
     def _handle_task_transmission(self, task: Task, dst_name: str):
         """Handle the transmission of the task from its source to the destination node.
@@ -221,7 +267,7 @@ class Env:
             SimPy timeout events to simulate transmission time.
 
         Raises:
-            EnvironmentError: If transmission fails due to network issues (e.g., no path, 
+            EnvironmentError: If transmission fails due to network issues (e.g., no path,
                               congestion).
         """
         try:
@@ -277,8 +323,13 @@ class Env:
             yield self.controller.timeout(task.trans_time)
             # Deallocate the data flow after transmission is complete
             task.trans_flow.deallocate()
-            self.logger.log(f"Task {{{task.id}}} arrived Node {{{dst_name}}} with "
-                            f"{{{task.trans_time:.2f}}}s")
+            node01 = BaseScenario.get_node01(self.scenario, dst_name)
+            if node01 is not None:
+                self.logger.log(f"Task {{{task.id}}} arrived Node {{{dst_name}}} with "
+                                f"{{{task.trans_time:.2f}}}s")
+            else:
+                self.logger.log(f"Task {{{task.id}}} 传输失败")
+                self.task_count += 1
         except simpy.Interrupt:
             # Handle interruption during transmission (e.g., due to environment reset)
             pass
@@ -305,10 +356,10 @@ class Env:
         if not dst.free_cpu_freq > 0:
             try:
                 # If no free CPU, attempt to buffer the task
-                task.allocate(self.now, dst, pre_allocate=True) # Pre-allocate resources if possible
-                dst.append_task(task) # Append task to the node's buffer
+                task.allocate(self.now, dst, pre_allocate=True)  # Pre-allocate resources if possible
+                dst.append_task(task)  # Append task to the node's buffer
                 self.logger.log(f"Task {{{task.id}}} is buffered in Node {{{task.dst_name}}}")
-                return # Task is buffered, execution will happen later
+                return  # Task is buffered, execution will happen later
             except EnvironmentError as e:
                 # Handle insufficient buffer space error
                 self.task_count += 1
@@ -317,8 +368,8 @@ class Env:
                     key=task.id,
                     value=(1, ['InsufficientBufferError'], (task.src_name, task.dst_name)),
                 )
-                self.logger.log(e.args[0][1]) # Log the specific error message
-                raise e # Re-raise the exception
+                self.logger.log(e.args[0][1])  # Log the specific error message
+                raise e  # Re-raise the exception
 
         # If CPU is free, allocate resources and proceed with execution
         if flag_reactive:
@@ -337,10 +388,15 @@ class Env:
             self.logger.log(f"Processing Task {{{task.id}}} in {{{task.dst_name}}}")
             yield self.controller.timeout(task.exe_time)
             # If execution completes without interruption, put task info in the collector
-            self.done_task_collector.put(
-                (task.id,
-                 FLAG_TASK_EXECUTION_DONE,
-                 [dst.name, user_defined_info(task)]))
+            node01 = BaseScenario.get_node01(self.scenario, dst.name)
+            if node01 is not None:
+                self.done_task_collector.put(
+                    (task.id,
+                     FLAG_TASK_EXECUTION_DONE,
+                     [dst.name, user_defined_info(task)]))
+            else:
+                self.task_count += 1  # 任务失败，计数加1
+
         except simpy.Interrupt:
             # Handle interruption during execution (e.g., due to environment reset)
             pass
@@ -379,8 +435,8 @@ class Env:
                             info_type='task',
                             key=task.id,
                             value=(
-                                0, 
-                                [task.trans_time, task.wait_time, task.exe_time], 
+                                0,
+                                [task.trans_time, task.wait_time, task.exe_time],
                                 (task.src_name, task.dst_name)
                             ),
                         )
@@ -388,7 +444,7 @@ class Env:
                         # Clean up: deallocate resources used by the task and remove from active tasks
                         task.deallocate()
                         del self.active_tasks[task_id]
-                        self.task_count += 1 # Increment the counter for processed tasks
+                        self.task_count += 1  # Increment the counter for processed tasks
                         # self.processed_tasks.append(task.id)  # debug
 
                         # If there was a waiting task, initiate its processing
@@ -418,8 +474,8 @@ class Env:
         for task_process in self.active_tasks.values():
             if task_process.is_alive:
                 task_process.interrupt()
-        self.active_tasks.clear() # Clear the dictionary of active tasks
-        self.task_count = 0 # Reset the processed task counter
+        self.active_tasks.clear()  # Clear the dictionary of active tasks
+        self.task_count = 0  # Reset the processed task counter
 
         # Reset the scenario and the logger
         self.scenario.reset()
@@ -442,7 +498,7 @@ class Env:
                 key=node.id,
                 value=[
                     node.energy_consumption / node.clock if node.clock > 0 else 0,  # Average energy per cycle
-                    node.total_cpu_freq / node.clock if node.clock > 0 else 0       # Average CPU frequency
+                    node.total_cpu_freq / node.clock if node.clock > 0 else 0  # Average CPU frequency
                 ],
             )
 
@@ -476,10 +532,10 @@ class Env:
             # Update energy consumption based on idle and execution coefficients
             node.energy_consumption += node.energy_coefficients['idle']
             node.energy_consumption += node.energy_coefficients['exe'] * (
-                node.max_cpu_freq - node.free_cpu_freq) ** 3 # Example energy model (cubic)
+                    node.max_cpu_freq - node.free_cpu_freq) ** 3  # Example energy model (cubic)
             # Accumulate total CPU frequency used
             node.total_cpu_freq += node.max_cpu_freq - node.free_cpu_freq
-            node.clock += 1 # Increment the node's internal clock
+            node.clock += 1  # Increment the node's internal clock
             # Yield a timeout to simulate the passage of 1 simulation time unit
             yield self.controller.timeout(1)
 

@@ -63,7 +63,7 @@ class Link(object):
             AttributeError: If location is not defined for one or both nodes.
         """
         if self.src.location is None or self.dst.location is None:
-             raise AttributeError("Location is not defined for one or both nodes.")
+            raise AttributeError("Location is not defined for one or both nodes.")
 
         if type == 'haversine':
             return cal_dis_haversine(self.src.location, self.dst.location)
@@ -105,7 +105,7 @@ class Link(object):
         """
         if self.free_bandwidth < bandwidth:
             raise ValueError(f"Cannot reserve {bandwidth} bandwidth on link {self}. Not enough free bandwidth.")
-        
+
         self.free_bandwidth -= bandwidth
 
     def _release_bandwidth(self, bandwidth: float):
@@ -119,9 +119,9 @@ class Link(object):
         """
         if self.free_bandwidth + bandwidth > self.max_bandwidth:
             raise ValueError(f"Cannot release {bandwidth} bandwidth on link {self}. Exceeds max bandwidth.")
-        
+
         self.free_bandwidth += bandwidth
-    
+
     def bandwidth_utilization(self) -> float:
         """Returns the ratio of used bandwidth to the maximum bandwidth."""
         # Handle case where max_bandwidth is 0 to avoid division by zero

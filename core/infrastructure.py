@@ -94,6 +94,9 @@ class Infrastructure(object):
         """
         return self.graph.nodes[name]["data"]
 
+    def get_node01(self, name: str) -> Node:
+        return self.graph.nodes.get(name, {}).get("data")
+
     def get_link(self, src_name: str, dst_name: str, key=0) -> Link:
         """Retrieve a specific link by the source and destination node names and optional key.
 
@@ -167,7 +170,7 @@ class Infrastructure(object):
         """
         shortest_path = nx.shortest_path(self.graph, src_name, dst_name, weight=weight)
         return [self.graph.edges[a, b, 0]["data"] for a, b in nx.utils.pairwise(shortest_path)]
-    
+
     def get_graph_diameter(self) -> int:
         """Calculates the diameter of the infrastructure graph.
 

@@ -85,6 +85,12 @@ class BaseScenario(metaclass=ABCMeta):
         if 'LocX' in node_info and 'LocY' in node_info:
             return Location(node_info['LocX'], node_info['LocY'])
         return None
+    def get_location01(self, node_info: list) -> Optional[Location]:
+        """Return a Location object if coordinates ('LocX', 'LocY') are provided in node_info,
+        otherwise None."""
+        if 'LocX' in node_info and 'LocY' in node_info:
+            return Location(node_info[0][5], node_info[0][6])
+        return None
 
     def init_infrastructure_links(self):
         """
@@ -121,7 +127,7 @@ class BaseScenario(metaclass=ABCMeta):
                     base_latency
                 )
 
-    def _calculate_base_latency(self, edge_info: dict, 
+    def _calculate_base_latency(self, edge_info: dict,
                                 src_node_id: int = None, dst_node_id: int = None) -> float:
         """
         Calculate the base latency for the link.
@@ -203,6 +209,10 @@ class BaseScenario(metaclass=ABCMeta):
         """
         return self.infrastructure.get_node(name)
 
+    def get_node01(self, name: str) -> Node:
+
+        return self.infrastructure.get_node01(name)
+
     def get_link(self, src_name: str, dst_name: str, key=0) -> Link:
         """
         Return the link between two nodes.
@@ -224,6 +234,9 @@ class BaseScenario(metaclass=ABCMeta):
     def get_links(self):
         """Return all links in the infrastructure."""
         return self.infrastructure.get_links()
+
+    def remove_node(self, name: str) -> Node:
+        return self.infrastructure.remove_node(name)
 
     def add_unilateral_link(self, src_name: str, dst_name: str, bandwidth: float, base_latency: float = 0):
         """

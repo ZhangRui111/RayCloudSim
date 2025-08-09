@@ -1,11 +1,10 @@
 """
-This script demonstrates a simple Hello World example.
+This script demonstrates error handling for common network and task issues.
 """
 
 import os
 import sys
 
-# Add the parent directory to sys.path for module import.
 current_file_path = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file_path)
 parent_dir = os.path.dirname(current_dir)
@@ -13,38 +12,146 @@ sys.path.insert(0, parent_dir)
 
 from core.env import Env
 from core.task import Task
-from examples.scenarios.scenario_1 import Scenario
+from examples.scenarios.scenario_2 import Scenario
+
+
+def error_handler(error: Exception):
+    """Customized error handler for different types of errors."""
+
+    message = error.args[0]
+
+    if message[0] == 'DuplicateTaskIdError':
+        # Error: duplicate task id
+        # print(message[1])
+        # ----- handle this error here -----
+        pass
+    elif message[0] == 'NetworkXNoPathError':
+        # Error: nx.exception.NetworkXNoPath
+        # print(message[1])
+        # ----- handle this error here -----
+        pass
+    elif message[0] == 'NetCongestionError':
+        # Error: network congestion
+        # print(message[1])
+        # ----- handle this error here -----
+        pass
+    elif message[0] == 'InsufficientBufferError':
+        # Error: insufficient buffer in the destination node
+        # print(message[1])
+        # ----- handle this error here -----
+        pass
+    else:
+        raise NotImplementedError(error)
 
 
 def main():
-    # Create the environment with the specified scenario and configuration files.
-    scenario = Scenario(config_file="examples/scenarios/configs/config_1.json")
-    env = Env(scenario, config_file="core/configs/env_config_null.json")
+    # Create the environment with the scenario and configuration files.
+    scenario = Scenario(config_file="../examples/scenarios/configs/config_2.json")
+    env = Env(scenario, config_file="D:\Study\GITHUBtest\core\configs\env_config_null.json")
 
-    # Begin the simulation with a specified task.
-    task = Task(
-        id=0,
-        task_size=20,
-        cycles_per_bit=10,
-        trans_bit_rate=20,
-        src_name='n0',
-    )
+    # Define simulated tasks. Task properties:
+    # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit',
+    #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
+    simulated_tasks = [
+        # n0: local execution
+        ('t0', 0, 0, 20, 2, 10, 100, 'n0', 'n0'),
 
-    # Process the task and specify the destination node.
-    env.process(task=task, dst_name='n1')
+        # n0 --> n2
+        ('t1', 1, 1, 20, 1, 10, 100, 'n0', 'n2'),
+    ]
 
-    # Run the simulation for 20 time units.
-    env.run(until=20)
+    # 自定义下线节点列表[节点name，下线时间]
+    env.down_node_collector.append(('n2', 6))
+    # 自定义上线节点列表[节点name，上线时间，节点id，MaxCpuFreq，MaxBufferSize，LocX，LocY，IdleEnergyCoef，ExeEnergyCoef]
+    #env.up_node_collector.append(('n4', 0 ,4 ,5 ,100 ,17 ,69 ,0.01 ,1))
 
-    # Print energy consumption results.
-    print("\n-----------------------------------------------")
-    print("Energy consumption during simulation:\n")
-    print(f"n0: {env.node_energy('n0'):.3f}")
-    print(f"n1: {env.node_energy('n1'):.3f}")
-    print(f"Averaged: {env.avg_node_energy():.3f}")
+    # Obtain system status.
+    n1_status = env.status(node_name='n1')
+    link_n1_n2_status = env.status(link_args=('n1', 'n2'))
+    init_status = env.status()
+
+    # Begin the simulation.
+    until = 1
+    launched_task_cnt = 0
+    for task_info in simulated_tasks:
+
+        generated_time, dst_name = task_info[1], task_info[8]
+        task = Task(
+            id=task_info[2],
+            task_size=task_info[3],
+            cycles_per_bit=task_info[4],
+            trans_bit_rate=task_info[5],
+            ddl=task_info[6],
+            src_name=task_info[7],
+            task_name=task_info[0],
+        )
+
+        while True:
+            # Catch completed task information.
+            while env.done_task_info:
+                item = env.done_task_info.pop(0)
+
+            # 如果有待下线的节点
+            if len(env.down_node_collector) > 0:
+                node_name, down_time = env.down_node_collector[0]
+                # 到达下线时间
+                if abs(env.now - down_time) < 1e-6:
+                    env.down_Node(node_name )
+            #如果有待上线的节点
+            if len(env.up_node_collector) > 0:
+                node_name, up_time,NodeId,MaxCpuFreq,MaxBufferSize,LocX,LocY,IdleEnergyCoef,ExeEnergyCoef = env.up_node_collector[0]
+                # 到达上线时间
+                if abs(env.now - up_time) < 1e-6:
+                    env.up_Node(node_name,env.up_node_collector)
+            if abs(env.now - generated_time) < 1e-6:
+                node = env.scenario.get_node01(dst_name)
+                if node is not None :
+                    env.process(task=task, dst_name=dst_name)
+                    launched_task_cnt += 1
+                else:
+                    env.logger.log(
+                        f"Task {{{task.id}}}: 目标节点不存在，任务失败")
+                break
+
+            # Execute the simulation with error handler.
+            try:
+                env.run(until=until)  # execute the simulation step by step
+            except Exception as e:
+                error_handler(e)
+
+            until += 1
+
+    # Continue the simulation until the last task successes/fails.
+    while env.task_count < launched_task_cnt or until < 20:
+        until += 1
+        try:
+            # 如果有待下线的节点
+            if len(env.down_node_collector) > 0:
+                node_name, down_time = env.down_node_collector[0]
+                # 到达下线时间
+                if abs(env.now - down_time) < 1e-6:
+                    env.down_Node(node_name)
+            #如果有待上线的节点
+            if len(env.up_node_collector) > 0:
+                node_name, up_time,NodeId,MaxCpuFreq,MaxBufferSize,LocX,LocY,IdleEnergyCoef,ExeEnergyCoef = env.up_node_collector[0]
+                # 到达上线时间
+                if abs(env.now - up_time) < 1e-6:
+                    env.up_Node(node_name,env.up_node_collector)
+
+            env.run(until=until)
+        except Exception as e:
+            error_handler(e)
+
+    # print("\n-----------------------------------------------")
+    # print("Energy consumption during simulation:\n")
+    # print(f"n0: {env.node_energy('n0'):.3f}")
+    # print(f"n1: {env.node_energy('n1'):.3f}")
+    # print(f"n2: {env.node_energy('n2'):.3f}")
+    # print(f"n3: {env.node_energy('n3'):.3f}")
+    # print(f"Averaged: {env.avg_node_energy():.3f}")
+    # print(f"Averaged ('n0', 'n1'): {env.avg_node_energy(node_name_list=['n0', 'n1']):.3f}")
     print("-----------------------------------------------\n")
 
-    # Close the environment after simulation.
     env.close()
 
 
@@ -54,17 +161,48 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # [0.00]: Task {0} generated in Node {n0}
-# [0.00]: Task {0}: {n0} --> {n1}
-# [1.00]: Task {0} arrived Node {n1} with {1.00}s
-# [1.00]: Processing Task {0} in {n1}
-# [11.00]: Task {0}: Accomplished in Node {n1} with execution time {10.00}s
+# [0.00]: Processing Task {0} in {n0}
+# [0.00]: Task {1} generated in Node {n0}
+# [0.00]: Task {1}: {n0} --> {n2}
+# [1.00]: **DuplicateTaskIdError: Task {0}** new task (name {t0-duplicate}) with a duplicate task id {0}.
+# [2.00]: Task {2} generated in Node {n0}
+# [2.00]: **NetCongestionError: Task {2}** network congestion Node {n0} --> {n2}
+# [3.00]: Task {3} generated in Node {n0}
+# [3.00]: **NetworkXNoPathError: Task {3}** Node {n3} is inaccessible
+# [4.00]: Task {4} generated in Node {n0}
+# [4.00]: Task {4} is buffered in Node {n0}
+# [4.00]: Task {1} arrived Node {n2} with {4.00}s
+# [4.00]: Processing Task {1} in {n2}
+# [5.00]: Task {5} generated in Node {n0}
+# [5.00]: **InsufficientBufferError: Task {5}** insufficient buffer in Node {n0}
+# [8.00]: Task {0}: Accomplished in Node {n0} with execution time {8.00}s
+# [8.00]: Task {1}: Accomplished in Node {n2} with execution time {4.00}s
+# [8.00]: Task {4} re-actives in Node {n0}, waiting {4.00}s
+# [8.00]: Processing Task {4} in {n0}
+# [10.00]: Task {6} generated in Node {n0}
+# [10.00]: Task {6}: {n0} --> {n2}
+# [12.00]: Task {4}: Accomplished in Node {n0} with execution time {4.00}s
+# [14.00]: Task {6} arrived Node {n2} with {4.00}s
+# [14.00]: Processing Task {6} in {n2}
+# [18.00]: Task {6}: Accomplished in Node {n2} with execution time {4.00}s
+# [20.00]: Task {7} generated in Node {n1}
+# [20.00]: Processing Task {7} in {n1}
+# [20.00]: Task {8} generated in Node {n1}
+# [20.00]: Task {8} is buffered in Node {n1}
+# [60.00]: Task {7}: Accomplished in Node {n1} with execution time {40.00}s
+# [60.00]: Task {8} re-actives in Node {n1}, waiting {40.00}s
+# [60.00]: Processing Task {8} in {n1}
+# [100.00]: Task {8}: Accomplished in Node {n1} with execution time {40.00}s
 
 # -----------------------------------------------
 # Energy consumption during simulation:
 
-# n0: 0.000
-# n1: 0.072
-# Averaged: 0.036
+# n0: 0.001
+# n1: 0.010
+# n2: 0.001
+# n3: 0.000
+# Averaged: 0.003
+# Averaged ('n0', 'n1'): 0.006
 # -----------------------------------------------
 
-# [20.00]: Simulation completed!
+# [101.00]: Simulation completed!

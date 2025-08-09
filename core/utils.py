@@ -2,7 +2,6 @@ import math
 
 from typing import Optional, List
 
-
 __all__ = ["Location", "Data", "DataFlow"]
 
 
@@ -25,7 +24,7 @@ def cal_dis_haversine(loc1: "Location", loc2: "Location") -> float:
     dlon = lon2 - lon1
 
     # Haversine formula.
-    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
     # Radius of Earth in kilometers (6371000 for meters)
@@ -149,7 +148,7 @@ class DataFlow(object):
         """
         if self.links is None:
             raise ValueError(f"{self} is not placed on any links.")
-        
+
         for link in self.links:
             link._remove_data_flow(self)
         self.links = None

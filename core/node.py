@@ -64,7 +64,7 @@ class Node(object):
         self.name = name
         self.max_cpu_freq = max_cpu_freq
         self.free_cpu_freq = max_cpu_freq  # Initially, all CPU frequency is free
-
+        self.online = True
         # Initialize task buffer
         self.task_buffer = Buffer(max_buffer_size)
 
