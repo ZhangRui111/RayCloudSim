@@ -10,16 +10,22 @@
 
 > 只有最近三次的更新摘要会显示在这里。完整的历史更新摘要可以查看[这里](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).
 
+- **2025/09/01**
+  - [**New**] RayCloudSim 现已支持在模拟过程中进行节点的动态上下线操作。有关此功能的更多详细信息，请参阅 [demo7.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.py) 或 [demo7.ipynb](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.ipynb).
+  - [**New**] RayCloudSim 现已采用统一的任务[状态码](https://github.com/ZhangRui111/RayCloudSim/blob/main/core/code.py)，可更清晰地指示每个任务的执行状态。
+  - [**Optimization**] 完善了 *EnvLogger* 的功能。
+  - [**Fix**] 已修复以下问题：
+    - TimeoutError 计数问题。
+    - 任务进程管理中的错误（具体表现为无法正确关闭出错的任务进程）。
+    - 请注意，重复的任务 ID 不再被视为错误。
+
 - **2025/05/07**
   - [**Optimization**] Main 分支: 只保留最必要、最核心的代码和功能，具备最大的可读性和最小的代码量。
 
 - **2025/02/04**
-  - [**新增**] 新增数据集：[Pakistan](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py)
-  - [**新增**] 支持基于半正矢公式 (Haversine formula) 的距离计算
-  - [**新增**] 新增卸载策略：Round Robin, Greedy and DQRL
-
-- **2024/07/02**
-  - [**新增**] 新增数据集：[Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py)
+  - [**New**] 新增数据集：[Pakistan](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py)
+  - [**New**] 支持基于半正矢公式 (Haversine formula) 的距离计算
+  - [**New**] 新增卸载策略：Round Robin, Greedy and DQRL
 
 ## II. Contributing
 
@@ -98,28 +104,26 @@ pip install -r requirements.txt
 ### 1. Hello World
 
 ```python
-# Create the Env
-scenario=Scenario(config_file="examples/scenarios/configs/config_1.json")
-env = Env(scenario, config_file="core/configs/env_config.json")
+# Create the environment with the specified scenario and configuration files.
+scenario = Scenario(config_file="examples/scenarios/configs/config_1.json")
+env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-# Begin Simulation
-task = Task(task_id=0,
-            task_size=20,
-            cycles_per_bit=10,
-            trans_bit_rate=20,
-            src_name='n0')
+# Begin the simulation with a specified task.
+task = Task(
+    id=0,
+    task_size=20,
+    cycles_per_bit=10,
+    trans_bit_rate=20,
+    src_name='n0',
+)
 
+# Process the task and specify the destination node.
 env.process(task=task, dst_name='n1')
 
+# Run the simulation for 20 time units.
 env.run(until=20)
 
-print("\n-----------------------------------------------")
-print("Energy consumption during simulation:\n")
-print(f"n0: {env.node_energy('n0'):.3f}")
-print(f"n1: {env.node_energy('n1'):.3f}")
-print(f"Averaged: {env.avg_node_energy():.3f}")
-print("-----------------------------------------------\n")
-
+# Close the environment after simulation.
 env.close()
 ```
 
@@ -130,16 +134,7 @@ Simulation log:
 [0.00]: Task {0}: {n0} --> {n1}
 [1.00]: Task {0} arrived Node {n1} with {1.00}s
 [1.00]: Processing Task {0} in {n1}
-[11.00]: Task {0} accomplished in Node {n1} with {10.00}s
-
------------------------------------------------
-Energy consumption during simulation:
-
-n0: 0.000
-n1: 0.072
-Averaged: 0.036
------------------------------------------------
-
+[11.00]: Task {0}: Completed in Node {n1} with execution time {10.00}s
 [20.00]: Simulation completed!
 ```
 

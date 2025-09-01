@@ -10,6 +10,15 @@
 
 > Only the summaries of the **most recent three updates** will be recorded here. The complete history of all update summaries can be viewed [here](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).
 
+- **2025/09/01**
+  - [**New**] RayCloudSim now supports dynamic node online/offline operations during simulation. For more details on this functionality, please refer to [demo7.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.py) or [demo7.ipynb](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.ipynb).
+  - [**New**] RayCloudSim now utilizes unified task [status codes](https://github.com/ZhangRui111/RayCloudSim/blob/main/core/code.py), providing clearer indications of each task's execution state.
+  - [**Optimization**] The functionality of *EnvLogger* has been refined.
+  - [**Fix**] The following bugs have been fixed:
+    - An issue with TimeoutError counting.
+    - An error in task process management (specifically, the failure to correctly close faulty task processes).
+    - Please note that duplicate task IDs are no longer treated as errors.
+
 - **2025/05/07**
   - [**Optimization**] Main branch: Retains only the most necessary and core code and functionality, with the highest readability and the smallest codebase.
 
@@ -17,9 +26,6 @@
   - [**New**] New dataset: [Pakistan](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Pakistan/__init__.py)
   - [**New**] Adding support for distance calculation based on the Haversine formula
   - [**New**] New offloading policies: Round Robin, Greedy and DQRL
-
-- **2024/07/02**
-  - [**New**] New dataset: [Topo4MEC](https://github.com/ZhangRui111/RayCloudSim/blob/main/eval/benchmarks/Topo4MEC/__init__.py)
 
 ## II. Contributing
 
@@ -98,28 +104,26 @@ pip install -r requirements.txt
 ### 1. Hello World
 
 ```python
-# Create the Env
-scenario=Scenario(config_file="examples/scenarios/configs/config_1.json")
-env = Env(scenario, config_file="core/configs/env_config.json")
+# Create the environment with the specified scenario and configuration files.
+scenario = Scenario(config_file="examples/scenarios/configs/config_1.json")
+env = Env(scenario, config_file="core/configs/env_config_null.json")
 
-# Begin Simulation
-task = Task(task_id=0,
-            task_size=20,
-            cycles_per_bit=10,
-            trans_bit_rate=20,
-            src_name='n0')
+# Begin the simulation with a specified task.
+task = Task(
+    id=0,
+    task_size=20,
+    cycles_per_bit=10,
+    trans_bit_rate=20,
+    src_name='n0',
+)
 
+# Process the task and specify the destination node.
 env.process(task=task, dst_name='n1')
 
+# Run the simulation for 20 time units.
 env.run(until=20)
 
-print("\n-----------------------------------------------")
-print("Energy consumption during simulation:\n")
-print(f"n0: {env.node_energy('n0'):.3f}")
-print(f"n1: {env.node_energy('n1'):.3f}")
-print(f"Averaged: {env.avg_node_energy():.3f}")
-print("-----------------------------------------------\n")
-
+# Close the environment after simulation.
 env.close()
 ```
 
@@ -130,16 +134,7 @@ Simulation log:
 [0.00]: Task {0}: {n0} --> {n1}
 [1.00]: Task {0} arrived Node {n1} with {1.00}s
 [1.00]: Processing Task {0} in {n1}
-[11.00]: Task {0} accomplished in Node {n1} with {10.00}s
-
------------------------------------------------
-Energy consumption during simulation:
-
-n0: 0.000
-n1: 0.072
-Averaged: 0.036
------------------------------------------------
-
+[11.00]: Task {0}: Completed in Node {n1} with execution time {10.00}s
 [20.00]: Simulation completed!
 ```
 

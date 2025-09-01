@@ -1,3 +1,12 @@
+- **2025/09/01**
+  - [**New**] RayCloudSim now supports dynamic node online/offline operations during simulation. For more details on this functionality, please refer to [demo7.py](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.py) or [demo7.ipynb](https://github.com/ZhangRui111/RayCloudSim/blob/main/examples/demo7.ipynb).
+  - [**New**] RayCloudSim now utilizes unified task [status codes](https://github.com/ZhangRui111/RayCloudSim/blob/main/core/code.py), providing clearer indications of each task's execution state.
+  - [**Optimization**] The functionality of *EnvLogger* has been refined.
+  - [**Fix**] The following bugs have been fixed:
+    - An issue with TimeoutError counting.
+    - An error in task process management (specifically, the failure to correctly close faulty task processes).
+    - Please note that duplicate task IDs are no longer treated as errors.
+
 - **2025/05/07**
   - [**Optimization**] Main branch: Retains only the most necessary and core code and functionality, with the highest readability and the smallest codebase.
 
