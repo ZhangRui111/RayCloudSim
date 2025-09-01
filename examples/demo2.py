@@ -12,6 +12,8 @@ sys.path.insert(0, parent_dir)
 
 from core.env import Env
 from core.task import Task
+from core.code import *
+from core.utils import analyze_simulation_result
 from examples.scenarios.scenario_2 import Scenario
 
 
@@ -19,27 +21,27 @@ def error_handler(error: Exception):
     """Customized error handler for different types of errors."""
 
     message = error.args[0]
-
-    if message[0] == 'DuplicateTaskIdError':
-        # Error: duplicate task id
-        # print(message[1])
-        # ----- handle this error here -----
-        pass
-    elif message[0] == 'NetworkXNoPathError':
+    task_id, code, info = message
+    
+    # ----- handle error -----
+    if code == TASK_NNPE:
         # Error: nx.exception.NetworkXNoPath
-        # print(message[1])
-        # ----- handle this error here -----
-        pass
-    elif message[0] == 'NetCongestionError':
+        print(info)
+    elif code == TASK_NCGE:
         # Error: network congestion
-        # print(message[1])
-        # ----- handle this error here -----
-        pass
-    elif message[0] == 'InsufficientBufferError':
+        print(info)
+    elif code == TASK_IBFE:
         # Error: insufficient buffer in the destination node
-        # print(message[1])
-        # ----- handle this error here -----
-        pass
+        print(info)
+    elif code == TASK_NOFE:
+        # Error: unexpected node offline
+        print(info)
+    elif code == TASK_NNFE:
+        # Error: destination node is not found
+        print(info)
+    elif code == TASK_TOTE:
+        # Error: timeout error
+        print(info)
     else:
         raise NotImplementedError(error)
 
@@ -59,7 +61,7 @@ def main():
         # n0 --> n2
         ('t1', 0, 1, 20, 1, 10, 100, 'n0', 'n2'),
 
-        # Cause error: DuplicateTaskIdError
+        # DuplicateTaskIdError
         ('t0-duplicate', 1, 0, 20, 1, 10, 100, 'n3', 'n3'),
 
         # Cause error: NetCongestionError
@@ -95,15 +97,6 @@ def main():
     for task_info in simulated_tasks:
 
         generated_time, dst_name = task_info[1], task_info[8]
-        task = Task(
-            id=task_info[2],
-            task_size=task_info[3],
-            cycles_per_bit=task_info[4],
-            trans_bit_rate=task_info[5],
-            ddl=task_info[6],
-            src_name=task_info[7],
-            task_name=task_info[0],
-        )
 
         while True:
             # Catch completed task information.
@@ -111,6 +104,16 @@ def main():
                 item = env.done_task_info.pop(0)
 
             if abs(env.now - generated_time) < 1e-6:
+                task = Task(
+                    id=task_info[2],
+                    task_size=task_info[3],
+                    cycles_per_bit=task_info[4],
+                    trans_bit_rate=task_info[5],
+                    ddl=task_info[6],
+                    src_name=task_info[7],
+                    task_name=task_info[0],
+                )
+                
                 env.process(task=task, dst_name=dst_name)
                 launched_task_cnt += 1
                 break
@@ -130,6 +133,8 @@ def main():
             env.run(until=until)
         except Exception as e:
             error_handler(e)
+    
+    analyze_simulation_result(env.logger.task_info)
 
     print("\n-----------------------------------------------")
     print("Energy consumption during simulation:\n")
@@ -140,7 +145,7 @@ def main():
     print(f"Averaged: {env.avg_node_energy():.3f}")
     print(f"Averaged ('n0', 'n1'): {env.avg_node_energy(node_name_list=['n0', 'n1']):.3f}")
     print("-----------------------------------------------\n")
-
+    
     env.close()
 
 
@@ -153,35 +158,51 @@ if __name__ == '__main__':
 # [0.00]: Processing Task {0} in {n0}
 # [0.00]: Task {1} generated in Node {n0}
 # [0.00]: Task {1}: {n0} --> {n2}
-# [1.00]: **DuplicateTaskIdError: Task {0}** new task (name {t0-duplicate}) with a duplicate task id {0}.
+# [1.00]: **DuplicateTaskIdError: Task {0}** duplicate task with name {t0-duplicate}
 # [2.00]: Task {2} generated in Node {n0}
 # [2.00]: **NetCongestionError: Task {2}** network congestion Node {n0} --> {n2}
+# **NetCongestionError: Task {2}** network congestion Node {n0} --> {n2}
 # [3.00]: Task {3} generated in Node {n0}
 # [3.00]: **NetworkXNoPathError: Task {3}** Node {n3} is inaccessible
+# **NetworkXNoPathError: Task {3}** Node {n3} is inaccessible
 # [4.00]: Task {4} generated in Node {n0}
 # [4.00]: Task {4} is buffered in Node {n0}
 # [4.00]: Task {1} arrived Node {n2} with {4.00}s
 # [4.00]: Processing Task {1} in {n2}
 # [5.00]: Task {5} generated in Node {n0}
 # [5.00]: **InsufficientBufferError: Task {5}** insufficient buffer in Node {n0}
-# [8.00]: Task {0}: Accomplished in Node {n0} with execution time {8.00}s
-# [8.00]: Task {1}: Accomplished in Node {n2} with execution time {4.00}s
+# **InsufficientBufferError: Task {5}** insufficient buffer in Node {n0}
+# [8.00]: Task {0}: Completed in Node {n0} with execution time {8.00}s
+# [8.00]: Task {1}: Completed in Node {n2} with execution time {4.00}s
 # [8.00]: Task {4} re-actives in Node {n0}, waiting {4.00}s
 # [8.00]: Processing Task {4} in {n0}
 # [10.00]: Task {6} generated in Node {n0}
 # [10.00]: Task {6}: {n0} --> {n2}
-# [12.00]: Task {4}: Accomplished in Node {n0} with execution time {4.00}s
+# [12.00]: Task {4}: Completed in Node {n0} with execution time {4.00}s
 # [14.00]: Task {6} arrived Node {n2} with {4.00}s
 # [14.00]: Processing Task {6} in {n2}
-# [18.00]: Task {6}: Accomplished in Node {n2} with execution time {4.00}s
+# [18.00]: Task {6}: Completed in Node {n2} with execution time {4.00}s
 # [20.00]: Task {7} generated in Node {n1}
 # [20.00]: Processing Task {7} in {n1}
 # [20.00]: Task {8} generated in Node {n1}
 # [20.00]: Task {8} is buffered in Node {n1}
-# [60.00]: Task {7}: Accomplished in Node {n1} with execution time {40.00}s
+# [60.00]: Task {7}: Completed in Node {n1} with execution time {40.00}s
 # [60.00]: Task {8} re-actives in Node {n1}, waiting {40.00}s
 # [60.00]: Processing Task {8} in {n1}
-# [100.00]: Task {8}: Accomplished in Node {n1} with execution time {40.00}s
+# [100.00]: Task {8}: Completed in Node {n1} with execution time {40.00}s
+
+# -----------------------------------------------
+# Done simulation!
+# Success Rate: 55.56%, i.e., 5/9
+
+# NetworkXNoPathError    : 1
+# NetCongestionError     : 1
+# InsufficientBufferError: 1
+# NodeOfflineError       : 0
+# NodeNotFoundError      : 0
+# TimeoutError           : 1
+# -----------------------------------------------
+
 
 # -----------------------------------------------
 # Energy consumption during simulation:
@@ -193,5 +214,8 @@ if __name__ == '__main__':
 # Averaged: 0.003
 # Averaged ('n0', 'n1'): 0.006
 # -----------------------------------------------
+
+
+# [101.00]: Warning: 1 tasks with duplicate IDswere detected during the simulation.
 
 # [101.00]: Simulation completed!

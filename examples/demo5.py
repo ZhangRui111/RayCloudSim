@@ -15,6 +15,7 @@ import pandas as pd
 
 from core.env import Env
 from core.task import Task
+from core.utils import analyze_simulation_result
 from eval.benchmarks.Topo4MEC.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
 from policies.demo.demo_round_robin import DemoRoundRobin
@@ -45,15 +46,6 @@ def main():
         # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
         #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
         generated_time = task_info[1]
-        task = Task(
-            id=task_info[2],
-            task_size=task_info[3],
-            cycles_per_bit=task_info[4],
-            trans_bit_rate=task_info[5],
-            ddl=task_info[6],
-            src_name=task_info[7],
-            task_name=task_info[0],
-        )
 
         while True:
             # Catch completed task information.
@@ -61,6 +53,16 @@ def main():
                 item = env.done_task_info.pop(0)
 
             if env.now == generated_time:
+                task = Task(
+                    id=task_info[2],
+                    task_size=task_info[3],
+                    cycles_per_bit=task_info[4],
+                    trans_bit_rate=task_info[5],
+                    ddl=task_info[6],
+                    src_name=task_info[7],
+                    task_name=task_info[0],
+                )
+
                 dst_id = policy.act(env, task)  # offloading decision
                 dst_name = env.scenario.node_id2name[dst_id]
                 env.process(task=task, dst_name=dst_name)
@@ -88,6 +90,8 @@ def main():
     print("Evaluation:")
     print("===============================================\n")
 
+    analyze_simulation_result(env.logger.task_info)
+
     print("-----------------------------------------------")
     m1 = SuccessRate()
     r1 = m1.eval(env.logger.task_info)
@@ -110,22 +114,36 @@ if __name__ == '__main__':
 
 
 # # ==================== Simulation log ====================
-# [883.00]: Task {793}: Accomplished in Node {n19} with execution time {18.62}s
-# [884.00]: Task {783}: Accomplished in Node {n9} with execution time {34.00}s
-# [890.00]: Task {775}: Accomplished in Node {n1} with execution time {11.56}s
-# [891.00]: Task {799}: Accomplished in Node {n0} with execution time {19.37}s
-# [928.00]: Task {782}: Accomplished in Node {n8} with execution time {61.19}s
+# ...
+# [883.00]: Task {793}: Completed in Node {n19} with execution time {18.62}s
+# [884.00]: Task {783}: Completed in Node {n9} with execution time {34.00}s
+# [890.00]: Task {775}: Completed in Node {n1} with execution time {11.56}s
+# [891.00]: Task {799}: Completed in Node {n0} with execution time {19.37}s
+# [928.00]: Task {782}: Completed in Node {n8} with execution time {61.19}s
 
 # ===============================================
 # Evaluation:
 # ===============================================
 
+
 # -----------------------------------------------
-# The success rate of all tasks: 0.9762
+# Done simulation!
+# Success Rate: 88.38%, i.e., 707/800
+
+# NetworkXNoPathError    : 0
+# NetCongestionError     : 0
+# InsufficientBufferError: 19
+# NodeOfflineError       : 0
+# NodeNotFoundError      : 0
+# TimeoutError           : 74
 # -----------------------------------------------
 
 # -----------------------------------------------
-# The average latency per task: 26.7000
+# The success rate of all tasks: 0.8838
+# -----------------------------------------------
+
+# -----------------------------------------------
+# The average latency per task: 22.8802
 # The average energy consumption per node: 598949.0588
 # -----------------------------------------------
 

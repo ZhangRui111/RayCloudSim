@@ -14,42 +14,17 @@ import pandas as pd
 
 from core.env import Env
 from core.task import Task
+from core.code import *
+from core.utils import analyze_simulation_result
 from examples.scenarios.scenario_3 import Scenario
-
-# Global statistics for different error types
-dup_task_id_error = []
-net_no_path_error = []
-net_cong_error = []
-insufficient_buffer_error = []
 
 
 def error_handler(error: Exception):
-    """Customized error handler for different types of errors."""
-
+    """Customized error handler."""
     message = error.args[0]
-
-    if message[0] == 'DuplicateTaskIdError':
-        # Error: duplicate task id
-        # print(message[1])
-        # ----- handle this error here -----
-        dup_task_id_error.append(message[2])
-    elif message[0] == 'NetworkXNoPathError':
-        # Error: nx.exception.NetworkXNoPath
-        # print(message[1])
-        # ----- handle this error here -----
-        net_no_path_error.append(message[2])
-    elif message[0] == 'NetCongestionError':
-        # Error: network congestion
-        # print(message[1])
-        # ----- handle this error here -----
-        net_cong_error.append(message[2])
-    elif message[0] == 'InsufficientBufferError':
-        # Error: insufficient buffer in the destination node
-        # print(message[1])
-        # ----- handle this error here -----
-        insufficient_buffer_error.append(message[2])
-    else:
-        raise NotImplementedError(error)
+    task_id, code, info = message
+    # ----- handle error -----
+    return
 
 
 def main():
@@ -69,37 +44,29 @@ def main():
         env.reset()
         base_until = until
         launched_task_cnt = 0
-        timeout_task_cnt = 0
-
-        del dup_task_id_error[:]
-        del net_no_path_error[:]
-        del net_cong_error[:]
-        del insufficient_buffer_error[:]
 
         for task_info in simulated_tasks:
             # Task properties:
             # ['TaskName', 'GenerationTime', 'TaskID', 'TaskSize', 'CyclesPerBit', 
             #  'TransBitRate', 'DDL', 'SrcName', 'DstName']
             generated_time, dst_name = task_info[1], task_info[8]
-            task = Task(
-                id=task_info[2],
-                task_size=task_info[3],
-                cycles_per_bit=task_info[4],
-                trans_bit_rate=task_info[5],
-                ddl=task_info[6],
-                src_name=task_info[7],
-                task_name=task_info[0],
-            )
 
             while True:
                 # Catch completed task information.
                 while env.done_task_info:
                     item = env.done_task_info.pop(0)
-                    info = item[3]
-                    if not info[1]['ddl_ok']:
-                        timeout_task_cnt += 1
 
                 if env.now - base_until == generated_time:
+                    task = Task(
+                        id=task_info[2],
+                        task_size=task_info[3],
+                        cycles_per_bit=task_info[4],
+                        trans_bit_rate=task_info[5],
+                        ddl=task_info[6],
+                        src_name=task_info[7],
+                        task_name=task_info[0],
+                    )
+
                     env.process(task=task, dst_name=dst_name)
                     launched_task_cnt += 1
                     break
@@ -120,14 +87,9 @@ def main():
             except Exception as e:
                 error_handler(e)
 
+        # Simulation result analysis.
         print(f"\nEpoch {i_epoch}:")
-        print(f"Done simulation with {n_tasks} tasks!\n\n"
-            f"DuplicateTaskIdError   : {len(dup_task_id_error)}\n"
-            f"NetworkXNoPathError    : {len(net_no_path_error)}\n"
-            f"NetCongestionError     : {len(net_cong_error)}\n"
-            f"InsufficientBufferError: {len(insufficient_buffer_error)}")
-        print(f"There are {timeout_task_cnt} time-out tasks.")
-        print("-----------------------------------------------\n")
+        analyze_simulation_result(env.logger.task_info)
 
     env.close()
 
@@ -138,33 +100,45 @@ if __name__ == '__main__':
 
 # # ==================== Simulation log ====================
 # Epoch 0:
-# Done simulation with 400 tasks!
 
-# DuplicateTaskIdError   : 0
+# -----------------------------------------------
+# Done simulation!
+# Success Rate: 64.00%, i.e., 256/400
+
 # NetworkXNoPathError    : 0
 # NetCongestionError     : 6
 # InsufficientBufferError: 70
-# There are 56 time-out tasks.
+# NodeOfflineError       : 0
+# NodeNotFoundError      : 0
+# TimeoutError           : 68
 # -----------------------------------------------
 
 
 # Epoch 1:
-# Done simulation with 400 tasks!
 
-# DuplicateTaskIdError   : 0
+# -----------------------------------------------
+# Done simulation!
+# Success Rate: 64.00%, i.e., 256/400
+
 # NetworkXNoPathError    : 0
 # NetCongestionError     : 6
 # InsufficientBufferError: 70
-# There are 56 time-out tasks.
+# NodeOfflineError       : 0
+# NodeNotFoundError      : 0
+# TimeoutError           : 68
 # -----------------------------------------------
 
 
 # Epoch 2:
-# Done simulation with 400 tasks!
 
-# DuplicateTaskIdError   : 0
+# -----------------------------------------------
+# Done simulation!
+# Success Rate: 64.00%, i.e., 256/400
+
 # NetworkXNoPathError    : 0
 # NetCongestionError     : 6
 # InsufficientBufferError: 70
-# There are 56 time-out tasks.
+# NodeOfflineError       : 0
+# NodeNotFoundError      : 0
+# TimeoutError           : 68
 # -----------------------------------------------

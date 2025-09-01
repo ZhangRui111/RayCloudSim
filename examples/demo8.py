@@ -11,6 +11,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
 import pandas as pd
+import random
 
 from core.env import Env
 from core.task import Task
@@ -20,32 +21,11 @@ from examples.scenarios.scenario_3 import Scenario
 
 
 def error_handler(error: Exception):
-    """Customized error handler for different types of errors."""
-
+    """Customized error handler."""
     message = error.args[0]
     task_id, code, info = message
-    
     # ----- handle error -----
-    if code == TASK_NNPE:
-        # Error: nx.exception.NetworkXNoPath
-        print(info)
-    elif code == TASK_NCGE:
-        # Error: network congestion
-        print(info)
-    elif code == TASK_IBFE:
-        # Error: insufficient buffer in the destination node
-        print(info)
-    elif code == TASK_NOFE:
-        # Error: unexpected node offline
-        print(info)
-    elif code == TASK_NNFE:
-        # Error: destination node is not found
-        print(info)
-    elif code == TASK_TOTE:
-        # Error: timeout error
-        print(info)
-    else:
-        raise NotImplementedError(error)
+    return
 
 
 def main():
@@ -56,7 +36,6 @@ def main():
     # Load simulated tasks from the CSV dataset.
     data = pd.read_csv("examples/dataset/demo3_dataset.csv")
     simulated_tasks = list(data.iloc[:].values)
-    n_tasks = len(simulated_tasks)
 
     # Begin the simulation.
     until = 1
@@ -73,6 +52,10 @@ def main():
                 item = env.done_task_info.pop(0)
 
             if abs(env.now - generated_time) < 1e-6:
+                # Manually avoid the situation where the source node is not found.
+                if task_info[7] not in env.scenario.node_id2name.values():
+                    task_info[7] = random.choice(list(env.scenario.node_id2name.values()))
+
                 task = Task(
                     id=task_info[2],
                     task_size=task_info[3],
@@ -86,6 +69,10 @@ def main():
                 env.process(task=task, dst_name=dst_name)
                 launched_task_cnt += 1
                 break
+            
+            # Take node "n9" offline.
+            if abs(env.now - 500) < 1e-6:
+                env.take_node_offline("n9")
 
             # Execute the simulation with error handler.
             try:
@@ -102,16 +89,9 @@ def main():
             env.run(until=until)
         except Exception as e:
             error_handler(e)
-
+    
     # Simulation result analysis.
     analyze_simulation_result(env.logger.task_info)
-
-    print("\n-----------------------------------------------")
-    print("Energy consumption during simulation:\n")
-    for key in env.scenario.get_nodes().keys():
-        print(f"{key}: {env.node_energy(key):.3f}")
-    print(f"Averaged: {env.avg_node_energy():.3f}")
-    print("-----------------------------------------------\n")
 
     env.close()
 
@@ -130,31 +110,14 @@ if __name__ == '__main__':
 
 # -----------------------------------------------
 # Done simulation!
-# Success Rate: 64.00%, i.e., 256/400
+# Success Rate: 59.50%, i.e., 238/400
 
 # NetworkXNoPathError    : 0
-# NetCongestionError     : 6
-# InsufficientBufferError: 70
-# NodeOfflineError       : 0
-# NodeNotFoundError      : 0
-# TimeoutError           : 68
-# -----------------------------------------------
-
-
-# -----------------------------------------------
-# Energy consumption during simulation:
-
-# n0: 4.155
-# n1: 0.474
-# n2: 1.755
-# n3: 0.380
-# n4: 2.965
-# n5: 0.535
-# n6: 4.037
-# n7: 1.992
-# n8: 0.039
-# n9: 1.355
-# Averaged: 1.769
+# NetCongestionError     : 5
+# InsufficientBufferError: 68
+# NodeOfflineError       : 2
+# NodeNotFoundError      : 22
+# TimeoutError           : 65
 # -----------------------------------------------
 
 # [1319.00]: Simulation completed!

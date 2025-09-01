@@ -65,7 +65,7 @@ class Task:
         self.exe_energy = -1  # Placeholder for energy consumed during execution
 
         # Initialize node information
-        self.src_name = src_name
+        self.src_name: str = src_name
         self.dst: Optional[Node] = None  # Destination node object
         self.dst_id: Optional[int] = None  # Destination node ID
         self.dst_name: Optional[str] = None  # Destination node name

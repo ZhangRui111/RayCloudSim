@@ -1,3 +1,6 @@
+from core.code import *
+
+
 class SuccessRate:
     """Calculates the success rate of tasks.
 
@@ -13,26 +16,25 @@ class SuccessRate:
     def __init__(self) -> None:
         pass
 
-    def eval(self, info: dict) -> float:
+    def eval(self, task_info: dict) -> float:
         """
         Evaluates the success rate based on task information.
 
         Args:
-            info: A dictionary containing task information. The expected format
-                  is {task_id: (status_code, info_list, (src_name, dst_name))},
-                  where status_code is 0 for success and 1 for failure.
+            task_info: A dictionary containing task information. The expected format
+                       is {task_id: (status_code, info)},
+                       for status_code, refer to core/code.py
 
         Returns:
             The calculated success rate as a float. Returns 0.0 if there are no tasks.
         """
         n = 0  # Counter for successfully completed tasks
-        m = len(info)  # Total number of tasks
+        m = len(task_info)  # Total number of tasks
 
         # Iterate through the task information
-        for _, val in info.items():
-            # Check if the task status code indicates success (status_code == 0)
-            if val[0] == 0:
-                n += 1  # Increment the success counter
+        for task_id, (code, info) in task_info.items():
+            if code == TASK_SUCCESS:
+                n += 1
 
         # Calculate and return the success rate. Handle division by zero if no tasks exist.
         return n / m if m > 0 else 0.0
@@ -53,16 +55,14 @@ class AvgLatency:
     def __init__(self) -> None:
         pass
 
-    def eval(self, info: dict) -> float:
+    def eval(self, task_info: dict) -> float:
         """
         Evaluates the average latency based on task information.
 
         Args:
-            info: A dictionary containing task information. The expected format
-                  is {task_id: (status_code, info_list, (src_name, dst_name))},
-                  where status_code is 0 for success and info_list[0], info_list[1],
-                  and info_list[2] are transmission time, waiting time, and
-                  execution time, respectively.
+            task_info: A dictionary containing task information. The expected format
+                       is {task_id: (status_code, info)},
+                       for status_code, refer to core/code.py
 
         Returns:
             The calculated average latency as a float. Returns 0.0 if there are no
@@ -71,11 +71,12 @@ class AvgLatency:
         latencies = [] # List to store latencies of successfully completed tasks
 
         # Iterate through the task information
-        for _, val in info.items():
-            # Check if the task status code indicates success (status_code == 0)
-            if val[0] == 0:
+        for task_id, (code, info) in task_info.items():
+            if code == TASK_SUCCESS:
                 # Extract task times and calculate latency
-                task_trans_time, task_wait_time, task_exe_time = val[1][0], val[1][1], val[1][2]
+                task_trans_time = info["trans_time"]
+                task_wait_time = info["wait_time"]
+                task_exe_time = info["exe_time"]
                 latencies.append(task_wait_time + task_exe_time + task_trans_time)
 
         # Calculate and return the average latency. Handle division by zero if no successful tasks.
@@ -104,8 +105,8 @@ class AvgEnergy:
         Args:
             info: A dictionary containing simulation information, including
                   'task_info' and 'node_info'.
-                  'task_info' format: {task_id: (status_code, info_list, (src_name, dst_name))}
-                  'node_info' format: {node_id: [avg_energy_per_cycle, avg_cpu_freq]}
+                  'task_info' format: {task_id: (status_code, info)}
+                  'node_info' format: {node_id: (avg_energy_per_cycle, avg_cpu_freq)}
 
         Returns:
             The calculated average energy consumption per task as a float. Returns 0.0
@@ -116,9 +117,9 @@ class AvgEnergy:
 
         total_energy_consumption = sum(
             metrics[0] for metrics in node_info.values()
-        ) # Assuming metrics[0] is average energy per cycle
+        )  # Assuming metrics[0] is average energy per cycle
 
-        n_successful_tasks = sum(1 for val in task_info.values() if val[0] == 0)
+        n_successful_tasks = sum(1 for _, (code, info) in task_info.values() if code == TASK_SUCCESS)
 
         # Calculate and return the average energy consumption per task. Handle division by zero.
         return total_energy_consumption / n_successful_tasks if n_successful_tasks > 0 else 0.0

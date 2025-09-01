@@ -7,10 +7,11 @@ from core.base_scenario import BaseScenario
 from core.link import Link
 from core.node import Node
 from core.task import Task
+from core.code import *
 
 __all__ = ["EnvLogger", "Env"]
 
-FLAG_TASK_EXECUTION_DONE = 0
+
 ENERGY_UNIT_CONVERSION = 1e6
 
 
@@ -23,7 +24,7 @@ def user_defined_info(task: Task) -> dict:
     # Calculate the total time taken for the task (wait time + execution time)
     total_time = task.wait_time + task.exe_time
     # Check if the total time is within the task's deadline
-    return {'ddl_ok': total_time <= task.ddl}
+    return {"ddl_ok": total_time <= task.ddl}
 
 
 class EnvLogger:
@@ -53,24 +54,23 @@ class EnvLogger:
         if self.enable_logging:
             print(f"[{self.controller.now:.2f}]: {message}")
 
-    def append(self, info_type: str, key: str, value: tuple) -> None:
-        """Append key information to the logger.
+    def append_node_info(self, key: str, val: tuple) -> None:
+        """Append node information to the logger.
 
         Args:
-            info_type (str): Type of information ('task' or 'node').
-            key (str): Task ID or Node ID.
-            value (tuple):
-                - For 'task': (status_code, info_list, (src_name, dst_name))
-                             status_code: 0 for success, 1 for failure.
-                             info_list: List of relevant information (e.g., times, error type).
-                             (src_name, dst_name): Tuple of source and destination node names.
-                - For 'node': Energy consumption value.
+            key (str): Node ID.
+            val (tuple): (average energy per cycle, average CPU frequency)
         """
-        if info_type not in ['task', 'node']:
-            raise ValueError("info_type must be 'task' or 'node'")
+        self.node_info[key] = val
 
-        target_dict = self.task_info if info_type == 'task' else self.node_info
-        target_dict[key] = value
+    def append_task_info(self, key: str, val: tuple) -> None:
+        """Append task information to the logger.
+
+        Args:
+            key (str): Task ID.
+            val (tuple): (status_code, others: dict)
+        """
+        self.task_info[key] = val
 
     def reset(self) -> None:
         """Reset the logger by clearing all recorded information."""
@@ -102,19 +102,20 @@ class Env:
         self.controller = simpy.Environment()  # SimPy environment controller
         self.logger = EnvLogger(self.controller, enable_logging=enable_logging) # Logger
 
-        # Task and state management
-        self.active_tasks: dict = {}  # Dictionary to store currently active tasks (id: Task)
-        self.done_task_info: list = []  # List to store information of completed tasks
+        self.active_tasks: dict = {}  # Store the IDs of active tasks and their instances (id: Task)
+        self.trans_tasks_dst_name: dict = {}  # Store the IDs of tasks in transit and their destinations (id: dst_name)
+        self.active_tasks_process: dict = {} # Store the IDs of active tasks and their processes (id: SimPy process)
 
-        # SimPy Store to collect information about completed tasks
-        self.done_task_collector = simpy.Store(self.controller)
+        self.all_task_ids: set = set()  # Store the IDs of all generated tasks.
+        self.duplicated_id_cnt = 0  # Record the number of tasks with duplicate IDs to trigger a warning.
+        
+        self.done_task_info: list = []  # Store information of completed tasks
         self.task_count = 0  # Counter for the total number of processed tasks
 
         # self.processed_tasks = []  # debug
 
-        # Reset environment state to initial conditions
-        self.reset()
-
+        # SimPy Store to collect information about completed tasks
+        self.done_task_collector = simpy.Store(self.controller)
         # Start the process that monitors the done_task_collector
         self.monitor_process = self.controller.process(self._monitor_done_task_collector())
 
@@ -123,6 +124,9 @@ class Env:
             node.id: self.controller.process(self._track_node_energy(node))
             for node in self.scenario.get_nodes().values()
         }
+
+        # Reset environment state to initial conditions
+        self.reset()
 
     @property
     def now(self) -> float:
@@ -137,6 +141,95 @@ class Env:
     def status(self, node_name: Optional[str] = None, link_args: Optional[Tuple] = None) -> any:
         """Retrieve the status of a specific node or link from the scenario."""
         return self.scenario.status(node_name, link_args)
+
+    def bring_node_online(self, info: dict):
+        """Bring a node online.
+        
+        Args:
+            info: {"node_info": dict, "link_info": list}
+        """
+        assert "node_info" in info.keys() and "link_info" in info.keys()
+        assert info["node_info"]["NodeId"] not in self.scenario.node_id2name.keys(), \
+            "The ID of the newly launched node is invalid."
+
+        self.scenario.add_node(info["node_info"])
+        for link_info in info["link_info"]:
+            self.scenario.add_link(link_info)
+
+        print("")
+        self.logger.log(f"***WARNING*** Node {info['node_info']['NodeId']} has come online.\n")
+
+    def take_node_offline(self, node_name):
+        """Take a node offline."""
+        if node_name not in self.scenario.node_id2name.values():
+            self.logger.log(f"The node {node_name} is not found.")
+            return
+        
+        node = self.scenario.get_node(node_name)
+
+        # Handle running tasks on the node.
+        for task in node.active_tasks:
+            task.deallocate()
+            del self.active_tasks[task.id]
+
+            task_process = self.active_tasks_process.pop(task.id)
+            if task_process.is_alive:
+                task_process.interrupt()
+            
+            self.task_count += 1
+
+            self.logger.log(
+                f"Task {task.id} is terminated abnormally (Node {node.id} has gone offline).")
+            self.logger.append_task_info(
+                key=task.id,
+                val=(TASK_NOFE, {"src_name": task.src_name, "dst_name": node.name})
+            )
+        
+        # Handle buffered tasks on the node.
+        task = node.task_buffer.pop()
+        while task:
+            task_process = self.active_tasks_process.pop(task.id)
+            if task_process.is_alive:
+                task_process.interrupt()
+            
+            self.task_count += 1
+
+            self.logger.log(
+                f"Task {task.id} is terminated abnormally (Node {node.id} has gone offline).")
+            self.logger.append_task_info(
+                key=task.id,
+                val=(TASK_NOFE, {"src_name": task.src_name, "dst_name": node.name})
+            )
+
+            task = node.task_buffer.pop()
+        
+        # Handle tasks in transit with the node as the destination.
+        task_ids_to_remove = []
+        for task_id, dst_name in self.trans_tasks_dst_name.items():
+            if dst_name == node_name:
+                task_ids_to_remove.append(task_id)
+
+                task_process = self.active_tasks_process.pop(task_id)
+                if task_process.is_alive:
+                    task_process.interrupt()
+                
+                self.task_count += 1
+
+                self.logger.log(
+                    f"Task {task_id}'s transmission was abnormally terminated "
+                    f"(Destination Node {node.id} has gone offline).")
+                self.logger.append_task_info(
+                    key=task_id,
+                    val=(TASK_NOFE, {"dst_name": node.name})
+                )
+        for task_id in task_ids_to_remove:
+            del self.trans_tasks_dst_name[task_id]
+
+        # Handle the offline node.
+        node.reset()
+        self.scenario.remove_node(node_name)
+        print("")
+        self.logger.log(f"***WARNING*** Node {{{node.id}}} has gone offline.\n")
 
     def run(self, until: float):
         """Run the simulation until the specified time.
@@ -156,10 +249,24 @@ class Env:
             **kwargs: Keyword arguments to be passed to the _process_task method,
                       typically including the 'task' object.
         """
-        # Create a SimPy process for the task
-        task_process = self._process_task(**kwargs)
-        # Schedule the process in the simulation environment
-        self.controller.process(task_process)
+        task = kwargs["task"]
+     
+        # Check for duplicate task ID:
+        #     Task IDs are used as keys to record log information, so task IDs must be unique.
+        #     Tasks with duplicate IDs will not be processed, and the total number will be reported 
+        #     as a warning after the simulation.
+        if task.id in self.all_task_ids:
+            # duplicate task ID
+            self.task_count += 1
+            self.duplicated_id_cnt += 1
+            log_info = f"**DuplicateTaskIdError: Task {{{task.id}}}** " \
+                       f"duplicate task with name {{{task.task_name}}}"
+            self.logger.log(log_info)
+        else:
+            self.all_task_ids.add(task.id)
+            # Create and Schedule a SimPy process in the simulation environment
+            task_process = self.controller.process(self._process_task(**kwargs))
+            self.active_tasks_process[task.id] = task_process
 
     def _process_task(self, task: Task, dst_name: Optional[str] = None):
         """Handle the transmission and execution of the task.
@@ -172,40 +279,50 @@ class Env:
             dst_name (Optional[str]): The destination node name. If None, the task is from 
                                       the waiting queue.
         """
-        # Check for duplicate task ID to prevent errors
-        if task.id in self.active_tasks.keys():
-            # If task ID is already in active tasks, it's a duplicate
-            self.task_count += 1 # Increment task count for the failed task
-            self.logger.append(
-                info_type='task',
-                key=task.id,
-                value=(1, ['DuplicateTaskIdError'], (task.src_name, dst_name))
-            )
-            log_info = f"**DuplicateTaskIdError: Task {{{task.id}}}** " \
-                       f"new task (name {{{task.task_name}}}) with a " \
-                       f"duplicate task id {{{task.id}}}."
-            self.logger.log(log_info) # Log the error message
-            raise AssertionError(('DuplicateTaskIdError', log_info, task.id)) # Raise assertion error
-
         # Determine if the task is being reactivated from a waiting queue (dst_name is None)
         flag_reactive = dst_name is None
 
         # Get the destination node object
-        dst = task.dst if flag_reactive else self.scenario.get_node(dst_name)
+        if flag_reactive:
+            dst = task.dst
+        else:
+            # Check if the destination node exists.
+            if dst_name not in self.scenario.node_id2name.values():
+                self.task_count += 1  # Increment task count for the failed task
+                self.logger.append_task_info(
+                    key=task.id,
+                    val=(TASK_NNFE, {"src_name": task.src_name, "dst_name": dst_name})
+                )
+                log_info = f"**NodeNotFoundError: Task {{{task.id}}}** " \
+                           f"destination node {{{dst_name}}} is not found."
+                self.logger.log(log_info)
 
-        # If the task is not reactive (i.e., it's a new task being generated)
-        if not flag_reactive:
-            self.logger.log(f"Task {{{task.id}}} generated in Node {{{task.src_name}}}")
+                # Interrupt the task process
+                del self.active_tasks_process[task.id]
 
-            # If the source and destination nodes are different, handle transmission
-            if dst_name != task.src_name:
-                yield from self._handle_task_transmission(task, dst_name)
-            else:
-                # If source and destination are the same, no transmission time is needed
-                task.trans_time = 0
+                raise AssertionError((task.id, TASK_NNFE, log_info))
+            
+            dst = self.scenario.get_node(dst_name)
 
-        # Execute the task on the destination node
-        yield from self._handle_task_execution(task, dst, flag_reactive)
+        try:
+            # If the task is not reactive (i.e., it's a new task being generated)
+            if not flag_reactive:
+                self.logger.log(f"Task {{{task.id}}} generated in Node {{{task.src_name}}}")
+
+                # If the source and destination nodes are different, handle transmission
+                
+                if dst_name != task.src_name:
+                    yield from self._handle_task_transmission(task, dst_name)
+                else:
+                    # If source and destination are the same, no transmission time is needed
+                    task.trans_time = 0
+
+            # Execute the task on the destination node
+            yield from self._handle_task_execution(task, dst, flag_reactive)
+
+        except simpy.Interrupt as e:
+            # Handle interruption raised by ._handle_task_transmission() or ._handle_task_execution()
+            pass
 
     def _handle_task_transmission(self, task: Task, dst_name: str):
         """Handle the transmission of the task from its source to the destination node.
@@ -231,32 +348,38 @@ class Env:
         except nx.exception.NetworkXNoPath:
             # Handle case where no path exists between the nodes
             self.task_count += 1
-            self.logger.append(
-                info_type='task',
+            self.logger.append_task_info(
                 key=task.id,
-                value=(1, ['NetworkXNoPathError'], (task.src_name, dst_name)),
+                val=(TASK_NNPE, {"src_name": task.src_name, "dst_name": dst_name})
             )
             log_info = (
                 f"**NetworkXNoPathError: Task {{{task.id}}}** "
                 f"Node {{{dst_name}}} is inaccessible"
             )
             self.logger.log(log_info)
-            raise EnvironmentError(('NetworkXNoPathError', log_info, task.id))
+
+            # Interrupt the task process
+            del self.active_tasks_process[task.id]
+
+            raise EnvironmentError((task.id, TASK_NNPE, log_info))
 
         # Check for network congestion along the path
         for link in links_in_path:
             if isinstance(link, Link) and link.free_bandwidth < task.trans_bit_rate:
                 # Handle case where there is not enough free bandwidth on a link
                 self.task_count += 1
-                self.logger.append(
-                    info_type='task',
+                self.logger.append_task_info(
                     key=task.id,
-                    value=(1, ['NetCongestionError'], (task.src_name, dst_name))
+                    val=(TASK_NCGE, {"src_name": task.src_name, "dst_name": dst_name})
                 )
                 log_info = f"**NetCongestionError: Task {{{task.id}}}** " \
                            f"network congestion Node {{{task.src_name}}} --> {{{dst_name}}}"
                 self.logger.log(log_info)
-                raise EnvironmentError(('NetCongestionError', log_info, task.id))
+
+                # Interrupt the task process
+                del self.active_tasks_process[task.id]
+
+                raise EnvironmentError((task.id, TASK_NCGE, log_info))
 
         # Calculate transmission time
         task.trans_time = 0
@@ -271,17 +394,20 @@ class Env:
 
         # Allocate the data flow to the links in the path
         self.scenario.send_data_flow(task.trans_flow, links_in_path)
+        self.trans_tasks_dst_name[task.id] = dst_name
         try:
             # Log the start of transmission and yield a timeout for the transmission time
             self.logger.log(f"Task {{{task.id}}}: {{{task.src_name}}} --> {{{dst_name}}}")
             yield self.controller.timeout(task.trans_time)
             # Deallocate the data flow after transmission is complete
             task.trans_flow.deallocate()
+            del self.trans_tasks_dst_name[task.id]
             self.logger.log(f"Task {{{task.id}}} arrived Node {{{dst_name}}} with "
                             f"{{{task.trans_time:.2f}}}s")
-        except simpy.Interrupt:
-            # Handle interruption during transmission (e.g., due to environment reset)
-            pass
+        except simpy.Interrupt as e:
+            # Handle interruption during transmission (e.g., due to node offline)
+            task.trans_flow.deallocate()
+            raise e
 
     def _handle_task_execution(self, task: Task, dst: Node, flag_reactive: bool):
         """Handle the execution of the task on the destination node.
@@ -291,7 +417,7 @@ class Env:
 
         Args:
             task (Task): The task to execute.
-            dst: The destination node where the task will be executed.
+            dst: The destination node where the task will be executed.  # TODO: 应该传入id, 任务到达后获取最新节点状态
             flag_reactive (bool): A flag indicating if the task is being reactivated
                                   from a waiting queue (True) or is a newly arrived task (False).
 
@@ -308,18 +434,24 @@ class Env:
                 task.allocate(self.now, dst, pre_allocate=True) # Pre-allocate resources if possible
                 dst.append_task(task) # Append task to the node's buffer
                 self.logger.log(f"Task {{{task.id}}} is buffered in Node {{{task.dst_name}}}")
+                self.all_task_ids.remove(task.id)  # If not removed, the task will be treated as a 
+                                                   # duplicate ID upon being reactivated.
                 return # Task is buffered, execution will happen later
             except EnvironmentError as e:
                 # Handle insufficient buffer space error
                 self.task_count += 1
-                self.logger.append(
-                    info_type='task',
+                self.logger.append_task_info(
                     key=task.id,
-                    value=(1, ['InsufficientBufferError'], (task.src_name, task.dst_name)),
+                    val=(TASK_IBFE, {"dst_name": dst.name}),
                 )
-                self.logger.log(e.args[0][1]) # Log the specific error message
-                raise e # Re-raise the exception
+                log_info = e.args[0][1]
+                self.logger.log(log_info)  # Log the specific error message
 
+                # Interrupt the task process
+                del self.active_tasks_process[task.id]
+
+                raise EnvironmentError((task.id, TASK_IBFE, log_info))
+    
         # If CPU is free, allocate resources and proceed with execution
         if flag_reactive:
             # If reactive, allocate resources at the current time
@@ -337,12 +469,9 @@ class Env:
             self.logger.log(f"Processing Task {{{task.id}}} in {{{task.dst_name}}}")
             yield self.controller.timeout(task.exe_time)
             # If execution completes without interruption, put task info in the collector
-            self.done_task_collector.put(
-                (task.id,
-                 FLAG_TASK_EXECUTION_DONE,
-                 [dst.name, user_defined_info(task)]))
+            self.done_task_collector.put((task.id, TASK_COMPLETED, user_defined_info(task)))
         except simpy.Interrupt:
-            # Handle interruption during execution (e.g., due to environment reset)
+            # Handle interruption during execution
             pass
 
     def _monitor_done_task_collector(self):
@@ -357,12 +486,13 @@ class Env:
             if len(self.done_task_collector.items) > 0:
                 while len(self.done_task_collector.items) > 0:
                     # Get the task information from the collector
-                    task_id, flag, info = self.done_task_collector.get().value
+                    task_id, code, info = self.done_task_collector.get().value
                     # Append the completed task information to the done_task_info list
-                    self.done_task_info.append((self.now, task_id, flag, info))
+                    self.done_task_info.append({"now": self.now, "task_id": task_id, 
+                                                "code": code, "info": info})
 
-                    # Process tasks based on their completion flag
-                    if flag == FLAG_TASK_EXECUTION_DONE:
+                    # Process tasks with status code TASK_COMPLETED
+                    if code == TASK_COMPLETED:
                         # Retrieve the task object from the active tasks dictionary
                         task = self.active_tasks[task_id]
 
@@ -370,25 +500,29 @@ class Env:
                         waiting_task = task.dst.pop_task()
 
                         # Log task completion with execution time
-                        self.logger.log(f"Task {{{task_id}}}: Accomplished in "
+                        self.logger.log(f"Task {{{task_id}}}: Completed in "
                                         f"Node {{{task.dst_name}}} with "
                                         f"execution time {{{task.exe_time:.2f}}}s")
 
                         # Record task statistics (success, times, node names) in the logger
-                        self.logger.append(
-                            info_type='task',
-                            key=task.id,
-                            value=(
-                                0, 
-                                [task.trans_time, task.wait_time, task.exe_time], 
-                                (task.src_name, task.dst_name)
-                            ),
+                        if info['ddl_ok']:
+                            self.logger.append_task_info(
+                                key=task.id,
+                                val=(TASK_SUCCESS, {"ddl": task.ddl, "trans_time": task.trans_time, 
+                                                    "wait_time": task.wait_time, "exe_time": task.exe_time}),
                         )
+                        else:
+                            self.logger.append_task_info(
+                                key=task.id,
+                                val=(TASK_TOTE, {"ddl": task.ddl, "trans_time": task.trans_time, 
+                                                 "wait_time": task.wait_time, "exe_time": task.exe_time}),
+                            )
 
                         # Clean up: deallocate resources used by the task and remove from active tasks
                         task.deallocate()
                         del self.active_tasks[task_id]
-                        self.task_count += 1 # Increment the counter for processed tasks
+                        del self.active_tasks_process[task_id]
+                        self.task_count += 1  # Increment the counter for processed tasks
                         # self.processed_tasks.append(task.id)  # debug
 
                         # If there was a waiting task, initiate its processing
@@ -396,8 +530,8 @@ class Env:
                             self.process(task=waiting_task)
 
                     else:
-                        # Handle invalid task flag with a detailed error message
-                        raise ValueError(f"Invalid flag '{flag}' encountered for task {task_id}")
+                        # Handle invalid task status code with a detailed error message
+                        raise ValueError(f"Invalid status code '{code}' encountered for task {task_id}")
 
             # --- Reset for Next Cycle ---
             else:
@@ -415,15 +549,23 @@ class Env:
         and resetting the scenario.
         """
         # Interrupt all active tasks to stop their processes
-        for task_process in self.active_tasks.values():
+        for task_process in self.active_tasks_process.values():
             if task_process.is_alive:
                 task_process.interrupt()
-        self.active_tasks.clear() # Clear the dictionary of active tasks
-        self.task_count = 0 # Reset the processed task counter
+        
+        self.active_tasks.clear()
+        self.trans_tasks_dst_name.clear()
+        self.active_tasks_process.clear()
+
+        self.all_task_ids.clear()
+        self.duplicated_id_cnt = 0
+
+        self.task_count = 0
 
         # Reset the scenario and the logger
         self.scenario.reset()
         self.logger.reset()
+
         # Clear the done task collector and the list of completed task info
         self.done_task_collector.items.clear()
         self.done_task_info.clear()
@@ -437,13 +579,12 @@ class Env:
         # Log energy consumption and CPU frequency per clock cycle for each node
         for _, node in self.scenario.get_nodes().items():
             # Append node metrics to the logger
-            self.logger.append(
-                info_type='node',
+            self.logger.append_node_info(
                 key=node.id,
-                value=[
-                    node.energy_consumption / node.clock if node.clock > 0 else 0,  # Average energy per cycle
-                    node.total_cpu_freq / node.clock if node.clock > 0 else 0       # Average CPU frequency
-                ],
+                val=(
+                    node.energy_consumption / node.clock if node.clock > 0 else 0,
+                    node.total_cpu_freq / node.clock if node.clock > 0 else 0
+                ),
             )
 
         # --- Terminate Processes ---
@@ -455,6 +596,11 @@ class Env:
             if p.is_alive:
                 p.interrupt()
         self.energy_recorders.clear()
+
+        if self.duplicated_id_cnt > 0:
+            print()
+            self.logger.log(f"Warning: {self.duplicated_id_cnt} tasks with duplicate IDs" 
+                            f"were detected during the simulation.\n")
 
         # --- Log Completion ---
         # Record simulation completion

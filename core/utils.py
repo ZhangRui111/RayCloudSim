@@ -2,6 +2,7 @@ import math
 
 from typing import Optional, List
 
+from core.code import *
 
 __all__ = ["Location", "Data", "DataFlow"]
 
@@ -49,6 +50,47 @@ def cal_dis_euclidean(loc1: "Location", loc2: "Location") -> float:
         (loc1.y - loc2.y) ** 2
     )
     return distance
+
+
+def analyze_simulation_result(task_info: dict):
+    """Simulation result analysis."""
+    n_tasks = len(task_info)
+    task_success_cnt = 0
+    net_no_path_error = []
+    net_cong_error = []
+    insufficient_buffer_error = []
+    node_offline_error = []
+    node_not_found_error = []
+    timeout_error = []
+    for task_id, (code, info) in task_info.items():
+        if code == TASK_SUCCESS:
+            task_success_cnt += 1
+        else:
+            if code == TASK_NNPE:
+                net_no_path_error.append(task_id)
+            elif code == TASK_NCGE:
+                net_cong_error.append(task_id)
+            elif code == TASK_IBFE:
+                insufficient_buffer_error.append(task_id)
+            elif code == TASK_NOFE:
+                node_offline_error.append(task_id)
+            elif code == TASK_NNFE:
+                node_not_found_error.append(task_id)
+            elif code == TASK_TOTE:
+                timeout_error.append(task_id)
+            else:
+                raise NotImplementedError
+    
+    print("\n-----------------------------------------------")
+    print(f"Done simulation!\n"
+          f"Success Rate: {task_success_cnt / n_tasks:.2%}, i.e., {task_success_cnt}/{n_tasks}\n\n"
+          f"NetworkXNoPathError    : {len(net_no_path_error)}\n"
+          f"NetCongestionError     : {len(net_cong_error)}\n"
+          f"InsufficientBufferError: {len(insufficient_buffer_error)}\n"
+          f"NodeOfflineError       : {len(node_offline_error)}\n"
+          f"NodeNotFoundError      : {len(node_not_found_error)}\n"
+          f"TimeoutError           : {len(timeout_error)}")
+    print("-----------------------------------------------\n")
 
 
 class Location:

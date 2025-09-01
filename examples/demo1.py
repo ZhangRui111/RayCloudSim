@@ -57,7 +57,7 @@ if __name__ == '__main__':
 # [0.00]: Task {0}: {n0} --> {n1}
 # [1.00]: Task {0} arrived Node {n1} with {1.00}s
 # [1.00]: Processing Task {0} in {n1}
-# [11.00]: Task {0}: Accomplished in Node {n1} with execution time {10.00}s
+# [11.00]: Task {0}: Completed in Node {n1} with execution time {10.00}s
 
 # -----------------------------------------------
 # Energy consumption during simulation:

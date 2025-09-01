@@ -11,8 +11,7 @@ __all__ = ["BaseScenario"]
 
 
 class BaseScenario(metaclass=ABCMeta):
-    """
-    Base class for customized scenarios in the RayCloudSim simulation.
+    """Base class for customized scenarios in the RayCloudSim simulation.
 
     This class provides the fundamental structure and methods for setting up
     and managing the simulation infrastructure, including nodes and links,
@@ -20,8 +19,7 @@ class BaseScenario(metaclass=ABCMeta):
     """
 
     def __init__(self, config_file: str):
-        """
-        Initialize the scenario by loading the configuration file and setting up the infrastructure.
+        """Initialize the scenario by loading the configuration file and setting up the infrastructure.
 
         Args:
             config_file: The path to the JSON configuration file.
@@ -45,39 +43,14 @@ class BaseScenario(metaclass=ABCMeta):
             return json.load(fr)
 
     def init_infrastructure_nodes(self):
-        """
-        Initialize nodes in the infrastructure based on the loaded configuration.
+        """Initialize nodes in the infrastructure based on the loaded configuration.
 
         This method iterates through the 'Nodes' section of the configuration,
         creates Node objects, and adds them to the infrastructure.
         It also populates the node_id2name mapping.
         """
         for node_info in self.json_nodes:
-            # Ensure the node type is 'Node' or handle custom initialization in subclasses
-            assert node_info['NodeType'] == 'Node', (
-                f"Invalid NodeType {node_info['NodeType']}. "
-                "Ensure it is 'Node' or override init_infrastructure_nodes()."
-            )
-
-            # Get the location of the node if coordinates are provided
-            location = self.get_location(node_info)
-            # Create a Node object with information from the configuration
-            node = Node(
-                id=node_info['NodeId'],
-                name=node_info['NodeName'],
-                max_cpu_freq=node_info['MaxCpuFreq'],
-                max_buffer_size=node_info['MaxBufferSize'],
-                location=location,
-                energy_coefficients={
-                    'idle': node_info['IdleEnergyCoef'],
-                    'exe': node_info['ExeEnergyCoef'], 
-                }
-            )
-
-            # Add the created node to the infrastructure
-            self.infrastructure.add_node(node)
-            # Map the node ID to its name for easy lookup
-            self.node_id2name[node_info['NodeId']] = node_info['NodeName']
+            self.add_node(node_info)
 
     def get_location(self, node_info: dict) -> Optional[Location]:
         """Return a Location object if coordinates ('LocX', 'LocY') are provided in node_info, 
@@ -87,44 +60,18 @@ class BaseScenario(metaclass=ABCMeta):
         return None
 
     def init_infrastructure_links(self):
-        """
-        Initialize links between nodes in the infrastructure based on the loaded configuration.
+        """Initialize links between nodes in the infrastructure based on the loaded configuration.
 
         This method iterates through the 'Edges' section of the configuration,
         creates Link objects, and adds them to the infrastructure. It handles
         both unilateral ('SingleLink') and bilateral ('Link') connections.
         """
         for edge_info in self.json_edges:
-            # Ensure the edge type is valid
-            assert edge_info['EdgeType'] in ['Link', 'SingleLink'], (
-                f"Invalid EdgeType {edge_info['EdgeType']}. "
-                "Ensure it is either 'Link' or 'SingleLink'."
-            )
-
-            # Get source and destination node IDs and calculate base latency
-            src_node_id, dst_node_id = edge_info['SrcNodeID'], edge_info['DstNodeID']
-            base_latency = self._calculate_base_latency(edge_info)
-
-            # Add links based on the edge type
-            if edge_info['EdgeType'] == 'SingleLink':
-                self.add_unilateral_link(
-                    self.node_id2name[src_node_id],
-                    self.node_id2name[dst_node_id],
-                    edge_info['Bandwidth'],
-                    base_latency
-                )
-            else:
-                self.add_bilateral_links(
-                    self.node_id2name[src_node_id],
-                    self.node_id2name[dst_node_id],
-                    edge_info['Bandwidth'],
-                    base_latency
-                )
+            self.add_link(edge_info)
 
     def _calculate_base_latency(self, edge_info: dict, 
                                 src_node_id: int = None, dst_node_id: int = None) -> float:
-        """
-        Calculate the base latency for the link.
+        """Calculate the base latency for the link.
 
         If 'BaseLatency' is provided in the edge information, it is used.
         Otherwise, the base latency is calculated (currently returns 0 if not provided).
@@ -143,8 +90,7 @@ class BaseScenario(metaclass=ABCMeta):
 
     @abstractmethod
     def status(self, node_name: Optional[str] = None, link_args: Optional[Tuple] = None):
-        """
-        Abstract method to define the scenario's status.
+        """Abstract method to define the scenario's status.
 
         Subclasses must implement this method to provide specific status information
         relevant to the scenario.
@@ -161,39 +107,81 @@ class BaseScenario(metaclass=ABCMeta):
         links = self.get_links()
         return nodes, links
 
-    def avg_node_energy(self, node_name_list: Optional[List[str]] = None) -> float:
-        """
-        Calculate the average energy consumption of specified nodes.
+    def add_node(self, node_info):
+        """Add a new node."""
+        # Ensure the node type is 'Node' or handle custom initialization in subclasses
+        assert node_info['NodeType'] == 'Node', (
+            f"Invalid NodeType {node_info['NodeType']}. "
+            "Ensure it is 'Node' or override init_infrastructure_nodes()."
+        )
 
-        Args:
-            node_name_list: A list of node names. If None, calculate for all nodes.
+        # Get the location of the node if coordinates are provided
+        location = self.get_location(node_info)
+        # Create a Node object with information from the configuration
+        node = Node(
+            id=node_info['NodeId'],
+            name=node_info['NodeName'],
+            max_cpu_freq=node_info['MaxCpuFreq'],
+            max_buffer_size=node_info['MaxBufferSize'],
+            location=location,
+            energy_coefficients={
+                'idle': node_info['IdleEnergyCoef'],
+                'exe': node_info['ExeEnergyCoef'], 
+            }
+        )
 
-        Returns:
-            The average energy consumption.
-        """
-        if not node_name_list:
-            node_list = self.get_nodes().values()
+        # Add the created node to the infrastructure
+        self.infrastructure.add_node(node)
+        # Map the node ID to its name for easy lookup
+        self.node_id2name[node_info['NodeId']] = node_info['NodeName']
+
+    def add_link(self, link_info):
+        """Add a new link."""
+        # Ensure the edge type is valid
+        assert link_info['EdgeType'] in ['Link', 'SingleLink'], (
+            f"Invalid EdgeType {link_info['EdgeType']}. "
+            "Ensure it is either 'Link' or 'SingleLink'."
+        )
+
+        # Get source and destination node IDs and calculate base latency
+        src_node_id, dst_node_id = link_info['SrcNodeID'], link_info['DstNodeID']
+        base_latency = self._calculate_base_latency(link_info)
+
+        # Add links based on the edge type
+        if link_info['EdgeType'] == 'SingleLink':
+            self.add_unilateral_link(
+                self.node_id2name[src_node_id],
+                self.node_id2name[dst_node_id],
+                link_info['Bandwidth'],
+                base_latency
+            )
         else:
-            node_list = [self.get_node(node_name) for node_name in node_name_list]
+            self.add_bilateral_links(
+                self.node_id2name[src_node_id],
+                self.node_id2name[dst_node_id],
+                link_info['Bandwidth'],
+                base_latency
+            )
 
-        total_energy = sum(node.energy_consumption for node in node_list)
-        return total_energy / len(node_list) if node_list else 0
+    def remove_node(self, name: str):
+        """Remove node n.
 
-    def node_energy(self, node_name: str) -> float:
-        """
-        Return the energy consumption of a specific node.
+        Removes the node n and all adjacent edges.
+        Attempting to remove a non-existent node will raise an exception."""
+        self.infrastructure.remove_node(name)
+        task_ids_to_remove = []
+        for key, val in self.node_id2name.items():
+            if val == name:
+                task_ids_to_remove.append(key)
+        for task_id in task_ids_to_remove:
+            del self.node_id2name[task_id]
 
-        Args:
-            node_name: The name of the node.
-
-        Returns:
-            The energy consumption of the node.
-        """
-        return self.get_node(node_name).energy_consumption
+    def remove_link(self, src_name: str, dst_name: str, key=0):
+        """Remove an edge between two nodes."""
+        self.infrastructure.remove_link(src_name, dst_name, key)
 
     def get_node(self, name: str) -> Node:
-        """
-        Return the node by its name.
+        """Return the node by its name.
 
         Args:
             name: The name of the node.
@@ -204,8 +192,7 @@ class BaseScenario(metaclass=ABCMeta):
         return self.infrastructure.get_node(name)
 
     def get_link(self, src_name: str, dst_name: str, key=0) -> Link:
-        """
-        Return the link between two nodes.
+        """Return the link between two nodes.
 
         Args:
             src_name: The name of the source node.
@@ -226,8 +213,7 @@ class BaseScenario(metaclass=ABCMeta):
         return self.infrastructure.get_links()
 
     def add_unilateral_link(self, src_name: str, dst_name: str, bandwidth: float, base_latency: float = 0):
-        """
-        Add a unilateral link between two nodes.
+        """Add a unilateral link between two nodes.
 
         Args:
             src_name: The name of the source node.
@@ -243,8 +229,7 @@ class BaseScenario(metaclass=ABCMeta):
     def add_bilateral_links(
         self, src_name: str, dst_name: str, bandwidth: Union[float, List], base_latency: float = 0
     ):
-        """
-        Add bilateral links between two nodes.
+        """Add bilateral links between two nodes.
 
         This creates two links: one from src to dst and one from dst to src.
         Bandwidth can be a single float (for symmetric links) or a list of two floats
@@ -269,23 +254,37 @@ class BaseScenario(metaclass=ABCMeta):
                  base_latency=base_latency)
         )
 
-    def reset(self):
-        """
-        Reset all nodes and links in the infrastructure to their initial state.
+    def avg_node_energy(self, node_name_list: Optional[List[str]] = None) -> float:
+        """Calculate the average energy consumption of specified nodes.
 
-        This method is typically called at the beginning of each simulation step
-        or episode.
-        """
-        for node in self.get_nodes().values():
-            node.reset()
+        Args:
+            node_name_list: A list of node names. If None, calculate for all nodes.
 
-        for link in self.get_links().values():
-            link.reset()
+        Returns:
+            The average energy consumption.
+        """
+        if not node_name_list:
+            node_list = self.get_nodes().values()
+        else:
+            node_list = [self.get_node(node_name) for node_name in node_name_list]
+
+        total_energy = sum(node.energy_consumption for node in node_list)
+        return total_energy / len(node_list) if node_list else 0
+
+    def node_energy(self, node_name: str) -> float:
+        """Return the energy consumption of a specific node.
+
+        Args:
+            node_name: The name of the node.
+
+        Returns:
+            The energy consumption of the node.
+        """
+        return self.get_node(node_name).energy_consumption
 
     def send_data_flow(self, data_flow: DataFlow, links=None, src_name: str = None, 
                        dst_name: str = None, weight=None):
-        """
-        Simulate a data flow in the infrastructure from source to destination.
+        """Simulate a data flow in the infrastructure from source to destination.
 
         Args:
             data_flow: The DataFlow object to simulate.
@@ -300,3 +299,15 @@ class BaseScenario(metaclass=ABCMeta):
             links = self.infrastructure.get_shortest_links(src_name, dst_name, weight)
         # Allocate the data flow to the specified or found links
         data_flow.allocate(links)
+
+    def reset(self):
+        """Reset all nodes and links in the infrastructure to their initial state.
+
+        This method is typically called at the beginning of each simulation step
+        or episode.
+        """
+        for node in self.get_nodes().values():
+            node.reset()
+
+        for link in self.get_links().values():
+            link.reset()

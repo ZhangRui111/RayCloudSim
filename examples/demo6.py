@@ -14,6 +14,7 @@ import pandas as pd
 
 from core.env import Env
 from core.task import Task
+from core.utils import analyze_simulation_result
 from eval.benchmarks.Pakistan.scenario import Scenario
 from eval.metrics.metrics import SuccessRate, AvgLatency  # metric
 from policies.demo.demo_round_robin import DemoRoundRobin
@@ -39,15 +40,6 @@ def main():
     launched_task_cnt = 0
     for i, task_info in data.iterrows():
         generated_time = task_info['GenerationTime']
-        task = Task(
-            id=task_info['TaskID'],
-            task_size=task_info['TaskSize'],
-            cycles_per_bit=task_info['CyclesPerBit'],
-            trans_bit_rate=task_info['TransBitRate'],
-            ddl=task_info['DDL'],
-            src_name='e0',
-            task_name=task_info['TaskName'],
-        )
 
         while True:
             # Catch completed task information.
@@ -55,6 +47,16 @@ def main():
                 item = env.done_task_info.pop(0)
             
             if env.now >= generated_time:
+                task = Task(
+                    id=task_info['TaskID'],
+                    task_size=task_info['TaskSize'],
+                    cycles_per_bit=task_info['CyclesPerBit'],
+                    trans_bit_rate=task_info['TransBitRate'],
+                    ddl=task_info['DDL'],
+                    src_name='e0',
+                    task_name=task_info['TaskName'],
+                )
+
                 dst_id = policy.act(env, task)  # offloading decision
                 dst_name = env.scenario.node_id2name[dst_id]
                 env.process(task=task, dst_name=dst_name)
@@ -82,6 +84,8 @@ def main():
     print("Evaluation:")
     print("===============================================\n")
 
+    analyze_simulation_result(env.logger.task_info)
+
     print("-----------------------------------------------")
     m1 = SuccessRate()
     r1 = m1.eval(env.logger.task_info)
@@ -104,22 +108,36 @@ if __name__ == '__main__':
 
 
 # # ==================== Simulation log ====================
+# ...
 # [1263.00]: Processing Task {8967} in {e0}
-# [1265.00]: Task {8967}: Accomplished in Node {e0} with execution time {1.70}s
+# [1265.00]: Task {8967}: Completed in Node {e0} with execution time {1.70}s
 # [1265.00]: Task {8983} re-actives in Node {e0}, waiting {127.17}s
 # [1265.00]: Processing Task {8983} in {e0}
-# [1266.00]: Task {8983}: Accomplished in Node {e0} with execution time {0.90}s
+# [1266.00]: Task {8983}: Completed in Node {e0} with execution time {0.90}s
 
 # ===============================================
 # Evaluation:
 # ===============================================
 
+
 # -----------------------------------------------
-# The success rate of all tasks: 0.7120
+# Done simulation!
+# Success Rate: 36.77%, i.e., 3309/9000
+
+# NetworkXNoPathError    : 0
+# NetCongestionError     : 0
+# InsufficientBufferError: 2592
+# NodeOfflineError       : 0
+# NodeNotFoundError      : 0
+# TimeoutError           : 3099
 # -----------------------------------------------
 
 # -----------------------------------------------
-# The average latency per task: 61.3618
+# The success rate of all tasks: 0.3677
+# -----------------------------------------------
+
+# -----------------------------------------------
+# The average latency per task: 33.2259
 # The average energy consumption per node: 5311811210625.0000
 # -----------------------------------------------
 
