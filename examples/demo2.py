@@ -124,6 +124,9 @@ def main():
             except Exception as e:
                 error_handler(e)
 
+            # # Easter egg: env.now != until
+            # print(env.now, until)
+
             until += 1
 
     # Continue the simulation until the last task successes/fails.
@@ -151,6 +154,12 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# # ==================== Easter egg ====================
+# SimPy is a discrete-event simulation framework where time only advances when an event occurs. 
+# *env.now* reflects the time of the last event that happened in the simulation; the *until* 
+# simply tells the simulator 'run up to this time at most.' Therefore, env.now != until is normal. 
+# Specifically, except at the beginning of the simulation, until is always greater than env.now.
 
 
 # # ==================== Simulation log ====================
