@@ -20,9 +20,14 @@ class Task:
         task_data: Task data object to be processed.
         trans_flow: Data flow object associated with the task transmission.
 
-        trans_time: Time taken for the task to be transmitted.
-        wait_time: Time spent waiting for processing on the destination node.
-        exe_time: Time spent processing the task on the destination node.
+        trans_time: Task transmission time. If the destination node of the task is the 
+                    same as the source node, then trans_time = 0.
+        wait_time: Task queuing time. If the task does not need to be queued, then 
+                   wait_time = 0.
+        exe_time: Task execution time at the destination node.
+                  The total response time of the task = trans_time + wait_time + exe_time. 
+                  Note that, currently, the return time of the task result is not considered, 
+                  as the size of the task result is typically small.
         exe_energy: Energy consumed during task execution.
 
         src_name: Name of the source node that generates the task.
@@ -92,11 +97,11 @@ class Task:
         else:
             if node is None:
                 # Case 2: Re-activate a previously pre-allocated task, ending its queuing time
-                self.wait_time = (now - self.wait_time) + self.trans_time  # Calculate total wait time
+                self.wait_time = now - self.wait_time
                 self._post_allocate_dst()
             else:
                 # Case 3: Allocate and execute task immediately without prior queuing
-                self.wait_time = self.trans_time  # Wait time is just transmission time
+                self.wait_time = 0
                 self._allocate_dst(node)
 
             # Estimated execution time based on task size and CPU frequency

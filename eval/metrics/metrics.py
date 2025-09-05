@@ -36,7 +36,7 @@ class AvgLatency(object):
             
             if val[0] == 0:
                 task_trans_time, task_wait_time, task_exe_time = val[1][0], val[1][1], val[1][2]
-                latencies.append(task_wait_time + task_exe_time + task_trans_time)
+                latencies.append(task_trans_time + task_wait_time + task_exe_time)
                 
                 
                 

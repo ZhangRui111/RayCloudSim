@@ -21,10 +21,14 @@ def user_defined_info(task: Task) -> dict:
     This function can be customized to include specific metrics or checks relevant to 
     the simulation scenario, such as checking if the task met its deadline.
     """
-    # Calculate the total time taken for the task (wait time + execution time)
-    total_time = task.wait_time + task.exe_time
+    # Calculate the total time taken for the task
+    total_time = task.trans_time + task.wait_time + task.exe_time
     # Check if the total time is within the task's deadline
-    return {'ddl_ok': total_time <= task.ddl}
+    if task.ddl == -1:     # -1 is the default value, indicating that the user does not
+        ddl_ok_val = True  # consider the task to have a deadline requirement.
+    else:
+        ddl_ok_val = total_time <= task.ddl
+    return {"ddl_ok": ddl_ok_val}
 
 
 class EnvLogger:
@@ -363,7 +367,7 @@ class Env:
             # If reactive, allocate resources at the current time
             task.allocate(self.now)
             self.logger.log(f"Task {{{task.id}}} re-actives in Node {{{task.dst_name}}}, "
-                            f"waiting {{{(task.wait_time - task.trans_time):.2f}}}s")
+                            f"waiting {{{task.wait_time:.2f}}}s")
         else:
             # If not reactive, allocate resources on the destination node
             task.allocate(self.now, dst)
