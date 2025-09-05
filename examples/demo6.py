@@ -137,7 +137,7 @@ if __name__ == '__main__':
 # -----------------------------------------------
 
 # -----------------------------------------------
-# The average latency per task: 33.2259
+# The average latency per task: 30.6880
 # The average energy consumption per node: 5311811210625.0000
 # -----------------------------------------------
 

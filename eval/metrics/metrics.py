@@ -77,7 +77,7 @@ class AvgLatency:
                 task_trans_time = info["trans_time"]
                 task_wait_time = info["wait_time"]
                 task_exe_time = info["exe_time"]
-                latencies.append(task_wait_time + task_exe_time + task_trans_time)
+                latencies.append(task_trans_time + task_wait_time + task_exe_time)
 
         # Calculate and return the average latency. Handle division by zero if no successful tasks.
         if len(latencies) == 0:
