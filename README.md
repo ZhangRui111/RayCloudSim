@@ -6,6 +6,28 @@
 
 [<img src="https://img.shields.io/badge/License-MIT-blue.svg" height="20px" />](https://github.com/ZhangRui111/RayCloudSim/blob/main/LICENSE)
 
+> [!IMPORTANT]
+> 
+> **For researchers starting a new project, we recommend using our newer simulator:**
+> 
+> 👉 **[UbiCompSim](https://github.com/NexusMindLab/UbiCompSim)**
+> 
+> UbiCompSim is designed as a **unified simulation platform for ubiquitous computing**, built with **Python + SimPy + NetworkX**. Compared with RayCloudSim, it provides a more modern and extensible architecture for studying not only task offloading, but also broader ubiquitous computing scenarios.
+> 
+> ### 📢 Why move to UbiCompSim?
+> 
+> UbiCompSim extends the scope of simulation from traditional Cloud/Fog/Edge settings to more general **ubiquitous computing environments**, with support for:
+> 
+> - **Layered and plugin-oriented architecture**, making it easier to customize and extend
+> - **Dynamic topology management**, including link creation and disconnection caused by node mobility
+> - **Heterogeneous node types**, such as cloud centers, edge servers, RSUs, UAVs, and mobile terminals
+> - **Mobility modeling**, including RandomWaypoint and future mobility extensions
+> - **Fine-grained monitoring and visualization**, with CSV export and automatic chart generation
+> - **Flexible offloading strategies**, with clearer abstractions for experimentation
+> - **Progressive tutorials**, helping new users get started quickly
+> 
+> RayCloudSim will continue to receive limited maintenance updates, while major new features will primarily be introduced in **[UbiCompSim](https://github.com/NexusMindLab/UbiCompSim)**.
+
 ## I. Update Summary
 
 > Only the summaries of the **most recent three updates** will be recorded here. The complete history of all update summaries can be viewed [here](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).

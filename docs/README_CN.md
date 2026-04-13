@@ -6,6 +6,28 @@
 
 [<img src="https://img.shields.io/badge/License-MIT-blue.svg" height="20px" />](https://github.com/ZhangRui111/RayCloudSim/blob/main/LICENSE)
 
+> [!IMPORTANT]
+>
+> **对于正在开展新项目的研究人员，我们推荐使用我们的新一代仿真平台：**
+>
+> 👉 **[UbiCompSim](https://github.com/NexusMindLab/UbiCompSim)**
+>
+> UbiCompSim 是一个面向 **泛在计算 (Ubiquitous Computing)** 的统一仿真平台，基于 **Python + SimPy + NetworkX** 构建。相比 RayCloudSim，它提供了更加现代化、可扩展的架构，不仅支持任务卸载研究，还能够覆盖更广泛的泛在计算场景。
+>
+> ### 📢 为什么迁移到 UbiCompSim？
+>
+> UbiCompSim 将仿真范围从传统的 Cloud/Fog/Edge 场景扩展到更通用的**泛在计算环境**，并提供以下能力：
+>
+> - **分层 + 插件化架构**：更易于定制与扩展
+> - **动态拓扑管理**：支持节点移动引起的链路建立与断开
+> - **异构节点体系**：支持云中心、边缘服务器、RSU、无人机、移动终端等多种节点类型
+> - **移动性建模**：支持 RandomWaypoint 等模型，并预留更多扩展能力
+> - **细粒度监控与可视化**：支持 CSV 导出与自动生成统计图表
+> - **灵活的任务卸载策略**：具备更清晰的实验抽象与扩展接口
+> - **渐进式教程体系**：帮助新用户快速上手
+>
+> RayCloudSim 仍将持续进行有限的维护更新，而主要的新功能和未来演进将优先在 **[UbiCompSim](https://github.com/NexusMindLab/UbiCompSim)** 中实现。
+
 ## I. Update Summary
 
 > 只有最近三次的更新摘要会显示在这里。完整的历史更新摘要可以查看[这里](https://github.com/ZhangRui111/RayCloudSim/blob/main/docs/update_summary.md).
